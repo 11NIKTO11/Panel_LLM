@@ -6,8 +6,6 @@ class Gender(Enum):
   FEMALE = auto()
   NEUTRAL = auto() #Neviem ako sa to preklada
 
-# --- Step 2: Refactor the functions to use the Enum ---
-
 # def declension_gender_a(word: str, gender: Gender) -> str:
 #   """
 #   Applies the '-a' declension for feminine nouns.
@@ -37,3 +35,20 @@ def declension_negation_ne(word: str) -> str:
   """
   # This function does not depend on gender, so it remains the same.
   return 'ne' + word.lower()
+
+def decapitalize(string: str) -> str:
+  return string[0].upper() + string[1:]
+
+def parse_yes_no(response: str) -> bool | None:
+    normalized_response = response.lower().strip()
+
+    # Define sets of valid affirmative and negative answers
+    affirmative_answers = {'ano'}
+    negative_answers = {'ne'}
+
+    if normalized_response in affirmative_answers:
+        return True
+    elif normalized_response in negative_answers:
+        return False
+    else:
+        return None
