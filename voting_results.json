@@ -1,0 +1,618 @@
+[
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.25
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.1
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.8,
+            "not_voted": 0.2
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.15
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.25
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.2
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.05
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.05
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.8,
+            "not_voted": 0.2
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.15
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.25
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.2
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.05
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.05
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.25
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.1
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.7,
+            "not_voted": 0.3
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.2
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.3
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.15
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.03
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.02
+            }
+        ]
+    },
+    {
+        "voted_or_not": {
+            "voted": 0.8,
+            "not_voted": 0.2
+        },
+        "parties": [
+            {
+                "name": "ANO 2011",
+                "probability": 0.15
+            },
+            {
+                "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+                "probability": 0.25
+            },
+            {
+                "name": "Koalice PIRÁTI a STAROSTOVÉ",
+                "probability": 0.2
+            },
+            {
+                "name": "Komunistická strana Čech a Moravy (KSČM)",
+                "probability": 0.05
+            },
+            {
+                "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Česká strana sociálně demokratická (ČSSD)",
+                "probability": 0.1
+            },
+            {
+                "name": "Trikolóra, Svobodní a Soukromníci",
+                "probability": 0.05
+            },
+            {
+                "name": "Přísaha Roberta Šlachty",
+                "probability": 0.05
+            },
+            {
+                "name": "Jiná strana",
+                "probability": 0.05
+            }
+        ]
+    }
+]
