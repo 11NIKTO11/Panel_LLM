@@ -2,9 +2,9 @@ from enum import Enum, auto
 
 class Gender(Enum):
   """Represents grammatical gender for Czech nouns."""
-  MALE = auto()
-  FEMALE = auto()
-  NEUTRAL = auto() #Neviem ako sa to preklada
+  MALE = "muž"
+  FEMALE = "žena"
+  NEUTRAL = "nevím" #Neviem ako sa to preklada
 
 # def declension_gender_a(word: str, gender: Gender) -> str:
 #   """
