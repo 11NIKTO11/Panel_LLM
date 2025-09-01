@@ -48,35 +48,3 @@ class VotingResult(BaseModel):
     parties: List[PartyProbability] = Field(
         description="Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
     )
-
-def aggregate_results(results: List[VotingResult], weighted:bool=True) -> tuple[pd.DataFrame, pd.Series]:
-    """
-    Aggregates probabilities for parties and election attendance.
-    """
-    # Aggregate party probabilities
-    party_probs = {}
-    for result in results:
-        weight = result.voted_or_not.voted if weighted else 0
-        for party in result.parties:
-            if party.name not in party_probs:
-                party_probs[party.name] = []
-            party_probs[party.name].append(party.probability * weight)
-
-    party_df = pd.DataFrame.from_dict(
-        {k: sum(v) / len(v) for k, v in party_probs.items()},
-        orient='index',
-        columns=['Predicted Probability']
-    ).sort_values('Predicted Probability', ascending=False)
-    party_df['Predicted Probability']/= party_df['Predicted Probability'].sum()
-
-    # Aggregate voted/not_voted probabilities
-    voted_sum = sum(r.voted_or_not.voted for r in results)
-    not_voted_sum = sum(r.voted_or_not.not_voted for r in results)
-    total_respondents = len(results)
-
-    attendance_s = pd.Series({
-        "Voted": voted_sum / total_respondents,
-        "Not Voted": not_voted_sum / total_respondents
-    })
-
-    return party_df, attendance_s

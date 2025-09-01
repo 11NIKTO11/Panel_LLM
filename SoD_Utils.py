@@ -1,6 +1,7 @@
 from collections import Counter
 
 import Text_Utils
+import pandas as pd
 
 LANGUAGE_EN = 'EN'
 LANGUAGE_CZ = 'CZ'
@@ -135,6 +136,22 @@ def create_respondent_description(respondent):
 
     return full_description
 
-def get_actual_results(respondents):
-    votes = [vote for vote in respondents["voted_party"].to_list() if not is_non_substantive_responses(vote) and not "Nebyl" in vote]
-    return {key: 100 * value / len(votes) for key, value in Counter(votes).items()}
+def get_actual_results(respondents:pd.DataFrame, count_non_substantive_as_not_voted=False) -> [dict, dict]:
+    """
+    Returns actual voting results as two dictionaries instead of DataFrame and Series.
+    
+    Returns:
+        tuple: (party_results_dict, attendance_dict)
+    """
+    votes = [vote for vote in respondents["voted_party"].to_list() if not is_non_substantive_responses(vote)]
+    party_votes = [vote for vote in votes if not "Nebyl" in vote]
+    voted = len(party_votes) / (len(respondents) if count_non_substantive_as_not_voted else len(votes))
+    
+    attendance_dict = {
+        "Voted": voted,
+        "Not Voted": 1 - voted
+    }
+    
+    party_results = {key: value / len(party_votes) for key, value in Counter(party_votes).items()}
+    
+    return party_results, attendance_dict
