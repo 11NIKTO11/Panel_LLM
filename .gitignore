@@ -1,5 +1,7 @@
 .idea
 .venv
+.claude
 results
 graphs
 SoD-*
+__pycache__
