@@ -3,5 +3,6 @@
 .claude
 results
 graphs
+tmp
 SoD-*
 __pycache__
