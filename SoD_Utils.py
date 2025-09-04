@@ -107,13 +107,13 @@ def create_respondent_description(respondent):
 
     # Living Standard
     living_standard = respondent['living_standard']
-    if is_non_substantive_responses(living_standard):
+    if not is_non_substantive_responses(living_standard):
         verb = _apply_negation_if('mám', "ani" in respondent['living_standard'])
         description_parts.append(f"{verb.capitalize()} {living_standard} životní úroveň.")
 
     # Interest in Politics
     interest = respondent['interest_in_politics']
-    if is_non_substantive_responses(interest):
+    if not is_non_substantive_responses(interest):
         description_parts.append(f"{interest.capitalize()} o politiku.")
 
     # EU and NATO opinions now use the dedicated helper function
@@ -125,7 +125,7 @@ def create_respondent_description(respondent):
     # COVID Vaccination Status
     if respondent.__contains__('covid_vaccinated'):
         vacc_status = respondent['covid_vaccinated']
-        if is_non_substantive_responses(vacc_status):
+        if not is_non_substantive_responses(vacc_status):
             verb = _apply_negation_if("jsem",Text_Utils.parse_yes_no(vacc_status))
             description_parts.append(f"{verb.capitalize()} {Text_Utils.declension_gender_ya('očkován',gender)} proti covidu.")
 
