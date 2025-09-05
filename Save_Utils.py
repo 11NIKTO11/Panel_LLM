@@ -1,53 +1,50 @@
 import json
+from typing import Dict, List, Any, Union
 
-def save_results_to_json(results: list, filename: str):
+def save_results_to_json(results_by_id: Dict[int, Any], filename: str):
     """
-    Serializes a list of VotingResult objects and saves them to a JSON file.
+    Serializes a dict mapping respondent IDs to VotingResult objects and saves it to a JSON file.
 
     Args:
-        results: A list of VotingResult Pydantic objects.
-        filename: The path to the file where the results will be saved.
+        results_by_id: Dict where keys are respondent IDs (int/str) and values are Pydantic VotingResult objects.
+        filename: Output JSON path.
     """
-    # Convert each Pydantic model to a dictionary using .model_dump()
-    results_as_dicts = [result.model_dump() for result in results]
-
+    # Convert values to serializable dicts; stringify keys to ensure JSON object keys are strings
+    serializable = {str(k): (v.model_dump() if hasattr(v, 'model_dump') else v) for k, v in results_by_id.items()}
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            # Use json.dump to write the list of dicts to the file
-            # ensure_ascii=False correctly handles Czech characters
-            # indent=4 makes the file human-readable
-            json.dump(results_as_dicts, f, ensure_ascii=False, indent=4)
-        print(f"Successfully saved {len(results)} results to {filename}")
+            json.dump(serializable, f, ensure_ascii=False, indent=4)
+        print(f"Successfully saved {len(results_by_id)} results (with IDs) to {filename}")
     except IOError as e:
         print(f"Error writing to file {filename}: {e}")
 
 def load_results_from_json(filename: str, class_type):
     """
-    Loads voting results from a JSON file and deserializes them into
-    a list of VotingResult objects.
-
-    Args:
-        filename: The path to the JSON file to load.
+    Loads voting results from a JSON file saved as a dict mapping IDs to objects,
+    and returns a dict that preserves respondent IDs.
 
     Returns:
-        A list of VotingResult objects.
+        Dict[int, VotingResult]
     """
-    loaded_results = []
     try:
         with open(filename, 'r', encoding='utf-8') as f:
-            # Load the raw data from the JSON file
             data_from_file = json.load(f)
-
-            # Re-create Pydantic models from the loaded dictionaries
-            # This automatically validates the data against your schema
-            for item in data_from_file:
-                loaded_results.append(class_type(**item))
-
-        print(f"Successfully loaded and validated {len(loaded_results)} results from {filename}")
-        return loaded_results
+            results_by_id: Dict[int, Any] = {}
+            if isinstance(data_from_file, dict):
+                for k, item in data_from_file.items():
+                    results_by_id[int(k)] = class_type(**item)
+            elif isinstance(data_from_file, list):
+                # If list provided, fall back to enumerated keys as strings
+                for idx, item in enumerate(data_from_file):
+                    results_by_id[str(idx)] = class_type(**item)
+            else:
+                print(f"Unsupported JSON structure in {filename}: {type(data_from_file)}")
+                return {}
+        print(f"Successfully loaded {len(results_by_id)} results (with IDs) from {filename}")
+        return results_by_id
     except FileNotFoundError:
         print(f"Error: The file {filename} was not found.")
-        return []
+        return {}
     except json.JSONDecodeError:
         print(f"Error: Could not decode JSON from the file {filename}.")
-        return []
+        return {}

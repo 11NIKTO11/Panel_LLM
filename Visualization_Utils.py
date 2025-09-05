@@ -5,7 +5,7 @@ import VotingResult
 from typing import List
 
 
-def aggregate_results(results: List['VotingResult'], weighted: bool = True) -> [dict, dict]:
+def aggregate_results(results: List['VotingResult'], weighted: bool = True, normalized: bool = True) -> [dict, dict]:
     """
     Aggregates probabilities for parties and election attendance.
     Returns AggregatedResults containing dictionaries instead of DataFrame and Series.
@@ -14,10 +14,13 @@ def aggregate_results(results: List['VotingResult'], weighted: bool = True) -> [
     party_probs = {}
     for result in results:
         weight = result.voted_or_not.voted if weighted else 1
+        prob_sum = sum([p.probability for p in result.parties]) if normalized else 1
         for party in result.parties:
             if party.name not in party_probs:
                 party_probs[party.name] = []
-            party_probs[party.name].append(party.probability * weight)
+            party_probs[party.name].append(
+                party.probability * weight / (prob_sum or 1)
+            )
 
     # Calculate average probabilities and normalize
     party_averages = {k: sum(v) / len(v) for k, v in party_probs.items()}
@@ -116,3 +119,21 @@ def visualize_comprehensive_results(
     ax2.grid(axis='x', linestyle='--', alpha=0.7)
     plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust layout to make room for suptitle
     plt.show()
+
+def visualize_party_errors(party_error: List[float]):
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        if len(party_error) > 0:
+            plt.figure(figsize=(8, 4))
+            plt.hist(party_error, bins=min(50, max(10, int(np.sqrt(len(party_error))))), color='#1f77b4',
+                     edgecolor='white')
+            plt.title('Distribution of party probability sum errors |1 - sum(probabilities)|')
+            plt.xlabel('Absolute error from 1')
+            plt.ylabel('Count of respondents')
+            plt.grid(axis='y', alpha=0.2)
+            plt.show()
+        else:
+            print('No party probability sum errors to plot (all sums within tolerance).')
+    except Exception as e:
+        print(f'Could not generate party error plot: {e}')
