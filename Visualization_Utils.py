@@ -135,11 +135,11 @@ def visualize_comprehensive_results(
 
     # --- Plot 2: Predicted vs. Reference Party Results ---
     # Prepare data for grouped bar chart using predicted order to align bars
-    labels = list(predicted_party_dict.keys())
-    predicted_probs = list(predicted_party_dict.values())
+    labels = list(actual_party_dict.keys())
+    actual_probs = list(actual_party_dict.values())
 
     # Map reference results to the same order as predicted
-    actual_probs = [actual_party_dict.get(label, 0) for label in labels]
+    predicted_probs = [predicted_party_dict.get(label, 0) for label in labels]
 
     y = np.arange(len(labels))  # the label locations
     height = 0.4  # the height of the bars
@@ -153,7 +153,7 @@ def visualize_comprehensive_results(
     ax2.set_xlabel('Probability / Vote Share', fontsize=12)
     ax2.set_yticks(y, labels)
     ax2.invert_yaxis()  # labels read top-to-bottom
-    ax2.legend(fontsize=12)
+    ax2.legend(loc='lower right', fontsize=12)
     ax2.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
     # Add value labels for both sets of bars
