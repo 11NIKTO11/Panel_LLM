@@ -3,6 +3,7 @@ import matplotlib.ticker as mtick
 import numpy as np
 import VotingResult
 from typing import List
+import seaborn as sns
 
 
 def aggregate_results(results: List['VotingResult'], weighted: bool = True, normalized: bool = True) -> [dict, dict]:
@@ -60,6 +61,7 @@ def aggregate_results(results: List['VotingResult'], weighted: bool = True, norm
     }
 
     return party_dict, attendance_dict
+
 
 def visualize_comprehensive_results(
     predicted_party_dict: dict,
@@ -165,6 +167,7 @@ def visualize_comprehensive_results(
     # Do not force-show here; return the figure so caller can save/show as needed
     return fig
 
+
 def visualize_party_errors(party_error: List[float]):
     """
     Plot histogram of absolute party probability sum errors and return the figure.
@@ -194,3 +197,79 @@ def visualize_party_errors(party_error: List[float]):
     except Exception as e:
         print(f'Could not generate party error plot: {e}')
         return None
+
+
+def evaluate_polls(predicted: dict, claimed: dict, actual: dict, metric: str = "MAE", poll_name: str = "", model_name: str = "", vmax: float = 5):
+    """
+    Compare predicted, claimed, and actual results with pairwise errors.
+
+    Parameters:
+    -----------
+    predicted : dict
+        Predicted probabilities {party: probability (0-1)}
+    claimed : dict
+        Claimed probabilities (e.g., exit poll) {party: probability (0-1)}
+    actual : dict
+        Actual election results {party: probability (0-1)}
+    metric : str, "MAE" or "RMSE"
+        Error metric to compute
+
+    Returns:
+    --------
+    None (displays 3x3 heatmap)
+    """
+    parties = list(actual.keys())
+
+    datasets = {
+        "Predicted": predicted,
+        "Claimed": claimed,
+        "Actual": actual,
+    }
+
+    labels = list(datasets.keys())
+    n = len(labels)
+    errors = np.zeros((n, n))
+
+    # Compute pairwise errors
+    for i, (name_i, dist_i) in enumerate(datasets.items()):
+        for j, (name_j, dist_j) in enumerate(datasets.items()):
+            diffs = []
+            for party in parties:
+                diff = dist_i.get(party, 0) - dist_j.get(party, 0)
+                if metric.upper() == "MAE":
+                    diffs.append(abs(diff) * 100)
+                elif metric.upper() == "RMSE":
+                    diffs.append((diff ** 2) ** 0.5 * 100)
+                else:
+                    raise ValueError("Metric must be 'MAE' or 'RMSE'")
+            if metric.upper() == "MAE":
+                errors[i, j] = np.mean(diffs)
+            else:  # RMSE
+                errors[i, j] = np.sqrt(np.mean([d ** 2 for d in diffs]))
+
+    # Force white background and consistent plasma colormap
+    plt.style.use("default")
+    sns.set_theme(style="white")
+    cmap = plt.cm.plasma
+
+    # Heatmap
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(
+        errors,
+        annot=True,
+        fmt=".1f",
+        cmap=cmap,
+        cbar_kws={"label": "Error (%)"},
+        vmin=0,
+        vmax=vmax,
+        xticklabels=labels,
+        yticklabels=labels,
+    )
+
+    title = f"{poll_name} Errors ({metric.upper()})"
+    if model_name:
+        title += f" — Model: {model_name}"
+
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
