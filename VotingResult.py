@@ -69,8 +69,8 @@ class VotingResult(BaseModel):
             raise RuntimeError("pandas is required to create a Series from VotingResult") from e
 
         row = {
-            "voted": self.voted_or_not.voted,
-            "not_voted": self.voted_or_not.not_voted,
+            "Voted": self.voted_or_not.voted,
+            "Not Voted": self.voted_or_not.not_voted,
         }
         for p in (self.parties or []):
             # Create a stable, readable column name for the party probability
