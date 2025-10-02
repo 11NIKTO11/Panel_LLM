@@ -102,7 +102,7 @@ def visualize_comprehensive_results(
     title = 'Analysis of Predicted Voting Behavior vs. '
     title += f'{ref_label} Results'
     if model_name:
-        title += f" — Model: {model_name}"
+        title += f"\nModel: {model_name}"
     fig.suptitle(title, fontsize=20, y=0.96)
 
     # --- Plot 1: Election Attendance Probability ---
@@ -253,7 +253,7 @@ def evaluate_polls(predicted: dict, claimed: dict, actual: dict, metric: str = "
     cmap = plt.cm.plasma
 
     # Heatmap
-    plt.figure(figsize=(6, 5))
+    fig = plt.figure(figsize=(6, 5))
     sns.heatmap(
         errors,
         annot=True,
@@ -273,3 +273,5 @@ def evaluate_polls(predicted: dict, claimed: dict, actual: dict, metric: str = "
     plt.title(title)
     plt.tight_layout()
     plt.show()
+
+    return fig
