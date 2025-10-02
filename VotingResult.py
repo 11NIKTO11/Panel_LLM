@@ -1,6 +1,7 @@
 import math
+from pandas import Series  # for type hints only
 from pydantic import BaseModel, Field,  field_validator
-from typing import List, Tuple, Literal
+from typing import List, Literal, TYPE_CHECKING
 from collections import Counter
 
 class PartyProbability(BaseModel):
@@ -49,6 +50,33 @@ class VotingResult(BaseModel):
     parties: List[PartyProbability] = Field(
         description="Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
     )
+
+    def to_series(self) -> 'Series':
+        """
+        Transform this VotingResult into a single pandas.Series (one row) with a flat schema.
+
+        Columns produced:
+          - voted_or_not.voted
+          - voted_or_not.not_voted
+          - party.<party_name>
+
+        If multiple PartyProbability entries share the same name, later ones overwrite earlier ones.
+        Missing parties will simply be absent (NaN when combined into a DataFrame).
+        """
+        try:
+            import pandas as pd  # local import to avoid hard dependency for non-analytics workflows
+        except Exception as e:
+            raise RuntimeError("pandas is required to create a Series from VotingResult") from e
+
+        row = {
+            "voted": self.voted_or_not.voted,
+            "not_voted": self.voted_or_not.not_voted,
+        }
+        for p in (self.parties or []):
+            # Create a stable, readable column name for the party probability
+            col = p.name
+            row[col] = p.probability
+        return pd.Series(row)
 
 def evaluate_result(respondent_id:int, res:'VotingResult', tol:float = 1e-2):
     """

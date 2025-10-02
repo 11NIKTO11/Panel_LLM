@@ -1,5 +1,10 @@
 import json
-from typing import Dict, List, Any, Union
+from typing import Dict, Any, Protocol
+
+import pandas as pd
+
+class SeriesConvertible(Protocol):
+    def to_series(self) -> pd.Series: ...
 
 def save_results_to_json(results_by_id: Dict[int, Any], filename: str):
     """
@@ -48,3 +53,22 @@ def load_results_from_json(filename: str, class_type):
     except json.JSONDecodeError:
         print(f"Error: Could not decode JSON from the file {filename}.")
         return {}
+
+
+
+def results_to_dataframe(results_by_id: Dict[int, SeriesConvertible]) -> pd.DataFrame:
+    if not results_by_id:
+        return pd.DataFrame()
+
+    rows = []
+    index = []
+    for rid, val in results_by_id.items():
+        index.append(int(rid))
+        s = val.to_series()
+        rows.append(s)
+
+    df = pd.DataFrame(rows)
+    df.index = index
+    df = df.sort_index()
+
+    return df
