@@ -14,8 +14,8 @@ PRISAHA = "Přísaha Roberta Šlachty"
 JINA_STRANA = "Jiná strana"
 
 # Explicit party column order used in CSVs/Series
-PARTY_COLUMNS = [
-    ANO, SPOLU, PIRSTAN, KSCM, SPD, CSSD, TSS, PRISAHA, JINA_STRANA
+PARTY_COLUMNS_2021 = [
+    ANO, SPOLU, PIRSTAN, SPD, PRISAHA, CSSD, KSCM, TSS, JINA_STRANA
 ]
 
 # Convenience loader for actual election results CSV
