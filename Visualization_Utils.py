@@ -1,74 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
-import VotingResult
-from typing import List
+import Data_Utils
+from Data_Utils import VOTED, NOT_VOTED
 import seaborn as sns
-
-
-from Data import (
-    VOTED, NOT_VOTED,
-    ANO, SPOLU, PIRSTAN, KSCM, SPD, CSSD,
-    TSS, PRISAHA, JINA_STRANA
-)
 import pandas as pd
-
-def aggregate_results(df: pd.DataFrame, weighted: bool = True, normalized: bool = True) -> pd.Series:
-    """
-    Aggregates probabilities for parties and election attendance from a pandas DataFrame and
-    returns a single pandas Series combining attendance and normalized party distribution.
-
-    Args:
-        df: pandas DataFrame with columns VOTED, NOT_VOTED, and party columns named via Data.py constants.
-        weighted: Uses the VOTED column as row weight when True; otherwise weight = 1.
-        normalized: Normalize per-row party probabilities to sum to 1 before aggregation.
-
-    Returns:
-        pd.Series: index contains [VOTED, NOT_VOTED] plus party columns; values are aggregated.
-    """
-    PARTY_COLUMNS = [
-        ANO, SPOLU, PIRSTAN, KSCM, SPD, CSSD,
-        TSS, PRISAHA, JINA_STRANA
-    ]
-
-    # Ensure required columns exist (soft check)
-    missing = [c for c in [VOTED, NOT_VOTED] if c not in df.columns]
-    if missing:
-        raise ValueError(f"Missing required columns in DataFrame: {missing}")
-
-    # Select party columns that are present in the DataFrame
-    parties_present = [c for c in PARTY_COLUMNS if c in df.columns]
-    if not parties_present:
-        # If none of predefined party columns are present, try all columns excluding known fields
-        parties_present = [c for c in df.columns if c not in ['region', VOTED, NOT_VOTED]]
-
-    # Row-wise normalization factor
-    if normalized:
-        denom = df[parties_present].sum(axis=1).replace(0, np.nan)
-    else:
-        denom = 1.0
-
-    # Weight per row
-    if weighted:
-        w = df[VOTED]
-    else:
-        w = 1.0
-
-    weighted_parties = (df[parties_present].div(denom, axis=0).fillna(0)).multiply(w, axis=0)
-    party_sums = weighted_parties.mean(axis=0)
-
-    # Normalize party distribution to sum to 1 across parties
-    total = party_sums.sum()
-    normalized_parties = party_sums / total if total > 0 else party_sums * 0
-
-    attendance = pd.Series({
-        VOTED: float(df[VOTED].mean()),
-        NOT_VOTED: float(df[NOT_VOTED].mean()),
-    })
-
-    result_series = pd.concat([attendance, normalized_parties])
-    return result_series
-
 
 def visualize_comprehensive_results(
     predicted_series: pd.Series,
@@ -174,7 +110,7 @@ def visualize_comprehensive_results(
     return fig
 
 
-def visualize_party_errors(party_error: List[float]):
+def visualize_party_errors(party_error: list[float]):
     """
     Plot histogram of absolute party probability sum errors and return the figure.
 
@@ -205,79 +141,126 @@ def visualize_party_errors(party_error: List[float]):
         return None
 
 
-def evaluate_polls(predicted: dict, claimed: dict, actual: dict, metric: str = "MAE", poll_name: str = "", model_name: str = "", vmax: float = 5):
+def visualize_region_errors(
+    mae_df: pd.DataFrame,
+    metric: str = "MAE",
+    region_column: str = "region",
+    ncols: int = 4,
+    vmin: float = 0,
+    vmax: float = 5,
+    figsize_per_plot: tuple = (4, 3.5),
+    title: str = None
+)-> plt.figure:
     """
-    Compare predicted, claimed, and actual results with pairwise errors.
+    Create 3x3 heatmap subplots for each region showing pairwise error comparisons.
 
     Parameters:
     -----------
-    predicted : dict
-        Predicted probabilities {party: probability (0-1)}
-    claimed : dict
-        Claimed probabilities (e.g., exit poll) {party: probability (0-1)}
-    actual : dict
-        Actual election results {party: probability (0-1)}
-    metric : str, "MAE" or "RMSE"
-        Error metric to compute
+    mae_df : pd.DataFrame
+        DataFrame with columns:
+        - region_column: Region identifier
+        - {metric}_predicted_vs_claimed: Error between predicted and claimed
+        - {metric}_predicted_vs_actual: Error between predicted and actual
+        - {metric}_claimed_vs_actual: Error between claimed and actual
+    metric : str
+        Metric name (e.g., "MAE", "RMSE") - used to find column names
+    region_column : str
+        Name of the column containing region identifiers
+    ncols : int
+        Number of plots per row in the figure
+    vmin : float
+        Minimum value for colormap scale
+    vmax : float
+        Maximum value for colormap scale
+    figsize_per_plot : tuple
+        Size (width, height) for each individual subplot
+    title : str
+        Overall figure title (optional)
 
     Returns:
     --------
-    None (displays 3x3 heatmap)
+    matplotlib.figure.Figure: The created figure
     """
-    parties = list(actual.keys())
+    # Prepare column names based on metric
+    col_pred_clmd = "Predicted vs Actual"
+    col_pred_actu = "Predicted vs Claimed"
+    col_clmd_actu = "Actual vs Claimed"
 
-    datasets = {
-        "Predicted": predicted,
-        "Claimed": claimed,
-        "Actual": actual,
-    }
+    # Check required columns exist
+    required_cols = [region_column, col_pred_clmd, col_pred_actu, col_clmd_actu]
+    missing = [col for col in required_cols if col not in mae_df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
 
-    labels = list(datasets.keys())
-    n = len(labels)
-    errors = np.zeros((n, n))
+    # Calculate subplot layout
+    n_regions = len(mae_df)
+    nrows = int(np.ceil(n_regions / ncols))
 
-    # Compute pairwise errors
-    for i, (name_i, dist_i) in enumerate(datasets.items()):
-        for j, (name_j, dist_j) in enumerate(datasets.items()):
-            diffs = []
-            for party in parties:
-                diff = dist_i.get(party, 0) - dist_j.get(party, 0)
-                if metric.upper() == "MAE":
-                    diffs.append(abs(diff) * 100)
-                elif metric.upper() == "RMSE":
-                    diffs.append((diff ** 2) ** 0.5 * 100)
-                else:
-                    raise ValueError("Metric must be 'MAE' or 'RMSE'")
-            if metric.upper() == "MAE":
-                errors[i, j] = np.mean(diffs)
-            else:  # RMSE
-                errors[i, j] = np.sqrt(np.mean([d ** 2 for d in diffs]))
+    # Create figure
+    fig_width = figsize_per_plot[0] * ncols
+    fig_height = figsize_per_plot[1] * nrows
+    fig, axes = plt.subplots(nrows, ncols, figsize=(fig_width, fig_height))
 
-    # Force white background and consistent plasma colormap
+    # Flatten axes array for easier iteration
+    if n_regions == 1:
+        axes = np.array([axes])
+    axes = axes.flatten() if nrows > 1 or ncols > 1 else [axes]
+
+    # Style settings
     plt.style.use("default")
     sns.set_theme(style="white")
     cmap = plt.cm.plasma
 
-    # Heatmap
-    fig = plt.figure(figsize=(6, 5))
-    sns.heatmap(
-        errors,
-        annot=True,
-        fmt=".1f",
-        cmap=cmap,
-        cbar_kws={"label": "Error (%)"},
-        vmin=0,
-        vmax=vmax,
-        xticklabels=labels,
-        yticklabels=labels,
-    )
+    # Labels for the 3x3 matrix
+    labels = ["Predicted", "Claimed", "Actual"]
 
-    title = f"{poll_name} Errors ({metric.upper()})"
-    if model_name:
-        title += f" — Model: {model_name}"
+    # Plot each region
+    for idx, (_, row) in enumerate(mae_df.iterrows()):
+        if idx >= len(axes):
+            break
 
-    plt.title(title)
-    plt.tight_layout()
-    plt.show()
+        ax = axes[idx]
+        region_name = row[region_column]
 
+        # Build 3x3 error matrix
+        # Rows: Predicted, Claimed, Actual
+        # Cols: Predicted, Claimed, Actual
+        errors = np.array([
+            [0.0,                    row[col_pred_clmd],  row[col_pred_actu]],  # Predicted vs ...
+            [row[col_pred_clmd],     0.0,                 row[col_clmd_actu]],  # Claimed vs ...
+            [row[col_pred_actu],     row[col_clmd_actu],  0.0]                  # Actual vs ...
+        ])
+
+        # Convert to percentage if values are in 0-1 range
+        if errors.max() <= 1.0:
+            errors = errors * 100
+
+        # Create heatmap
+        sns.heatmap(
+            errors,
+            annot=True,
+            fmt=".1f",
+            cmap=cmap,
+            cbar=True,
+            vmin=vmin,
+            vmax=vmax,
+            xticklabels=labels,
+            yticklabels=labels,
+            ax=ax,
+            cbar_kws={"label": f"{metric} (%)"}
+        )
+
+        ax.set_title(region_name, fontsize=10, fontweight='bold')
+
+    # Hide unused subplots
+    for idx in range(n_regions, len(axes)):
+        axes[idx].axis('off')
+
+    # Overall title
+    if title:
+        fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
+    else:
+        fig.suptitle(f"{metric} Error Comparison by Region", fontsize=14, fontweight='bold', y=0.98)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     return fig
