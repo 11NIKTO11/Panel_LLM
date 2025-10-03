@@ -6,81 +6,84 @@ from typing import List
 import seaborn as sns
 
 
-def aggregate_results(results: List['VotingResult'], weighted: bool = True, normalized: bool = True) -> [dict, dict]:
+from Data import (
+    VOTED, NOT_VOTED,
+    ANO, SPOLU, PIRSTAN, KSCM, SPD, CSSD,
+    TSS, PRISAHA, JINA_STRANA
+)
+import pandas as pd
+
+def aggregate_results(df: pd.DataFrame, weighted: bool = True, normalized: bool = True) -> pd.Series:
     """
-    Aggregates probabilities for parties and election attendance.
+    Aggregates probabilities for parties and election attendance from a pandas DataFrame and
+    returns a single pandas Series combining attendance and normalized party distribution.
 
     Args:
-        results: Iterable of VotingResult instances to aggregate.
-        weighted: If True, each respondent's party probabilities are weighted by
-            their probability of having voted (result.voted_or_not.voted). If False,
-            all respondents contribute equally (weight = 1) regardless of their
-            voting probability.
-        normalized: If True, each respondent's party probabilities are first
-            normalized to sum to 1 before aggregation (dividing by the sum of that
-            respondent's party probabilities). This mitigates bias if a respondent's
-            party probabilities do not sum to 1. If False, raw probabilities are
-            used without per-respondent normalization.
+        df: pandas DataFrame with columns VOTED, NOT_VOTED, and party columns named via Data.py constants.
+        weighted: Uses the VOTED column as row weight when True; otherwise weight = 1.
+        normalized: Normalize per-row party probabilities to sum to 1 before aggregation.
 
     Returns:
-        Tuple of two dictionaries:
-          - party_dict: {party_name -> aggregated probability} normalized to sum to 1.
-          - attendance_dict: {"Voted" -> avg voted prob, "Not Voted" -> avg not_voted prob}.
+        pd.Series: index contains [VOTED, NOT_VOTED] plus party columns; values are aggregated.
     """
-    # Aggregate party probabilities
-    party_probs = {}
-    for result in results:
-        weight = result.voted_or_not.voted if weighted else 1
-        prob_sum = sum([p.probability for p in result.parties]) if normalized else 1
-        for party in result.parties:
-            if party.name not in party_probs:
-                party_probs[party.name] = []
-            party_probs[party.name].append(
-                party.probability * weight / (prob_sum or 1)
-            )
+    PARTY_COLUMNS = [
+        ANO, SPOLU, PIRSTAN, KSCM, SPD, CSSD,
+        TSS, PRISAHA, JINA_STRANA
+    ]
 
-    # Calculate average probabilities and normalize
-    party_averages = {k: sum(v) / len(v) for k, v in party_probs.items()}
-    total_prob = sum(party_averages.values())
-    if total_prob > 0:
-        party_dict = {k: v / total_prob for k, v in party_averages.items()}
+    # Ensure required columns exist (soft check)
+    missing = [c for c in [VOTED, NOT_VOTED] if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns in DataFrame: {missing}")
+
+    # Select party columns that are present in the DataFrame
+    parties_present = [c for c in PARTY_COLUMNS if c in df.columns]
+    if not parties_present:
+        # If none of predefined party columns are present, try all columns excluding known fields
+        parties_present = [c for c in df.columns if c not in ['region', VOTED, NOT_VOTED]]
+
+    # Row-wise normalization factor
+    if normalized:
+        denom = df[parties_present].sum(axis=1).replace(0, np.nan)
     else:
-        party_dict = party_averages
+        denom = 1.0
 
-    # Sort by probability (highest first)
-    party_dict = dict(sorted(party_dict.items(), key=lambda x: x[1], reverse=True))
+    # Weight per row
+    if weighted:
+        w = df[VOTED]
+    else:
+        w = 1.0
 
-    # Aggregate voted/not_voted probabilities
-    voted_sum = sum(r.voted_or_not.voted for r in results)
-    not_voted_sum = sum(r.voted_or_not.not_voted for r in results)
-    total_respondents = len(results)
+    weighted_parties = (df[parties_present].div(denom, axis=0).fillna(0)).multiply(w, axis=0)
+    party_sums = weighted_parties.mean(axis=0)
 
-    attendance_dict = {
-        "Voted": voted_sum / total_respondents,
-        "Not Voted": not_voted_sum / total_respondents
-    }
+    # Normalize party distribution to sum to 1 across parties
+    total = party_sums.sum()
+    normalized_parties = party_sums / total if total > 0 else party_sums * 0
 
-    return party_dict, attendance_dict
+    attendance = pd.Series({
+        VOTED: float(df[VOTED].mean()),
+        NOT_VOTED: float(df[NOT_VOTED].mean()),
+    })
+
+    result_series = pd.concat([attendance, normalized_parties])
+    return result_series
 
 
 def visualize_comprehensive_results(
-    predicted_party_dict: dict,
-    predicted_attendance_dict: dict,
-    actual_party_dict: dict,
-    actual_attendance_dict: dict,
+    predicted_series: pd.Series,
+    actual_series: pd.Series,
     model_name: str = None,
     actual_is_claimed: bool = False
 ):
     """
     Generates a two-part plot using pure Matplotlib:
-    1. A bar chart for predicted election attendance.
-    2. A grouped bar chart comparing predicted party probabilities with actual/claimed results.
+    1. A bar chart for election attendance (VOTED vs NOT_VOTED) comparing predicted vs reference.
+    2. A grouped bar chart comparing predicted party probabilities with reference results.
 
     Args:
-        predicted_party_dict: Aggregated predicted party probabilities (sum to 1).
-        predicted_attendance_dict: Predicted attendance distribution, e.g., {"Voted": p, "Not Voted": q}.
-        actual_party_dict: Reference party distribution (official actual or respondents' claimed).
-        actual_attendance_dict: Reference attendance distribution (official actual or respondents' claimed).
+        predicted_series: Aggregated predicted series containing [VOTED, NOT_VOTED] and party indices.
+        actual_series: Reference aggregated series with the same schema.
         model_name: Optional model name to include in the figure title.
         actual_is_claimed: If True, label the reference series as "Claimed"; otherwise label as "Actual".
 
@@ -107,14 +110,12 @@ def visualize_comprehensive_results(
 
     # --- Plot 1: Election Attendance Probability ---
     # Use canonical order when present to avoid swapped bar order
-    canonical_attendance = ["Voted", "Not Voted"]
-    # Keep only those present, then append any extras (stable)
-    attendance_labels = [lbl for lbl in canonical_attendance if lbl in predicted_attendance_dict]
-    extras = [k for k in predicted_attendance_dict.keys() if k not in attendance_labels]
-    attendance_labels += extras
+    canonical_attendance = [VOTED, NOT_VOTED]
+    # Determine available labels from predicted/actual
+    attendance_labels = [lbl for lbl in canonical_attendance if lbl in predicted_series.index or lbl in actual_series.index]
 
-    predicted_attendance_values = [predicted_attendance_dict.get(label, 0) for label in attendance_labels]
-    actual_attendance_values = [actual_attendance_dict.get(label, 0) for label in attendance_labels]
+    predicted_attendance_values = [float(predicted_series.get(label, 0)) for label in attendance_labels]
+    actual_attendance_values = [float(actual_series.get(label, 0)) for label in attendance_labels]
 
     y = np.arange(len(attendance_labels))
     height = 0.35
@@ -136,12 +137,17 @@ def visualize_comprehensive_results(
     ax1.bar_label(rects2, padding=3, fmt='{:.1%}', fontsize=10)
 
     # --- Plot 2: Predicted vs. Reference Party Results ---
-    # Prepare data for grouped bar chart using predicted order to align bars
-    labels = list(actual_party_dict.keys())
-    actual_probs = list(actual_party_dict.values())
+    # Party labels: everything except attendance keys; prefer labels sorted by actual descending
+    attendance_keys = {VOTED, NOT_VOTED}
+    # Extract party parts of the series
+    actual_parties = actual_series.drop(labels=[k for k in actual_series.index if k in attendance_keys])
+    predicted_parties = predicted_series.drop(labels=[k for k in predicted_series.index if k in attendance_keys])
 
-    # Map reference results to the same order as predicted
-    predicted_probs = [predicted_party_dict.get(label, 0) for label in labels]
+    # Determine party labels in descending order by actual values for stable presentation
+    labels = list(actual_parties.sort_values(ascending=False).index)
+    # Align series to these labels
+    actual_probs = [float(actual_parties.get(lbl, 0)) for lbl in labels]
+    predicted_probs = [float(predicted_parties.get(lbl, 0)) for lbl in labels]
 
     y = np.arange(len(labels))  # the label locations
     height = 0.4  # the height of the bars
