@@ -3,22 +3,13 @@ from pandas import Series  # for type hints only
 from pydantic import BaseModel, Field,  field_validator
 from typing import List, Literal, TYPE_CHECKING
 from collections import Counter
+from Data_Utils import PARTY_COLUMNS_2021
 
 class PartyProbability(BaseModel):
     """
     Strukturovaná reprezentace pravděpodobnosti hlasování pro konkrétní stranu.
     """
-    name: Literal[
-        "ANO 2011",
-        "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
-        "Koalice PIRÁTI a STAROSTOVÉ",
-        "Komunistická strana Čech a Moravy (KSČM)",
-        "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
-        "Česká strana sociálně demokratická (ČSSD)",
-        "Trikolóra, Svobodní a Soukromníci",
-        "Přísaha Roberta Šlachty",
-        "Jiná strana"
-    ] = Field(description="Název politické strany.")
+    name: Literal[*PARTY_COLUMNS_2021] = Field(description="Název politické strany.")
     probability: float = Field(
         ge=0, le=1, description="Pravděpodobnost, že respondent hlasoval pro tuto stranu."
     )

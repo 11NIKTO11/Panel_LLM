@@ -19,7 +19,6 @@ def process_employment(row, skip: str = 'Ne'):
 
     return ', '.join(employment_statuses).lower()
 
-
 def process_income(row):
   income_raw = row.get('INCOMEP', '')
 
@@ -28,7 +27,6 @@ def process_income(row):
 
   return Text_Utils.decapitalize(income_raw)
 
-
 def process_town_size(row):
   city_size_raw = row.get('VMB', '')
 
@@ -36,6 +34,34 @@ def process_town_size(row):
     city_size_raw += ' obyvatel'
 
   return Text_Utils.decapitalize(city_size_raw)
+
+def process_SoD_response(row, eu=False, nato=False, covid=False):
+    # --- 1. Basic Information ---
+    # Renames Czech keys to English and performs initial data cleaning.
+    processed_data = {
+        'gender': row.get('GENDER').lower(),
+        'age': int(row.get('AGE1', 0)),
+        'education_level': row.get('EDU', '').lower(),
+        'region': row.get('KRAJ'),
+        'district': row.get('OKRES'),
+        'town_size': process_town_size(row),
+        'employment_status': process_employment(row),
+        'income_range': process_income(row),
+        'living_standard': row.get('Q19','').lower(),
+        'interest_in_politics': row.get('Q20','').lower(),
+        'voted_party': row.get('Q21'),
+    }
+
+    # --- 2. Additional Survey Questions ---
+    # Merges the dictionary of additional questions into the main one.
+    if eu:
+        processed_data['opinion_on_eu'] = row.get('Q18', '').lower()
+    if nato:
+        processed_data['opinion_on_nato'] = row.get('Q17', '').lower()
+    if covid:
+        processed_data['opinion_on_covid'] = row.get('Q23', '').lower()
+
+    return processed_data
 
 def gender_to_enum_gender(gender:str):
   if gender.lower() == 'žena':
@@ -65,7 +91,6 @@ def is_non_substantive_responses(response):
     lower_response = response.lower()
     return 'nevím' in lower_response or 'nechci' in lower_response
 
-
 def _apply_negation_if(verb: str, negate: bool) -> str:
     return Text_Utils.declension_negation_ne(verb) if negate else verb
 
@@ -74,7 +99,6 @@ def _format_opinion_statement(gender, opinion, topic_string):
         return "" # Return an empty string if there is no opinion
 
     return f"Jsem {Text_Utils.declension_gender_ya(opinion[:-3],gender).lower()}, že je Česká republika členským státem {topic_string}."
-# --- Main Function to Create the Description ---
 
 def create_respondent_description(respondent):
     """

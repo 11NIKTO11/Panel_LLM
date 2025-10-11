@@ -9,6 +9,7 @@ import pandas as pd
 def visualize_comprehensive_results(
     predicted_series: pd.Series,
     actual_series: pd.Series,
+    parties: list[str],
     model_name: str = None,
     actual_is_claimed: bool = False
 ):
@@ -80,12 +81,12 @@ def visualize_comprehensive_results(
     predicted_parties = predicted_series.drop(labels=[k for k in predicted_series.index if k in attendance_keys])
 
     # Determine party labels in descending order by actual values for stable presentation
-    labels = list(actual_parties.sort_values(ascending=False).index)
-    # Align series to these labels
-    actual_probs = [float(actual_parties.get(lbl, 0)) for lbl in labels]
-    predicted_probs = [float(predicted_parties.get(lbl, 0)) for lbl in labels]
 
-    y = np.arange(len(labels))  # the label locations
+    # Align series to these labels
+    actual_probs = [float(actual_parties.get(lbl, 0)) for lbl in parties]
+    predicted_probs = [float(predicted_parties.get(lbl, 0)) for lbl in parties]
+
+    y = np.arange(len(parties))  # the label locations
     height = 0.4  # the height of the bars
 
     # Plot the bars (Predicted on top)
@@ -95,7 +96,7 @@ def visualize_comprehensive_results(
     # Add some text for labels, title and axes ticks
     ax2.set_title(f'Comparison of Predicted vs. {ref_label} Election Results', fontsize=16)
     ax2.set_xlabel('Probability / Vote Share', fontsize=12)
-    ax2.set_yticks(y, labels)
+    ax2.set_yticks(y, parties)
     ax2.invert_yaxis()  # labels read top-to-bottom
     ax2.legend(loc='lower right', fontsize=12)
     ax2.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
