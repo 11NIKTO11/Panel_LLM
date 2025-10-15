@@ -265,3 +265,82 @@ def visualize_region_errors(
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     return fig
+
+
+def visualize_party_probability_distribution(
+    party_results_df: pd.DataFrame,
+    parties: list[str],
+    title: str | None = None,
+    kind: str = "box",           # "box" or "violin"
+    add_points: bool = True,
+    sample: int | None = None,
+    point_size: float = 2.0,
+    alpha: float = 0.3,
+) -> plt.Figure:
+    """
+    Visualize distribution of party probabilities with one column per party.
+
+    Parameters
+    ----------
+    party_results_df : pd.DataFrame
+        DataFrame containing probability columns for each party (wide format).
+    parties : list[str]
+        Ordered list of party column names to include.
+    title : str | None
+        Optional plot title.
+    kind : str
+        "box" for boxplot or "violin" for violin plot.
+    add_points : bool
+        Whether to overlay individual observations as a jittered stripplot.
+    sample : int | None
+        If set, randomly sample this many rows to reduce overplotting.
+    point_size : float
+        Size of points in the stripplot overlay.
+    alpha : float
+        Alpha of points in the stripplot overlay.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        The generated figure.
+    """
+    # Select and clean data
+    df = party_results_df[parties].copy()
+    # Clip to [0, 1] just in case and optionally sample to avoid heavy overplotting
+    df = df.clip(lower=0, upper=1)
+    if sample is not None and len(df) > sample:
+        df = df.sample(sample, random_state=42)
+
+    # Melt to long format: columns -> 'party', values -> 'value'
+    long_df = df.reset_index(drop=True).melt(var_name="party", value_name="value")
+
+    # Figure sizing proportional to number of parties
+    fig_width = max(10, int(len(parties) * 0.9))
+    fig, ax = plt.subplots(figsize=(fig_width, 10))
+
+    sns.set_theme(style="whitegrid")
+
+    if kind.lower() == "violin":
+        sns.violinplot(data=long_df, x="party", y="value", ax=ax, inner=None, cut=0, linewidth=1, color="#89CFF0")
+    else:
+        # default to box
+        sns.boxplot(data=long_df, x="party", y="value", ax=ax, showfliers=False, color="#89CFF0")
+
+    if add_points:
+        sns.stripplot(
+            data=long_df, x="party", y="value", ax=ax,
+            color="black", size=point_size, alpha=alpha, jitter=0.2
+        )
+
+    ax.set_ylabel("Probability")
+    ax.set_xlabel("Party")
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+    ax.set_ylim(0, 1)
+    ax.tick_params(axis='x', rotation=90)
+
+    if title is None:
+        title = "Distribution of Party Probabilities (per Respondent)"
+    ax.set_title(title)
+
+    plt.tight_layout()
+    return fig

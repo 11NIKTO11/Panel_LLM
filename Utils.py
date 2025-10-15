@@ -90,7 +90,6 @@ class VotingProcessor:
             self,
             data: pd.DataFrame,
             prompt_creator: Callable[[pd.Series], str],
-            prompt_question: str,
             response_model: Type[BaseModel],
             model: str = "gpt-4.1-nano",
             temperature: float = 0.0,
