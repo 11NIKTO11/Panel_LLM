@@ -30,7 +30,7 @@ class VotedProbability(BaseModel):
     #             raise ValueError("Součet pravděpodobností pro 'voted' a 'not_voted' se musí rovnat 1.0")
     #     return v
 
-class VotingResult(BaseModel):
+class VotingProbabilities(BaseModel):
     """
     Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.
     """
@@ -69,7 +69,7 @@ class VotingResult(BaseModel):
             row[col] = p.probability
         return pd.Series(row)
 
-def evaluate_result(respondent_id:int, res:'VotingResult', tol:float = 1e-2):
+def evaluate_result(respondent_id:int, res: 'VotingProbabilities', tol:float = 1e-2):
     """
     Pure evaluation: returns a dict with detected issues; does not mutate outer scope.
     Returns keys:
