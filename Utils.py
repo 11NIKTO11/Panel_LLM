@@ -3,15 +3,18 @@ import time
 import random
 import json
 import concurrent.futures
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
 import pandas as pd
+import numpy as np
 from tqdm.auto import tqdm
 from pydantic import BaseModel, ValidationError
 from openai import OpenAI, RateLimitError
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
-
-# Assuming these are imported from your specific modules
-# from your_module import SoD_Utils, VotingResult
+def generate_prob_vectors_df(n, m):
+  random_vectors = np.random.rand(n, m)
+  probability_vectors = random_vectors / random_vectors.sum(axis=1, keepdims=True)
+  df = pd.DataFrame(probability_vectors)
+  return df
 
 class VotingProcessor:
     def __init__(self, api_key: Union[str, None] = None, client: Union[Any, None] = None):
