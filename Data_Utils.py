@@ -1,6 +1,30 @@
 # Canonical names used across VotingResult and data mappings
 # Always import and use these instead of string literals.
-import math
+
+GPT_41_NANO = "gpt-4.1-nano"    # GPT-4.1 Nano (cheapest, fastest)
+GPT_4o_MINI = "gpt-4o-mini"     # GPT-4o Mini (cheaper, faster)
+GPT_41 = "gpt-4.1"              # GPT-4.1 (flagship reasoning model)
+GPT_4o = "gpt-4o"               # GPT-4o (fast, high quality)
+
+MODELS = [GPT_41_NANO, GPT_4o_MINI, GPT_41, GPT_4o]
+
+
+REGIONS = [
+    "Hlavní město Praha",
+    "Středočeský kraj",
+    "Jihočeský kraj",
+    "Plzeňský kraj",
+    "Karlovarský kraj",
+    "Ústecký kraj",
+    "Liberecký kraj",
+    "Královéhradecký kraj",
+    "Pardubický kraj",
+    "Kraj Vysočina",
+    "Jihomoravský kraj",
+    "Olomoucký kraj",
+    "Zlínský kraj",
+    "Moravskoslezský kraj",
+]
 
 VOTED = "Voted"
 NOT_VOTED = "Not Voted"
@@ -29,7 +53,7 @@ ALL_COLUMNS = ATTENDANCE_COLUMNS + PARTY_COLUMNS_2021
 # Convenience loader for actual election results CSV
 import os
 import pandas as pd
-from typing import Optional
+import math
 
 def load_actual_results() -> pd.DataFrame:
     """

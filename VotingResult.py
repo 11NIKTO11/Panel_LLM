@@ -68,9 +68,12 @@ class VotingProbabilities(BaseModel):
             Data_Utils.NOT_VOTED: self.voted_or_not.not_voted,
         }
         for p in (self.parties or []):
-            # Create a stable, readable column name for the party probability
-            col = p.name
-            row[col] = p.probability
+            row[p.name] = p.probability
+
+        for col in PARTY_COLUMNS_2021:
+            if col not in row.keys():
+                row[col] = 0.0
+
         return pd.Series(row)
 
 class VotingPick(BaseModel):

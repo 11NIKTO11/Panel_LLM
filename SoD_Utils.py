@@ -76,6 +76,9 @@ def decline_region_to_Locative(region_name):
 
     For example: 'Plzeňský kraj' -> 'Plzeňském kraji'
     """
+    if 'Česko' in region_name:
+        return 'Česku'
+
     # Handles special case for Prague 'Hlavní město Praha'
     if 'Praha' in region_name:
         return 'Praze'
