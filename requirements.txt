@@ -1,0 +1,13 @@
+# Core dependencies inferred from source files and notebooks
+pandas
+numpy
+matplotlib
+seaborn
+pydantic
+
+# LLM-related utilities used in Models_Utils and notebooks
+any-llm
+openai
+
+# Utilities used in notebooks
+tqdm

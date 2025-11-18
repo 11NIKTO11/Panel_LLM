@@ -1,6 +1,8 @@
 from collections import Counter
 
+import Data_Utils
 import Text_Utils
+import pandas as pd
 
 LANGUAGE_EN = 'EN'
 LANGUAGE_CZ = 'CZ'
@@ -17,7 +19,6 @@ def process_employment(row, skip: str = 'Ne'):
 
     return ', '.join(employment_statuses).lower()
 
-
 def process_income(row):
   income_raw = row.get('INCOMEP', '')
 
@@ -26,7 +27,6 @@ def process_income(row):
 
   return Text_Utils.decapitalize(income_raw)
 
-
 def process_town_size(row):
   city_size_raw = row.get('VMB', '')
 
@@ -34,6 +34,34 @@ def process_town_size(row):
     city_size_raw += ' obyvatel'
 
   return Text_Utils.decapitalize(city_size_raw)
+
+def process_SoD_response(row, eu=False, nato=False, covid=False):
+    # --- 1. Basic Information ---
+    # Renames Czech keys to English and performs initial data cleaning.
+    processed_data = {
+        'gender': row.get('GENDER').lower(),
+        'age': int(row.get('AGE1', 0)),
+        'education_level': row.get('EDU', '').lower(),
+        'region': row.get('KRAJ'),
+        'district': row.get('OKRES'),
+        'town_size': process_town_size(row),
+        'employment_status': process_employment(row),
+        'income_range': process_income(row),
+        'living_standard': row.get('Q19','').lower(),
+        'interest_in_politics': row.get('Q20','').lower(),
+        'voted_party': row.get('Q21'),
+    }
+
+    # --- 2. Additional Survey Questions ---
+    # Merges the dictionary of additional questions into the main one.
+    if eu:
+        processed_data['opinion_on_eu'] = row.get('Q18', '').lower()
+    if nato:
+        processed_data['opinion_on_nato'] = row.get('Q17', '').lower()
+    if covid:
+        processed_data['opinion_on_covid'] = row.get('Q23', '').lower()
+
+    return processed_data
 
 def gender_to_enum_gender(gender:str):
   if gender.lower() == 'žena':
@@ -48,6 +76,9 @@ def decline_region_to_Locative(region_name):
 
     For example: 'Plzeňský kraj' -> 'Plzeňském kraji'
     """
+    if 'Česko' in region_name:
+        return 'Česku'
+
     # Handles special case for Prague 'Hlavní město Praha'
     if 'Praha' in region_name:
         return 'Praze'
@@ -63,7 +94,6 @@ def is_non_substantive_responses(response):
     lower_response = response.lower()
     return 'nevím' in lower_response or 'nechci' in lower_response
 
-
 def _apply_negation_if(verb: str, negate: bool) -> str:
     return Text_Utils.declension_negation_ne(verb) if negate else verb
 
@@ -72,7 +102,6 @@ def _format_opinion_statement(gender, opinion, topic_string):
         return "" # Return an empty string if there is no opinion
 
     return f"Jsem {Text_Utils.declension_gender_ya(opinion[:-3],gender).lower()}, že je Česká republika členským státem {topic_string}."
-# --- Main Function to Create the Description ---
 
 def create_respondent_description(respondent):
     """
@@ -106,13 +135,13 @@ def create_respondent_description(respondent):
 
     # Living Standard
     living_standard = respondent['living_standard']
-    if is_non_substantive_responses(living_standard):
+    if not is_non_substantive_responses(living_standard):
         verb = _apply_negation_if('mám', "ani" in respondent['living_standard'])
         description_parts.append(f"{verb.capitalize()} {living_standard} životní úroveň.")
 
     # Interest in Politics
     interest = respondent['interest_in_politics']
-    if is_non_substantive_responses(interest):
+    if not is_non_substantive_responses(interest):
         description_parts.append(f"{interest.capitalize()} o politiku.")
 
     # EU and NATO opinions now use the dedicated helper function
@@ -124,7 +153,7 @@ def create_respondent_description(respondent):
     # COVID Vaccination Status
     if respondent.__contains__('covid_vaccinated'):
         vacc_status = respondent['covid_vaccinated']
-        if is_non_substantive_responses(vacc_status):
+        if not is_non_substantive_responses(vacc_status):
             verb = _apply_negation_if("jsem",Text_Utils.parse_yes_no(vacc_status))
             description_parts.append(f"{verb.capitalize()} {Text_Utils.declension_gender_ya('očkován',gender)} proti covidu.")
 
@@ -135,6 +164,36 @@ def create_respondent_description(respondent):
 
     return full_description
 
-def get_actual_results(respondents):
-    votes = [vote for vote in respondents["voted_party"].to_list() if not is_non_substantive_responses(vote) and not "Nebyl" in vote]
-    return {key: 100 * value / len(votes) for key, value in Counter(votes).items()}
+def get_actual_results(respondents:pd.DataFrame, count_non_substantive_as_not_voted=False) -> pd.Series:
+    """
+    Aggregate actual voting results from survey respondents into a Series.
+
+    Args:
+        respondents: DataFrame with 'voted_party' column containing survey responses
+        count_non_substantive_as_not_voted: If True, count "Nevím"/"Nechci uvést" as "Not Voted"
+
+    Returns:
+        pd.Series: Aggregated results with attendance and party probabilities
+            - VOTED: probability of voting
+            - NOT_VOTED: probability of not voting
+            - Party columns: vote share for each party (normalized to sum to 1)
+    """
+    votes = [vote for vote in respondents["voted_party"].to_list() if not is_non_substantive_responses(vote)]
+    party_votes = [vote for vote in votes if not "Nebyl" in vote]
+    voted = len(party_votes) / (len(respondents) if count_non_substantive_as_not_voted else len(votes))
+
+    # Count party votes
+    party_counts = Counter(party_votes)
+    total_party_votes = len(party_votes)
+
+    # Build result series
+    result_dict = {
+        Data_Utils.VOTED: voted,
+        Data_Utils.NOT_VOTED: 1 - voted
+    }
+
+    # Add all parties with their probabilities (0 if not in data)
+    for party in Data_Utils.PARTY_COLUMNS_2021:
+        result_dict[party] = party_counts.get(party, 0) / total_party_votes if total_party_votes > 0 else 0.0
+
+    return pd.Series(result_dict)
