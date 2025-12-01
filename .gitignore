@@ -7,3 +7,4 @@ tmp
 SoD-*
 __pycache__
 /data/clean_data.csv
+/CLAUDE.md

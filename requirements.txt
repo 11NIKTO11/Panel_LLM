@@ -6,7 +6,7 @@ seaborn
 pydantic
 
 # LLM-related utilities used in Models_Utils and notebooks
-any-llm
+# any-llm
 openai
 
 # Utilities used in notebooks

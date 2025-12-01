@@ -1,7 +1,9 @@
 import json
+import os
 from typing import Dict, Any, Protocol
 
 import pandas as pd
+
 
 class SeriesConvertible(Protocol):
     def to_series(self) -> pd.Series: ...
@@ -9,12 +11,7 @@ class SeriesConvertible(Protocol):
 def save_results_to_json(results_by_id: Dict[int, Any], filename: str):
     """
     Serializes a dict mapping respondent IDs to VotingResult objects and saves it to a JSON file.
-
-    Args:
-        results_by_id: Dict where keys are respondent IDs (int/str) and values are Pydantic VotingResult objects.
-        filename: Output JSON path.
     """
-    # Convert values to serializable dicts; stringify keys to ensure JSON object keys are strings
     serializable = {str(k): (v.model_dump() if hasattr(v, 'model_dump') else v) for k, v in results_by_id.items()}
     try:
         with open(filename, 'w', encoding='utf-8') as f:
@@ -27,9 +24,6 @@ def load_results_from_json(filename: str, class_type):
     """
     Loads voting results from a JSON file saved as a dict mapping IDs to objects,
     and returns a dict that preserves respondent IDs.
-
-    Returns:
-        Dict[int, VotingResult]
     """
     try:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -39,7 +33,6 @@ def load_results_from_json(filename: str, class_type):
                 for k, item in data_from_file.items():
                     results_by_id[int(k)] = class_type(**item)
             elif isinstance(data_from_file, list):
-                # If list provided, fall back to enumerated keys as strings
                 for idx, item in enumerate(data_from_file):
                     results_by_id[str(idx)] = class_type(**item)
             else:
@@ -53,8 +46,6 @@ def load_results_from_json(filename: str, class_type):
     except json.JSONDecodeError:
         print(f"Error: Could not decode JSON from the file {filename}.")
         return {}
-
-
 
 def results_to_dataframe(results_by_id: Dict[int, SeriesConvertible]) -> pd.DataFrame:
     if not results_by_id:
@@ -72,3 +63,13 @@ def results_to_dataframe(results_by_id: Dict[int, SeriesConvertible]) -> pd.Data
     df = df.sort_index()
 
     return df
+
+def load_actual_results() -> pd.DataFrame:
+    """
+    Load actual election results from CSV.
+
+    Returns:
+        pd.DataFrame: DataFrame with columns [region, VOTED, NOT_VOTED, ...party columns...]
+    """
+    csv_path = os.path.join("data", "election_data.csv")
+    return pd.read_csv(csv_path, encoding="utf-8-sig")

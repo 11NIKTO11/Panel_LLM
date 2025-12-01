@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
-import Data_Utils
-from Data_Utils import VOTED, NOT_VOTED
+from utils.constants import VOTED, NOT_VOTED
 import seaborn as sns
 import pandas as pd
 
