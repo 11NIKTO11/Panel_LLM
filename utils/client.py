@@ -11,13 +11,11 @@ from tqdm.auto import tqdm
 from pydantic import BaseModel, ValidationError
 from openai import OpenAI, RateLimitError
 
-
 def generate_prob_vectors_df(n, m):
     random_vectors = np.random.rand(n, m)
     probability_vectors = random_vectors / random_vectors.sum(axis=1, keepdims=True)
     df = pd.DataFrame(probability_vectors)
     return df
-
 
 class VotingProcessor:
     def __init__(self, api_key: Union[str, None] = None, client: Union[Any, None] = None):

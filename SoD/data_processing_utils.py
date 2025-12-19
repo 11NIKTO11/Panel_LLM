@@ -1,4 +1,6 @@
-from utils import czech_grammar as cz
+import pandas as pd
+from collections import Counter
+from utils import constants, czech_grammar as cz
 
 def process_employment(row, skip: str = 'Ne'):
     # Column names for employment statuses contain 'EMPLOYMENT_' and number from range from 1 to 10.
@@ -138,3 +140,44 @@ def create_respondent_description(respondent):
 
     full_description = " ".join(part for part in description_parts if part)
     return full_description
+
+def get_actual_results(respondents: pd.DataFrame, count_non_substantive_as_not_voted: bool = False) -> pd.Series:
+    """
+    Aggregate actual voting results from survey respondents into a Series.
+
+    Args:
+        respondents: DataFrame with 'voted_party' column containing survey responses
+        count_non_substantive_as_not_voted: If True, count "Nevím"/"Nechci uvést" as "Not Voted"
+
+    Returns:
+        pd.Series: Aggregated results with attendance and party probabilities
+            - VOTED: probability of voting
+            - NOT_VOTED: probability of not voting
+            - Party columns: vote share for each party (normalized to sum to 1)
+    """
+    # Filter out totally non-substantive answers unless counting them as not voted in the denominator.
+    votes_all = respondents["voted_party"].astype(str).tolist()
+    votes_subst = [vote for vote in votes_all if not is_non_substantive_responses(vote)]
+    party_votes = [vote for vote in votes_subst if "Nebyl" not in vote]
+
+    denom = len(respondents) if count_non_substantive_as_not_voted else len(votes_subst)
+    voted = (len(party_votes) / denom) if denom > 0 else 0.0
+
+    # Count party votes
+    party_counts = Counter(party_votes)
+    total_party_votes = len(party_votes)
+
+    # Build result series
+    result_dict = {
+        constants.VOTED: voted,
+        constants.NOT_VOTED: 1 - voted
+    }
+
+    # Add all parties with their probabilities (0 if not in data)
+    for party in constants.PARTY_COLUMNS_2021:
+        if total_party_votes > 0:
+            result_dict[party] = party_counts.get(party, 0) / total_party_votes
+        else:
+            result_dict[party] = 0.0
+
+    return pd.Series(result_dict)

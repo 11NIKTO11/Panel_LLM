@@ -1,50 +1,5 @@
-from collections import Counter
 import math
-import pandas as pd
-
-from .constants import VOTED, NOT_VOTED, PARTY_COLUMNS_2021
-from .respondent_description import is_non_substantive_responses
 from .voting import VotingProbabilities
-
-
-def get_actual_results(respondents: pd.DataFrame, count_non_substantive_as_not_voted: bool = False) -> pd.Series:
-    """
-    Aggregate actual voting results from survey respondents into a Series.
-
-    Args:
-        respondents: DataFrame with 'voted_party' column containing survey responses
-        count_non_substantive_as_not_voted: If True, count "Nevím"/"Nechci uvést" as "Not Voted"
-
-    Returns:
-        pd.Series: Aggregated results with attendance and party probabilities
-            - VOTED: probability of voting
-            - NOT_VOTED: probability of not voting
-            - Party columns: vote share for each party (normalized to sum to 1)
-    """
-    # Filter out totally non-substantive answers unless counting them as not voted in the denominator.
-    votes_all = respondents["voted_party"].astype(str).tolist()
-    votes_subst = [vote for vote in votes_all if not is_non_substantive_responses(vote)]
-    party_votes = [vote for vote in votes_subst if "Nebyl" not in vote]
-
-    denom = len(respondents) if count_non_substantive_as_not_voted else len(votes_subst)
-    voted = (len(party_votes) / denom) if denom > 0 else 0.0
-
-    # Count party votes
-    party_counts = Counter(party_votes)
-    total_party_votes = len(party_votes)
-
-    # Build result series
-    result_dict = {
-        VOTED: voted,
-        NOT_VOTED: 1 - voted
-    }
-
-    # Add all parties with their probabilities (0 if not in data)
-    for party in PARTY_COLUMNS_2021:
-        result_dict[party] = (party_counts.get(party, 0) / total_party_votes) if total_party_votes > 0 else 0.0
-
-    return pd.Series(result_dict)
-
 
 def evaluate_result(respondent_id: int, res: 'VotingProbabilities', tol: float = 1e-2):
     """
@@ -79,7 +34,6 @@ def evaluate_result(respondent_id: int, res: 'VotingProbabilities', tol: float =
             issues['bad_party_probs_sum'] = (respondent_id, s_parties, v)
 
     return issues
-
 
 def evaluate_voting_results(voting_results, tol: float = 1e-2):
     bad_voted_sum, bad_party_probs_sum, duplicate_parties = [], [], []
