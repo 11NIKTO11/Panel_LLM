@@ -64,6 +64,26 @@ def gender_to_enum_gender(gender: str):
     else:
         return cz.Gender.NEUTRAL
 
+def decline_region_to_Genitiv(region_name):
+    """
+    Applies Czech grammar rules to correctly decline a region name for use
+    in a sentence like "Žiji v [region name]".
+
+    For example: 'Plzeňský kraj' -> 'Plzeňského kraje'
+    """
+    if 'Česko' in region_name:
+        return 'Česka'
+    # Handles special case for Prague 'Hlavní město Praha'
+    if 'Praha' in region_name:
+        return 'Prahy'
+
+    # General grammar rules for other regions
+    declined_name = region_name.replace('raj', 'raje')  # Covers Kraj and kraj
+    if 'ký' in declined_name:
+        declined_name = declined_name.replace('ký', 'kého')
+
+    return declined_name
+
 def decline_region_to_locative(region_name):
     """
     Applies Czech grammar rules to correctly decline a region name for use
