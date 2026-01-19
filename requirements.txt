@@ -11,3 +11,7 @@ openai
 
 # Utilities used in notebooks
 tqdm
+
+# Optional structured-output providers
+anthropic
+google-genai
