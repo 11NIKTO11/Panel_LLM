@@ -5,8 +5,13 @@ GPT_4o_MINI = "gpt-4o-mini"     # GPT-4o Mini (cheaper, faster)
 GPT_41 = "gpt-4.1"              # GPT-4.1 (flagship reasoning model)
 GPT_4o = "gpt-4o"               # GPT-4o (fast, high quality)
 GEMINI_3_FLASH = "gemini-3-flash-preview"
+CLAUDE_SONNET_45= "claude-sonnet-4-5"
 
 MODELS = [GPT_41_NANO, GPT_4o_MINI, GPT_41, GPT_4o]
+
+OPENAI = "openai"
+GOOGLE = "google"
+ANTHROPIC = "anthropic"
 
 # Regions
 COUNTRY = "Česko"

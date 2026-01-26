@@ -1,14 +1,17 @@
 import os
 import time
 import random
+import requests
 import json
 import concurrent.futures
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
 import pandas as pd
 import numpy as np
+
 from tqdm.auto import tqdm
 from pydantic import BaseModel, ValidationError
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
+from utils import constants
 
 try:
     from openai import OpenAI, RateLimitError
@@ -42,7 +45,6 @@ class BaseLLMClient:
     ) -> BaseModel:
         raise NotImplementedError
 
-
 class OpenAIClient(BaseLLMClient):
     def __init__(self, api_key: Union[str, None] = None):
         if OpenAI is None:
@@ -61,7 +63,6 @@ class OpenAIClient(BaseLLMClient):
         )
         return response.output_parsed
 
-
 class ClaudeClient(BaseLLMClient):
     def __init__(self, api_key: Union[str, None] = None):
         if Anthropic is None:
@@ -74,12 +75,12 @@ class ClaudeClient(BaseLLMClient):
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
         response = self.client.beta.messages.parse(
             model=model,
+            max_tokens=2048,
             betas=["structured-outputs-2025-11-13"],
             messages=[{"role": "user", "content": prompt}],
             output_format=response_format,
         )
-        return getattr(response, "parsed_output", None)
-
+        return response.parsed_output
 
 class GeminiClient(BaseLLMClient):
     def __init__(self, api_key: Union[str, None] = None):
@@ -99,39 +100,157 @@ class GeminiClient(BaseLLMClient):
                 "response_json_schema": response_format.model_json_schema(),
             },
         )
-        raw_text = getattr(response, "text", None)
-        if raw_text is None and hasattr(response, "candidates"):
-            try:
-                raw_text = response.candidates[0].content.parts[0].text
-            except Exception:
-                raw_text = None
-        if not raw_text:
-            raise ValueError("Gemini response missing text payload.")
-        parsed = json.loads(raw_text)
+        parsed = json.loads(response.text)
         return response_format(**parsed)
 
+class OpenRouterClient(BaseLLMClient):
+    def __init__(self, api_key: Union[str, None] = None):
+        if genai is None:
+            raise ImportError("google-genai package is required for Gemini models.")
+        key = api_key or os.getenv("OPENROUTER_API_KEY")
+        if not key:
+            raise ValueError("OPENROUTER_API_KEY must be set for Gemini models.")
+        self.header = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+        }
+        self.url = "https://openrouter.ai/api/v1/chat/completions"
+
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
+        provider = _detect_provider(model)
+        response_format_json = response_format.model_json_schema()
+
+        if provider == constants.OPENAI:
+            response_format_json = _set_additional_properties_false(response_format_json)
+            response_format_json = _move_ref_descriptions(response_format_json)
+        elif provider == constants.ANTHROPIC:
+            response_format_json = _set_additional_properties_false(response_format_json)
+            response_format_json = _remove_min_max(response_format_json)
+
+        response = requests.post(
+            self.url,
+            headers=self.header,
+            json={
+                "model": f"{provider}/{self._fix_model(model)}",
+                "messages": [
+                    {"role": "user", "content": prompt},
+                ],
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema":{
+                        "name": response_format.__name__,
+                        "strict": True,
+                        "schema": response_format_json,
+                    }
+                },
+            },
+        )
+        data = response.json()
+        try:
+            text = data["choices"][0]["message"]["content"]
+            parsed = json.loads(text)
+            return response_format(**parsed)
+        except Exception as e:
+            raise ValueError(f"Failed to parse response: {data}")
+
+    def _fix_model(self, model: str):
+        if model == constants.CLAUDE_SONNET_45:
+            model = model.replace("4-5", "4.5")
+        return model
+
+def _set_additional_properties_false(schema: dict) -> dict:
+    """
+    Recursively traverses a JSON schema and sets 'additionalProperties'
+    to False for all objects.
+    """
+    if isinstance(schema, dict):
+        if schema.get("type") == "object" and "properties" in schema:
+            schema["additionalProperties"] = False
+        for key, value in schema.items():
+            schema[key] = _set_additional_properties_false(value)
+    elif isinstance(schema, list):
+        for i, item in enumerate(schema):
+            schema[i] = _set_additional_properties_false(item)
+    return schema
+
+def _move_ref_descriptions(schema: dict) -> dict:
+    """
+    Finds descriptions next to $refs and moves them into the referenced definition.
+    This is required for models like gpt-4.1-nano.
+    """
+    if isinstance(schema, dict):
+        # The pattern to fix is a dictionary with both '$ref' and 'description'
+        if '$ref' in schema and 'description' in schema:
+            ref_path = schema['$ref']
+            description = schema.pop('description') # Remove description from here
+
+            # The path is typically '#/$defs/ModelName'
+            try:
+                parts = ref_path.strip('#/').split('/')
+                target = schema
+                # Find the root of the schema to navigate from
+                # This is a simplification; a more robust solution might need to pass the root down.
+                # For a typical Pydantic schema, this will work if called on the top-level dict.
+                if '$defs' in schema:
+                    target_def = schema['$defs'][parts[1]]
+                    if 'description' not in target_def: # Don't overwrite existing description
+                         target_def['description'] = description
+                    else:
+                        print(f"Warning: Description for ref {ref_path} already exists")
+            except (KeyError, IndexError) as e:
+                # Could not find the referenced definition, just leave it.
+                print(f"Warning: Could not move description for ref {ref_path}: {e}")
+                schema['description'] = description # Put it back if failed
+
+        # Recurse through the rest of the schema
+        for key, value in schema.items():
+            schema[key] = _move_ref_descriptions(value)
+
+    elif isinstance(schema, list):
+        for i, item in enumerate(schema):
+            schema[i] = _move_ref_descriptions(item)
+
+    return schema
+
+def _remove_min_max(schema: dict) -> dict:
+    """
+    Recursively removes 'minimum' and 'maximum' keys from a JSON schema.
+    Required for models like claude-sonnet-4-5.
+    """
+    if isinstance(schema, dict):
+        if schema.get("type") in ["number", "integer"]:
+            schema.pop("minimum", None)
+            schema.pop("maximum", None)
+
+        for key, value in schema.items():
+            schema[key] = _remove_min_max(value)
+
+    elif isinstance(schema, list):
+        for i, item in enumerate(schema):
+            schema[i] = _remove_min_max(item)
+
+    return schema
 
 def _detect_provider(model: str) -> str:
     lower = model.lower()
     if "claude" in lower:
-        return "claude"
+        return constants.ANTHROPIC
     if "gemini" in lower:
-        return "gemini"
+        return constants.GOOGLE
     if "gpt" in lower or "openai" in lower:
-        return "openai"
-    return "openai"
+        return constants.OPENAI
+    return ""
 
-
-def create_client(model: str, api_key: Union[str, None] = None) -> Union[BaseLLMClient,None]:
-    provider = _detect_provider(model)
-    if provider == "claude":
-        return ClaudeClient(api_key=api_key)
-    if provider == "gemini":
-        return GeminiClient(api_key=api_key)
-    if provider == "openai":
-        return OpenAIClient(api_key=api_key)
-    return None
-
+def create_client(model: Union[str, None] = None, api_key: Union[str, None] = None) -> Union[BaseLLMClient,None]:
+    if model:
+        provider = _detect_provider(model)
+        if provider == constants.ANTHROPIC:
+            return ClaudeClient(api_key=api_key)
+        if provider == constants.GOOGLE:
+            return GeminiClient(api_key=api_key)
+        if provider == constants.OPENAI:
+            return OpenAIClient(api_key=api_key)
+    return OpenRouterClient(api_key=api_key)
 
 def _process_single_respondent(
         i: int,
@@ -173,7 +292,6 @@ def _process_single_respondent(
 
     print(f"[GiveUp] Respondent {i}: exhausted {retries} attempts without valid parsed result.")
     return i, None
-
 
 def run_voting_simulation(
         data: pd.DataFrame,

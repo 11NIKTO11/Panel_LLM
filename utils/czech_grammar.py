@@ -7,7 +7,6 @@ class Gender(Enum):
     FEMALE = "žena"
     NEUTRAL = "nevím"  # Placeholder for unknown/neutral
 
-
 def declension_gender_ya(word: str, gender: Gender) -> str:
     """
     Applies the '-ý' vs '-á' adjectival ending based on gender.
