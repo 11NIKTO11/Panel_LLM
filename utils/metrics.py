@@ -37,7 +37,7 @@ def evaluate_result(respondent_id: int, res: 'VotingProbabilities', tol: float =
 
 def evaluate_voting_results(voting_results, tol: float = 1e-2):
     bad_voted_sum, bad_party_probs_sum, duplicate_parties = [], [], []
-    for rid, result in voting_results.items():
+    for rid, (prompt, result) in voting_results.items():
         try:
             issues = evaluate_result(rid, result, tol)
             if 'bad_voted_sum' in issues:

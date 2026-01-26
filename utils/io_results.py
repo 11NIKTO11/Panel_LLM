@@ -1,18 +1,28 @@
 import json
 import os
-from typing import Dict, Any, Protocol
+from typing import Dict, Any, Protocol, Tuple, Union
 
+from utils.constants import PROMPT
 import pandas as pd
 
 
 class SeriesConvertible(Protocol):
     def to_series(self) -> pd.Series: ...
 
-def save_results_to_json(results_by_id: Dict[int, Any], filename: str):
+ResultValue = Union[SeriesConvertible, Tuple[str, SeriesConvertible]]
+
+def _serialize_result_value(value: ResultValue) -> Any:
+    if isinstance(value, tuple) and len(value) == 2:
+        prompt, result = value
+        payload = result.model_dump() if hasattr(result, 'model_dump') else result
+        return {"prompt": prompt, "result": payload}
+    return value.model_dump() if hasattr(value, 'model_dump') else value
+
+def save_results_to_json(results_by_id: Dict[int, ResultValue], filename: str):
     """
     Serializes a dict mapping respondent IDs to VotingResult objects and saves it to a JSON file.
     """
-    serializable = {str(k): (v.model_dump() if hasattr(v, 'model_dump') else v) for k, v in results_by_id.items()}
+    serializable = {str(k): _serialize_result_value(v) for k, v in results_by_id.items()}
     try:
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(serializable, f, ensure_ascii=False, indent=4)
@@ -47,15 +57,16 @@ def load_results_from_json(filename: str, class_type):
         print(f"Error: Could not decode JSON from the file {filename}.")
         return {}
 
-def results_to_dataframe(results_by_id: Dict[int, SeriesConvertible]) -> pd.DataFrame:
+def results_to_dataframe(results_by_id: Dict[int, ResultValue]) -> pd.DataFrame:
     if not results_by_id:
         return pd.DataFrame()
 
     rows = []
     index = []
-    for rid, val in results_by_id.items():
+    for rid, (prompt, result) in results_by_id.items():
         index.append(int(rid))
-        s = val.to_series()
+        s = result.to_series()
+        s[PROMPT] = prompt
         rows.append(s)
 
     df = pd.DataFrame(rows)

@@ -33,6 +33,9 @@ REGIONS = [
 ]
 REGIONS_ALL = [COUNTRY] + REGIONS
 
+# Prompt
+PROMPT = "Prompt"
+
 # Attendance
 VOTED = "Voted"
 NOT_VOTED = "Not Voted"

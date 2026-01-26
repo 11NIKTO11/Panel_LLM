@@ -261,16 +261,16 @@ def _process_single_respondent(
         temperature: float,
         client: BaseLLMClient,
         retries: int = 3,
-) -> Tuple[int, Union[BaseModel, None]]:
+) -> Tuple[int, Union[Tuple[str, BaseModel], None]]:
     """
-    Process a single row/respondent with retry logic.
+    Process a single row/respondent with retry logic and return prompt with result.
     """
     prompt = prompt_creator(respondent)
 
     for attempt in range(retries):
         try:
             parsed = client.call_llm(model, prompt, response_format, temperature)
-            return i, parsed
+            return i, (prompt, parsed)
 
         except RateLimitError:
             wait = (2 ** attempt) + random.random()
@@ -303,11 +303,12 @@ def run_voting_simulation(
         retries: int = 3,
         client: Union[BaseLLMClient, None] = None,
         api_key: Union[str, None] = None,
-) -> Tuple[Dict[int, BaseModel], List[int]]:
+) -> Tuple[Dict[int, Tuple[str, BaseModel]], List[int]]:
     """
     Run parallel processing across respondents, selecting the right client by model unless provided explicitly.
+    Returns a dict of respondent_id -> (prompt, parsed_result).
     """
-    results: Dict[int, BaseModel] = {}
+    results: Dict[int, Tuple[str, BaseModel]] = {}
     now_skipped: List[int] = []
     llm_client = client or create_client(model, api_key=api_key)
 
