@@ -63,7 +63,7 @@ class OpenAIClient(BaseLLMClient):
         )
         return response.output_parsed
 
-class ClaudeClient(BaseLLMClient):
+class AnthropicClient(BaseLLMClient):
     def __init__(self, api_key: Union[str, None] = None):
         if Anthropic is None:
             raise ImportError("anthropic package is required for Claude models.")
@@ -245,7 +245,7 @@ def create_client(model: Union[str, None] = None, api_key: Union[str, None] = No
     if model:
         provider = _detect_provider(model)
         if provider == constants.ANTHROPIC:
-            return ClaudeClient(api_key=api_key)
+            return AnthropicClient(api_key=api_key)
         if provider == constants.GOOGLE:
             return GeminiClient(api_key=api_key)
         if provider == constants.OPENAI:
