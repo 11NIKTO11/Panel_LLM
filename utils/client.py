@@ -4,10 +4,12 @@ import random
 import requests
 import json
 import concurrent.futures
+import os
 
 import pandas as pd
 import numpy as np
 
+from dotenv import load_dotenv
 from tqdm.auto import tqdm
 from pydantic import BaseModel, ValidationError
 from typing import Any, Callable, Dict, List, Tuple, Type, Union
@@ -28,6 +30,8 @@ try:
     from google import genai
 except Exception:  # pragma: no cover
     genai = None
+
+load_dotenv()  # reads .env and sets os.environ
 
 def generate_prob_vectors_df(n, m):
     random_vectors = np.random.rand(n, m)
