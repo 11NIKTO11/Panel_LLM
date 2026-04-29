@@ -1,4 +1,8 @@
 # Centralized constants and canonical names
+
+RESULTS_DIR = "results"
+DATA_DIR = "data"
+
 # Models
 GPT_41_NANO = "gpt-4.1-nano"    # GPT-4.1 Nano (cheapest, fastest)
 GPT_4o_MINI = "gpt-4o-mini"     # GPT-4o Mini (cheaper, faster)

@@ -62,7 +62,7 @@ def load_results_from_json(filename: str, class_type):
         print(f"Error: Could not decode JSON from the file {filename}.")
         return {}
 
-def results_to_dataframe(results_by_id: Dict[int, ResultValue]) -> pd.DataFrame:
+def results_to_dataframe(results_by_id: Dict[int, tuple[ str, ResultValue]]) -> pd.DataFrame:
     if not results_by_id:
         return pd.DataFrame()
 
