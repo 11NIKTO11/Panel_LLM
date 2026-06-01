@@ -20,8 +20,8 @@ def _serialize_result_value(value: ResultValue) -> Any:
         return {"prompt": prompt, "result": payload}
     return value.model_dump() if hasattr(value, 'model_dump') else value
 
-def create_parameter_description(client: BaseLLMClient, model:str, results:Type[BaseModel], n: int, temp:Union[int, float] ) -> str:
-    return f"{client.__class__.__name__}_{model}_{results.__name__}_n={n}_t={round(float(temp),2)}"
+def create_parameter_description(client_type: Type[BaseLLMClient], model: str, results: Type[BaseModel], n: int, temp: Union[int, float]) -> str:
+    return f"{client_type.__name__}_{model}_{results.__name__}_n={n}_t={round(float(temp),2)}"
 
 def save_results_to_json(results_by_id: Dict[int, ResultValue], filename: str):
     """
