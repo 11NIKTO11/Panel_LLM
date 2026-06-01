@@ -1,13 +1,13 @@
+import textwrap
+import numpy as np
+import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-import numpy as np
-import Data_Utils
-from Data_Utils import VOTED, NOT_VOTED
-import seaborn as sns
-import pandas as pd
+from utils.constants import VOTED, NOT_VOTED
 
 def visualize_comprehensive_results(
-    predicted_series: pd.Series,
+    simulated_series: pd.Series,
     actual_series: pd.Series,
     parties: list[str],
     model_name: str = None,
@@ -19,7 +19,7 @@ def visualize_comprehensive_results(
     2. A grouped bar chart comparing predicted party probabilities with reference results.
 
     Args:
-        predicted_series: Aggregated predicted series containing [VOTED, NOT_VOTED] and party indices.
+        simulated_series: Aggregated predicted series containing [VOTED, NOT_VOTED] and party indices.
         actual_series: Reference aggregated series with the same schema.
         model_name: Optional model name to include in the figure title.
         actual_is_claimed: If True, label the reference series as "Claimed"; otherwise label as "Actual".
@@ -35,11 +35,11 @@ def visualize_comprehensive_results(
     # Create a figure with two subplots, stacked vertically
     fig, (ax1, ax2) = plt.subplots(
         2, 1,
-        figsize=(12, 14),
+        figsize=(9, 12),
         sharex=False,
         gridspec_kw={'height_ratios': [1, 5]} # ax2 is 5x taller than ax1
     )
-    title = 'Analysis of Predicted Voting Behavior vs. '
+    title = 'Analysis of Simulated Voting Behavior vs. '
     title += f'{ref_label} Results'
     if model_name:
         title += f"\nModel: {model_name}"
@@ -48,22 +48,22 @@ def visualize_comprehensive_results(
     # --- Plot 1: Election Attendance Probability ---
     # Use canonical order when present to avoid swapped bar order
     canonical_attendance = [VOTED, NOT_VOTED]
-    # Determine available labels from predicted/actual
-    attendance_labels = [lbl for lbl in canonical_attendance if lbl in predicted_series.index or lbl in actual_series.index]
+    # Determine available labels from Simulated/actual
+    attendance_labels = [lbl for lbl in canonical_attendance if lbl in simulated_series.index or lbl in actual_series.index]
 
-    predicted_attendance_values = [float(predicted_series.get(label, 0)) for label in attendance_labels]
+    simulated_attendance_values = [float(simulated_series.get(label, 0)) for label in attendance_labels]
     actual_attendance_values = [float(actual_series.get(label, 0)) for label in attendance_labels]
 
     y = np.arange(len(attendance_labels))
     height = 0.35
 
-    # Plot predicted and reference attendance bars (Predicted on top)
-    rects1 = ax1.barh(y + height/2, predicted_attendance_values, height,
-                     label='Predicted', color=['lightgreen', 'lightcoral'][:len(attendance_labels)])
+    # Plot simulated and reference attendance bars (Simulated on top)
+    rects1 = ax1.barh(y + height / 2, simulated_attendance_values, height,
+                      label='Simulated', color=['lightgreen', 'lightcoral'][:len(attendance_labels)])
     rects2 = ax1.barh(y - height/2, actual_attendance_values, height,
                      label=attendance_ref_legend, color=['darkgreen', 'darkred'][:len(attendance_labels)])
 
-    ax1.set_title(f'Predicted vs. {ref_label} Election Attendance', fontsize=14)
+    ax1.set_title(f'Simulated vs. {ref_label} Election Attendance', fontsize=14)
     ax1.set_yticks(y, attendance_labels)
     ax1.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
     ax1.set_xlim(0, 1)
@@ -73,30 +73,31 @@ def visualize_comprehensive_results(
     ax1.bar_label(rects1, padding=3, fmt='{:.1%}', fontsize=10)
     ax1.bar_label(rects2, padding=3, fmt='{:.1%}', fontsize=10)
 
-    # --- Plot 2: Predicted vs. Reference Party Results ---
+    # --- Plot 2: Simulated vs. Reference Party Results ---
     # Party labels: everything except attendance keys; prefer labels sorted by actual descending
     attendance_keys = {VOTED, NOT_VOTED}
     # Extract party parts of the series
     actual_parties = actual_series.drop(labels=[k for k in actual_series.index if k in attendance_keys])
-    predicted_parties = predicted_series.drop(labels=[k for k in predicted_series.index if k in attendance_keys])
+    simulated_parties = simulated_series.drop(labels=[k for k in simulated_series.index if k in attendance_keys])
 
     # Determine party labels in descending order by actual values for stable presentation
 
     # Align series to these labels
     actual_probs = [float(actual_parties.get(lbl, 0)) for lbl in parties]
-    predicted_probs = [float(predicted_parties.get(lbl, 0)) for lbl in parties]
+    simulated_probs = [float(simulated_parties.get(lbl, 0)) for lbl in parties]
 
     y = np.arange(len(parties))  # the label locations
     height = 0.4  # the height of the bars
 
-    # Plot the bars (Predicted on top)
-    rects1 = ax2.barh(y - height / 2, predicted_probs, height, label='Predicted', color='skyblue')
+    # Plot the bars (Simulated on top)
+    rects1 = ax2.barh(y - height / 2, simulated_probs, height, label='Simulated', color='skyblue')
     rects2 = ax2.barh(y + height / 2, actual_probs, height, label=party_ref_legend, color='steelblue')
 
     # Add some text for labels, title and axes ticks
-    ax2.set_title(f'Comparison of Predicted vs. {ref_label} Election Results', fontsize=16)
+    ax2.set_title(f'Comparison of Simulated vs. {ref_label} Election Results', fontsize=16)
     ax2.set_xlabel('Probability / Vote Share', fontsize=12)
-    ax2.set_yticks(y, parties)
+    wrapped_parties = [textwrap.fill(label, width=21) for label in parties]
+    ax2.set_yticks(y, wrapped_parties)
     ax2.invert_yaxis()  # labels read top-to-bottom
     ax2.legend(loc='lower right', fontsize=12)
     ax2.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
@@ -248,7 +249,8 @@ def visualize_region_errors(
             xticklabels=labels,
             yticklabels=labels,
             ax=ax,
-            cbar_kws={"label": f"{metric} (%)"}
+            cbar_kws={"label": f"{metric} (%)"},
+            #annot_kws = {"size": 20}
         )
 
         ax.set_title(region_name, fontsize=10, fontweight='bold')

@@ -1,13 +1,22 @@
+requests
+jupyter
+ipykernel
+
 # Core dependencies inferred from source files and notebooks
 pandas
 numpy
 matplotlib
 seaborn
 pydantic
+python-dotenv
 
 # LLM-related utilities used in Models_Utils and notebooks
-any-llm
+# any-llm
 openai
 
 # Utilities used in notebooks
 tqdm
+
+# Optional structured-output providers
+anthropic
+google-genai

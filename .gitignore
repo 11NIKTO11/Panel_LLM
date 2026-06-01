@@ -1,9 +1,26 @@
+# Project files
 .idea
 .venv
-.claude
+__pycache__
+/.env
+
+# Dataset
+SoD-*
+/data/clean_data.csv
+
+# Helper scripts
+/utils/test.py
+/update_script.ipynb
+
+# Computed/Generated data
 results
 graphs
 tmp
-SoD-*
-__pycache__
-/data/clean_data.csv
+
+# Coding agent files
+.claude
+/CLAUDE.md
+/AGENTS.md
+
+
+_delete
