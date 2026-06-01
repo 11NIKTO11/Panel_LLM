@@ -1,4 +1,7 @@
 requests
+jupyter
+ipykernel
+
 # Core dependencies inferred from source files and notebooks
 pandas
 numpy
