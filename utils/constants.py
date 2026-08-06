@@ -13,9 +13,7 @@ CLAUDE_SONNET_45= "claude-sonnet-4-5"
 
 MODELS = [GPT_41_NANO, GPT_4o_MINI, GPT_41, GPT_4o]
 
-OPENAI = "openai"
-GOOGLE = "google"
-ANTHROPIC = "anthropic"
+# Provider identifiers moved to utils/llm/base.py (the LLM package owns them).
 
 # Regions
 COUNTRY = "Česko"

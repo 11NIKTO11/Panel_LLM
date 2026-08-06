@@ -1,5 +1,13 @@
+import numpy as np
 import pandas as pd
 from .constants import PARTY_COLUMNS_2021, VOTED, NOT_VOTED
+
+def generate_prob_vectors_df(n, m):
+    """Generate n random probability vectors of length m (rows sum to 1), e.g. as mock model output."""
+    random_vectors = np.random.rand(n, m)
+    probability_vectors = random_vectors / random_vectors.sum(axis=1, keepdims=True)
+    df = pd.DataFrame(probability_vectors)
+    return df
 
 def explore_dataset_values(data:pd.DataFrame, columns:list[str]):
     print("--- Starting Data Exploration: Unique Column Values ---\n")
