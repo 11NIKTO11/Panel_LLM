@@ -80,6 +80,7 @@ class AnthropicClient(BaseLLMClient):
         response = self.client.beta.messages.parse(
             model=model,
             max_tokens=2048,
+            temperature=temperature,
             betas=["structured-outputs-2025-11-13"],
             messages=[{"role": "user", "content": prompt}],
             output_format=response_format,
@@ -100,6 +101,7 @@ class GeminiClient(BaseLLMClient):
             model=model,
             contents=prompt,
             config={
+                "temperature": temperature,
                 "response_mime_type": "application/json",
                 "response_json_schema": response_format.model_json_schema(),
             },
@@ -139,6 +141,7 @@ class OpenRouterClient(BaseLLMClient):
                 "messages": [
                     {"role": "user", "content": prompt},
                 ],
+                "temperature": temperature,
                 "response_format": {
                     "type": "json_schema",
                     "json_schema":{
