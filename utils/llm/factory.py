@@ -1,10 +1,10 @@
 from typing import Union
 
-from .anthropic_client import AnthropicClient
 from .base import ANTHROPIC, GOOGLE, OPENAI, BaseLLMClient, detect_provider
-from .gemini_client import GeminiClient
-from .openai_client import OpenAIClient
-from .openrouter_client import OpenRouterClient
+from .client_anthropic import AnthropicClient
+from .client_gemini import GeminiClient
+from .client_openai import OpenAIClient
+from .client_openrouter import OpenRouterClient
 
 
 def create_client(model: Union[str, None] = None, api_key: Union[str, None] = None) -> BaseLLMClient:
