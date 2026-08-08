@@ -1,0 +1,10 @@
+{
+  "grid_name": "simple",
+  "factors": {
+    "gender": ["female", "male"],
+    "education_level": ["primary", "apprenticeship", "secondary_maturita", "university"],
+    "age": ["18-29", "30-44", "45-59", "60+"],
+    "income_range": ["low", "middle", "high"],
+    "interest_in_politics": ["none", "rather_no", "rather_yes", "very"]
+  }
+}

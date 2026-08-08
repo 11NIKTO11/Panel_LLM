@@ -1,0 +1,23 @@
+{
+  "grid_name": "income3_sod",
+  "factors": {
+    "gender": ["muž", "žena"],
+    "education_level": [
+      "základní + středoškolské vzdělání bez maturity",
+      "středoškolské vzdělání s maturitou",
+      "vysokoškolské vzdělání"
+    ],
+    "age": [24, 37, 52, 63],
+    "income_range": [
+      "Do 15.000 Kč",
+      "30.001 - 40.000 Kč",
+      "Vice než 80.000 Kč"
+    ],
+    "interest_in_politics": [
+      "vůbec se nezajímám",
+      "spíše se nezajímám",
+      "spíše se zajímám",
+      "velmi se zajímám"
+    ]
+  }
+}
