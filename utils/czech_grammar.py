@@ -23,8 +23,7 @@ def declension_negation_ne(word: str) -> str:
 
 
 def decapitalize(string: str) -> str:
-    # Note: mirrors original project behavior (capitalizes first char)
-    return string[0].upper() + string[1:]
+    return string[0].lower() + string[1:]
 
 
 def parse_yes_no(response: str) -> bool | None:
