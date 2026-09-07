@@ -1,22 +1,43 @@
-requests
-jupyter
-ipykernel
+# Panel_LLM dependencies.
+#
+# Floors are the versions this project is verified against (2026-09-07, Python 3.13).
+# For an exact reproduction of a past run, use `pip freeze` output, not this file.
+# Python 3.11+ is required: utils/voting.py uses Literal[*names] unpacking.
 
-# Core dependencies inferred from source files and notebooks
-pandas
-numpy
-matplotlib
-seaborn
-pydantic
-python-dotenv
+# --- Core data stack ---
+pandas>=2.3.1
+numpy>=2.3.2
 
-# LLM-related utilities used in Models_Utils and notebooks
-# any-llm
-openai
+# --- Plotting ---
+matplotlib>=3.10.5
+seaborn>=0.13.2
+plotly>=6.7.0                 # interactive distance figures in panel_analysis.ipynb
 
-# Utilities used in notebooks
-tqdm
+# --- Statistics ---
+scipy>=1.16.2                 # JSD / Wasserstein / entropy distances
+scikit-learn>=1.7.2           # cosine + euclidean distances, MAE
+statsmodels>=0.14.6           # MANOVA in panel_analysis.ipynb
 
-# Optional structured-output providers
-anthropic
-google-genai
+# --- Dataset ---
+pyreadstat>=1.3.1             # backs pandas.read_spss for the SoD .sav file
+
+# --- LLM clients ---
+# Only the provider actually used needs to be installed; each client guards its import.
+openai>=1.101.0               # OpenAIClient
+anthropic>=0.76.0             # AnthropicClient
+google-genai>=1.57.0          # GeminiClient
+requests>=2.32.5              # OpenRouterClient (raw HTTP)
+
+# --- LLM support ---
+pydantic>=2.11.7              # structured output schemas
+python-dotenv>=1.2.2          # .env loading in notebook composition roots
+tqdm>=4.67.1                  # batch progress
+
+# --- Notebooks ---
+jupyter>=1.1.1
+jupyterlab>=4.4.6
+ipykernel>=6.30.1
+
+# --- Not installed ---
+# any-llm: probed by utils/models_utils.py, whose only caller is commented out.
+#          Listed as a deletable in _Refactor_Plan.md §6. Do not install to "fix" it.
