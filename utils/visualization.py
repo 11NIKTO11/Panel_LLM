@@ -159,13 +159,14 @@ def visualize_region_errors(
     Parameters:
     -----------
     mae_df : pd.DataFrame
-        DataFrame with columns:
+        DataFrame with exactly these columns:
         - region_column: Region identifier
-        - {metric}_predicted_vs_claimed: Error between predicted and claimed
-        - {metric}_predicted_vs_actual: Error between predicted and actual
-        - {metric}_claimed_vs_actual: Error between claimed and actual
+        - "Predicted vs Claimed": Error between predicted and claimed
+        - "Predicted vs Actual": Error between predicted and actual
+        - "Actual vs Claimed": Error between claimed and actual
     metric : str
-        Metric name (e.g., "MAE", "RMSE") - used to find column names
+        Metric name (e.g., "MAE", "RMSE"). Used for the colorbar and title only;
+        the column names above are fixed and are not derived from it.
     region_column : str
         Name of the column containing region identifiers
     ncols : int
@@ -184,8 +185,8 @@ def visualize_region_errors(
     matplotlib.figure.Figure: The created figure
     """
     # Prepare column names based on metric
-    col_pred_clmd = "Predicted vs Actual"
-    col_pred_actu = "Predicted vs Claimed"
+    col_pred_clmd = "Predicted vs Claimed"
+    col_pred_actu = "Predicted vs Actual"
     col_clmd_actu = "Actual vs Claimed"
 
     # Check required columns exist
@@ -201,12 +202,8 @@ def visualize_region_errors(
     # Create figure
     fig_width = figsize_per_plot[0] * ncols
     fig_height = figsize_per_plot[1] * nrows
-    fig, axes = plt.subplots(nrows, ncols, figsize=(fig_width, fig_height))
-
-    # Flatten axes array for easier iteration
-    if n_regions == 1:
-        axes = np.array([axes])
-    axes = axes.flatten() if nrows > 1 or ncols > 1 else [axes]
+    fig, axes = plt.subplots(nrows, ncols, figsize=(fig_width, fig_height), squeeze=False)
+    axes = axes.flatten()
 
     # Style settings
     plt.style.use("default")

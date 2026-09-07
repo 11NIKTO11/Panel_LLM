@@ -10,7 +10,14 @@ from .schema_compat import move_ref_descriptions, remove_min_max, set_additional
 
 
 class OpenRouterClient(BaseLLMClient):
-    def __init__(self, api_key: Union[str, None] = None):
+    def __init__(self, api_key: Union[str, None] = None, timeout: float = 120.0):
+        """
+        Args:
+            api_key: OpenRouter key; falls back to OPENROUTER_API_KEY.
+            timeout: seconds to wait for a response. Without one, a hung request holds a
+                worker thread of the batch runner's pool forever and the batch never
+                finishes; a timeout surfaces as a retryable error instead.
+        """
         key = api_key or os.getenv("OPENROUTER_API_KEY")
         if not key:
             raise ValueError("OPENROUTER_API_KEY must be set for OpenRouter.")
@@ -19,6 +26,7 @@ class OpenRouterClient(BaseLLMClient):
             "Content-Type": "application/json",
         }
         self.url = "https://openrouter.ai/api/v1/chat/completions"
+        self.timeout = timeout
 
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
         provider, model_id = self._route(model)
@@ -49,6 +57,7 @@ class OpenRouterClient(BaseLLMClient):
                     }
                 },
             },
+            timeout=self.timeout,
         )
         if response.status_code != 200:
             raise ValueError(
