@@ -78,6 +78,11 @@ class Topic:
     note: str = ""
 
     @property
+    def by_short(self) -> Dict[str, str]:
+        """Short label -> option name, for reading a label back to a column."""
+        return {label: option for option, label in self.short.items()}
+
+    @property
     def columns(self) -> List[str]:
         """Result columns in canonical order: attendance first, if any, then the options."""
         return list(self.turnout or ()) + list(self.options)

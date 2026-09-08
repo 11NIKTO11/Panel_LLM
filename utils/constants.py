@@ -40,31 +40,11 @@ REGIONS_ALL = [COUNTRY] + REGIONS
 PROMPT = "Prompt"
 
 # Attendance
+# NOTE: a topic's turnout block owns these column names now (config/topics/*.json).
+# They stay here until panel_analysis stops importing them (refactor step 6).
 VOTED = "Voted"
 NOT_VOTED = "Not Voted"
 ATTENDANCE_COLUMNS = [VOTED, NOT_VOTED]
 
-# Parties
-ANO = "ANO 2011"
-SPOLU = "Koalice Spolu (ODS, TOP 09, KDU-ČSL)"
-PIRSTAN = "Koalice PIRÁTI a STAROSTOVÉ"
-PIRATI = "Česká pirátská strana"
-STAN = "STAROSTOVÉ A NEZÁVISLÍ (STAN)"
-SPD = "Svoboda a přímá demokracie – Tomio Okamura (SPD)" #"Svoboda a přímá demokracie (SPD)"
-AUTO = "Motoristé sobě (AUTO)"
-STACILO = "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)"
-KSCM = "Komunistická strana Čech a Moravy (KSČM)"
-CSSD = "Česká strana sociálně demokratická (ČSSD)"
-TSS = "Trikolóra, Svobodní a Soukromníci" #"Trikolóra, Svobodní a Soukromníci (TSS)"
-PRISAHA = "Přísaha Roberta Šlachty"
-JINA_STRANA = "Jiná strana"
-
-PARTY_COLUMNS_2021 = [
-    ANO, SPOLU, PIRSTAN, SPD, PRISAHA, CSSD, KSCM, TSS, JINA_STRANA
-]
-
-PARTY_COLUMNS_2025 = [
-    ANO, SPOLU, PIRATI, STAN, SPD, AUTO, STACILO, JINA_STRANA
-]
-
-ALL_COLUMNS = ATTENDANCE_COLUMNS + PARTY_COLUMNS_2021
+# Parties, and the 2021/2025 party lists, moved to config/topics/*.json (refactor step 3).
+# Read them with utils.topic.load_topic(name).options / .short / .aliases.

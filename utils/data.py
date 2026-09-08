@@ -2,7 +2,6 @@ from typing import Sequence
 
 import numpy as np
 import pandas as pd
-from .constants import PARTY_COLUMNS_2021, VOTED, NOT_VOTED
 
 def generate_prob_vectors_df(n, m):
     """Generate n random probability vectors of length m (rows sum to 1), e.g. as mock model output."""
@@ -33,34 +32,39 @@ def explore_dataset_values(data:pd.DataFrame, columns:list[str]):
 
     print("--- Data Exploration Complete ---")
 
-def aggregate_results_from_df(df: pd.DataFrame, weighted: bool = True, normalized: bool = True) -> pd.Series:
+def aggregate_results_from_df(df: pd.DataFrame, topic, weighted: bool = True, normalized: bool = True) -> pd.Series:
     """
-    Aggregate voting results from a DataFrame into a single Series with attendance and party probabilities.
+    Aggregate per-respondent results into one Series: attendance, then the options.
 
     Args:
-        df: DataFrame with columns [VOTED, NOT_VOTED, ...party columns...].
-            Each row represents a respondent's voting probabilities.
-        weighted: If True, weight party probabilities by VOTED probability (respondents who didn't vote contribute less).
-        normalized: If True, normalize party probabilities within each row before aggregation.
+        df: one row per respondent, carrying the topic's columns.
+        topic: `utils.topic.Topic` naming the option columns and the attendance pair. A
+            topic without an attendance dimension yields no attendance rows, and
+            `weighted` then has nothing to weight by.
+        weighted: If True, weight option probabilities by the attendance probability, so a
+            respondent who likely abstained contributes less.
+        normalized: If True, normalize option probabilities within each row before aggregation.
 
     Returns:
-        pd.Series: Aggregated results with:
-            - VOTED: mean probability of voting
-            - NOT_VOTED: mean probability of not voting
-            - Party columns: aggregated party probabilities (normalized to sum to 1 across all parties)
+        pd.Series: attendance means (if the topic has them), then the options, normalized
+            to sum to 1 across the options.
     """
-    party_cols = PARTY_COLUMNS_2021
+    party_cols = list(topic.options)
 
-    # Aggregate attendance probabilities (simple mean)
-    attendance_agg = pd.Series({
-        VOTED: float(df[VOTED].mean()),
-        NOT_VOTED: float(df[NOT_VOTED].mean()),
-    })
+    attendance_agg = pd.Series(dtype=float)
+    weights = 1.0
+    if topic.turnout:
+        voted, not_voted = topic.turnout
+        attendance_agg = pd.Series({
+            voted: float(df[voted].mean()),
+            not_voted: float(df[not_voted].mean()),
+        })
+        if weighted:
+            weights = df[voted]
 
-    # Aggregate party probabilities
+    # Aggregate option probabilities
     denom = df[party_cols].sum(axis=1) if normalized else 1.0
-    denom = denom.replace(0, 1)
-    weights = df[VOTED] if weighted else 1.0
+    denom = denom.replace(0, 1) if normalized else denom
 
     # Apply normalization and weighting
     weighted_parties = (df[party_cols].div(denom, axis=0).fillna(0)).multiply(weights, axis=0)
@@ -81,7 +85,7 @@ def normalize_groups(df: pd.DataFrame, groups: Sequence[Sequence[str]]) -> pd.Da
 
     Args:
         df: wide results, one row per respondent.
-        groups: column groups, e.g. [ATTENDANCE_COLUMNS, PARTY_COLUMNS_2021].
+        groups: column groups, e.g. `topic.normalize_groups`.
     """
     out = df.copy()
     for columns in groups:
