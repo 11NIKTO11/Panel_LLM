@@ -1,0 +1,65 @@
+{
+    "note": "Czech case forms for the region names, written out rather than derived. `in` carries the preposition, because it vocalises: v -> ve before the st- and zl- clusters. The rules this replaces got every noun right and those two prepositions wrong, which is 18% of the survey (_Refactor_Plan.md §3.4). Closed set of 15, so a table is both simpler and verifiable. A shared copy for non-survey callers comes with the election_preferences migration.",
+    "forms": {
+        "Česko": {
+            "in": "v Česku",
+            "of": "Česka"
+        },
+        "Hlavní město Praha": {
+            "in": "v Praze",
+            "of": "Prahy"
+        },
+        "Středočeský kraj": {
+            "in": "ve Středočeském kraji",
+            "of": "Středočeského kraje"
+        },
+        "Jihočeský kraj": {
+            "in": "v Jihočeském kraji",
+            "of": "Jihočeského kraje"
+        },
+        "Plzeňský kraj": {
+            "in": "v Plzeňském kraji",
+            "of": "Plzeňského kraje"
+        },
+        "Karlovarský kraj": {
+            "in": "v Karlovarském kraji",
+            "of": "Karlovarského kraje"
+        },
+        "Ústecký kraj": {
+            "in": "v Ústeckém kraji",
+            "of": "Ústeckého kraje"
+        },
+        "Liberecký kraj": {
+            "in": "v Libereckém kraji",
+            "of": "Libereckého kraje"
+        },
+        "Královéhradecký kraj": {
+            "in": "v Královéhradeckém kraji",
+            "of": "Královéhradeckého kraje"
+        },
+        "Pardubický kraj": {
+            "in": "v Pardubickém kraji",
+            "of": "Pardubického kraje"
+        },
+        "Kraj Vysočina": {
+            "in": "v Kraji Vysočina",
+            "of": "Kraje Vysočina"
+        },
+        "Jihomoravský kraj": {
+            "in": "v Jihomoravském kraji",
+            "of": "Jihomoravského kraje"
+        },
+        "Olomoucký kraj": {
+            "in": "v Olomouckém kraji",
+            "of": "Olomouckého kraje"
+        },
+        "Zlínský kraj": {
+            "in": "ve Zlínském kraji",
+            "of": "Zlínského kraje"
+        },
+        "Moravskoslezský kraj": {
+            "in": "v Moravskoslezském kraji",
+            "of": "Moravskoslezského kraje"
+        }
+    }
+}

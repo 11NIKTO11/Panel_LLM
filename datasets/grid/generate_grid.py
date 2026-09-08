@@ -8,15 +8,19 @@ Factor names are column names of the original survey data (data/clean_data.csv),
 every grid variant shares one column schema. Factor *levels* are the variant: each
 config declares its own value vocabulary.
 
-    grid_config_sod.json        levels taken verbatim from clean_data.csv
-    grid_config_colleague.json  levels as used in the colleague's experiment
+    grid_config_sod.json     levels taken verbatim from clean_data.csv, exact ages
+    grid_config_simple.json  levels as used in the colleague's experiment, age bands
+
+A factor holding bands rather than exact values must be named for what it holds:
+`age_range`, not `age`. The prompt builder prefers `age` when both are present and words
+the sentence differently for a band ("je mi mezi 30 a 44 lety").
 
 Rows are identified by an integer id in an unnamed leading column, matching the row
 convention of clean_data.csv. Output defaults to data/grid_<grid_name>.csv, so
 variants never overwrite each other.
 
 Usage:
-    python experiments/artificial_matrix/generate_grid.py --config <PATH> [--output PATH]
+    python datasets/grid/generate_grid.py --config <PATH> [--output PATH]
 """
 import argparse
 import itertools

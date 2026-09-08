@@ -1,6 +1,42 @@
-import pandas as pd
+import json
 from collections import Counter
+from functools import lru_cache
+from pathlib import Path
+
+import pandas as pd
+
 from utils import constants, czech_grammar as cz
+
+REGION_FORMS = Path(__file__).parent / "forms" / "regions.json"
+
+
+@lru_cache(maxsize=1)
+def _region_forms() -> dict:
+    """The region case forms, read once on first use (never at import)."""
+    return json.loads(REGION_FORMS.read_text(encoding="utf-8"))["forms"]
+
+
+def region_in(region_name: str) -> str:
+    """
+    The region as a prepositional phrase: "ve Středočeském kraji", "v Praze".
+
+    The preposition is part of the form because it vocalises with what follows, which is
+    what the rules this replaced could not see.
+
+    Raises:
+        KeyError: if the region is not in datasets/sod/forms/regions.json.
+    """
+    return _region_forms()[region_name]["in"]
+
+
+def region_of(region_name: str) -> str:
+    """
+    The region in the genitive: "Středočeského kraje", "Prahy".
+
+    Raises:
+        KeyError: if the region is not in datasets/sod/forms/regions.json.
+    """
+    return _region_forms()[region_name]["of"]
 
 def process_employment(row, skip: str = 'Ne'):
     # Column names for employment statuses contain 'EMPLOYMENT_' and number from range from 1 to 10.
@@ -32,9 +68,18 @@ def process_town_size(row):
     return cz.decapitalize(city_size_raw)
 
 def process_respondent(row, eu=False, nato=False, covid=False):
+    """
+    Map one raw `.sav` row to the clean_data schema.
+
+    `id` is the survey's own respondent identifier, kept so descriptions and results join on
+    identity rather than on row position. `age` is the exact age (AGE1) and `age_range` the
+    survey's own band (AGE2, e.g. "25-34 let"); a describer prefers the exact one.
+    """
     processed_data = {
+        'id': int(row.get('id')),
         'gender': row.get('GENDER').lower(),
         'age': int(row.get('AGE1', 0)),
+        'age_range': row.get('AGE2'),
         'education_level': row.get('EDU', '').lower(),
         'region': row.get('KRAJ'),
         'district': row.get('OKRES'),
@@ -64,51 +109,19 @@ def gender_to_enum_gender(gender: str):
     else:
         return cz.Gender.NEUTRAL
 
-def decline_region_to_Genitiv(region_name):
-    """
-    Applies Czech grammar rules to correctly decline a region name for use
-    in a sentence like "Žiji v [region name]".
-
-    For example: 'Plzeňský kraj' -> 'Plzeňského kraje'
-    """
-    if 'Česko' in region_name:
-        return 'Česka'
-    # Handles special case for Prague 'Hlavní město Praha'
-    if 'Praha' in region_name:
-        return 'Prahy'
-
-    # General grammar rules for other regions
-    declined_name = region_name.replace('raj', 'raje')  # Covers Kraj and kraj
-    if 'ký' in declined_name:
-        declined_name = declined_name.replace('ký', 'kého')
-
-    return declined_name
-
-def decline_region_to_locative(region_name):
-    """
-    Applies Czech grammar rules to correctly decline a region name for use
-    in a sentence like "Žiji v [region name]".
-
-    For example: 'Plzeňský kraj' -> 'Plzeňském kraji'
-    """
-    if 'Česko' in region_name:
-        return 'Česku'
-
-    # Handles special case for Prague 'Hlavní město Praha'
-    if 'Praha' in region_name:
-        return 'Praze'
-
-    # General grammar rules for other regions
-    declined_name = region_name.replace('raj', 'raji')  # Covers Kraj and kraj
-    if 'ký' in declined_name:
-        declined_name = declined_name.replace('ký', 'kém')
-
-    return declined_name
-
 def _apply_negation_if(verb: str, negate: bool) -> str:
     return cz.declension_negation_ne(verb) if negate else verb
 
 def _format_opinion_statement(gender, opinion, topic_string):
+    """
+    NOTE: broken for the vocabulary we have seen. The `[:-3]` slice assumes the answer is an
+    adjective stem plus a three-letter ending, so "spíše souhlasím" becomes "spíše souhlaá"
+    (see tests/descriptor_test.ipynb section 6). No dataset in the repo carries
+    `opinion_on_eu` / `opinion_on_nato`, so the real level vocabulary is unknown and fixing
+    it would be guesswork. If those columns arrive, the natural Czech is the verb form
+    itself, which needs no gender: "Spíše souhlasím s tím, že je Česká republika členským
+    státem EU."
+    """
     if is_non_substantive_responses(opinion):
         return ""  # Return an empty string if there is no opinion
 
@@ -118,6 +131,12 @@ def create_respondent_description(respondent):
     """
     Generates a descriptive Czech paragraph about a survey respondent
     by combining their answers into grammatically correct sentences.
+
+    Survey-specific by design: it splices the survey's own answer strings straight into the
+    sentences, which is the only reason they come out grammatical - "velmi se zajímám"
+    becomes "Velmi se zajímám o politiku.". A synthetic grid profile carries a different set
+    of columns and has its own describer in `datasets/grid/describe.py`; the
+    two share their wording, deliberately, but not their code.
     """
     gender = gender_to_enum_gender(respondent['gender'])
     description_parts = []
@@ -126,13 +145,21 @@ def create_respondent_description(respondent):
     description_parts.append(f"Jsem {respondent['gender']}, je mi {respondent['age']} let, mé vzdělání je {respondent['education_level']}.")
 
     # Location
-    description_parts.append(f"Žiji v {decline_region_to_locative(respondent['region'])}, v okresu {respondent['district']} a obci o velikosti {respondent['town_size']}.")
+    description_parts.append(f"Žiji {region_in(respondent['region'])}, v okresu {respondent['district']} a obci o velikosti {respondent['town_size']}.")
 
     # Socioeconomic Status
-    description_parts.append(f"Z hlediska zaměstnání jsem {respondent['employment_status']}")
-    if respondent['income_range']:
-        description_parts.append(f"a příjem naší domácnosti je {respondent['income_range']}")
-    description_parts[-1] += "."
+    # Both answers are missing for some respondents - 9 have no employment status, 347 no
+    # income. A bare `if value:` does not catch that: a float NaN is truthy, which is how
+    # "a příjem naší domácnosti je nan." ended up in 347 of the legacy prompts.
+    employment = respondent['employment_status'] if pd.notna(respondent['employment_status']) else None
+    income = respondent['income_range'] if pd.notna(respondent['income_range']) else None
+    if employment is not None and income is not None:
+        description_parts.append(
+            f"Z hlediska zaměstnání jsem {employment} a příjem naší domácnosti je {income}.")
+    elif employment is not None:
+        description_parts.append(f"Z hlediska zaměstnání jsem {employment}.")
+    elif income is not None:
+        description_parts.append(f"Příjem naší domácnosti je {income}.")
 
     # Living Standard
     living_standard = respondent['living_standard']
@@ -152,11 +179,11 @@ def create_respondent_description(respondent):
         description_parts.append(_format_opinion_statement(gender, respondent['opinion_on_nato'], "NATO"))
 
     # COVID Vaccination Status
-    if 'covid_vaccinated' in respondent:
-        vacc_status = respondent['covid_vaccinated']
-        if not is_non_substantive_responses(vacc_status):
-            verb = _apply_negation_if("jsem", cz.parse_yes_no(vacc_status))
-            description_parts.append(f"{verb.capitalize()} {cz.declension_gender_ya('očkován',gender)} proti covidu.")
+    if 'covid_vaccinated' in respondent and pd.notna(respondent['covid_vaccinated']):
+        vaccinated = cz.parse_yes_no(respondent['covid_vaccinated'])
+        if vaccinated is not None:
+            verb = _apply_negation_if("jsem", not vaccinated)
+            description_parts.append(f"{verb.capitalize()} {cz.declension_gender_ya('očkovan', gender)} proti covidu.")
 
     full_description = " ".join(part for part in description_parts if part)
     return full_description
