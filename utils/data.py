@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import numpy as np
 import pandas as pd
 from .constants import PARTY_COLUMNS_2021, VOTED, NOT_VOTED
@@ -72,3 +74,17 @@ def aggregate_results_from_df(df: pd.DataFrame, weighted: bool = True, normalize
     result_series = pd.concat([attendance_agg, normalized_parties])
 
     return result_series
+
+def normalize_groups(df: pd.DataFrame, groups: Sequence[Sequence[str]]) -> pd.DataFrame:
+    """
+    Rescale each group of columns to sum to 1 per row.
+
+    Args:
+        df: wide results, one row per respondent.
+        groups: column groups, e.g. [ATTENDANCE_COLUMNS, PARTY_COLUMNS_2021].
+    """
+    out = df.copy()
+    for columns in groups:
+        columns = list(columns)
+        out[columns] = out[columns].div(out[columns].sum(axis=1), axis=0)
+    return out

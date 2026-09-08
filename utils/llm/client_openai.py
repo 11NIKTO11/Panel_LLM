@@ -12,6 +12,8 @@ except Exception:  # pragma: no cover - optional dependency guard
 
 
 class OpenAIClient(BaseLLMClient):
+    SHORT_NAME = "OpenAI"
+
     def __init__(self, api_key: Union[str, None] = None):
         if OpenAI is None:
             raise ImportError("openai package is required for OpenAI models.")

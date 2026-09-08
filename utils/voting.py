@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas import Series
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import ClassVar, List, Literal
 from collections import Counter
 
 from .constants import VOTED, NOT_VOTED, PARTY_COLUMNS_2021
@@ -28,6 +28,8 @@ class VotingProbabilities(BaseModel):
     """
     Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.
     """
+    SHORT_NAME: ClassVar[str] = "VProb"
+
     voted_or_not: VotedProbability = Field(
         description="Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
     )
@@ -51,6 +53,8 @@ class VotingProbabilities(BaseModel):
 
 class VotingPick(BaseModel):
     """Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby."""
+    SHORT_NAME: ClassVar[str] = "VPick"
+
     voted_or_not: VotedProbability = Field(
         description="Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
     )

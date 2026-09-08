@@ -12,6 +12,8 @@ except Exception:  # pragma: no cover - optional dependency guard
 
 
 class AnthropicClient(BaseLLMClient):
+    SHORT_NAME = "Anthropic"
+
     def __init__(self, api_key: Union[str, None] = None):
         if Anthropic is None:
             raise ImportError("anthropic package is required for Claude models.")

@@ -13,6 +13,8 @@ except Exception:  # pragma: no cover - optional dependency guard
 
 
 class GeminiClient(BaseLLMClient):
+    SHORT_NAME = "Gemini"
+
     def __init__(self, api_key: Union[str, None] = None):
         if genai is None:
             raise ImportError("google-genai package is required for Gemini models.")

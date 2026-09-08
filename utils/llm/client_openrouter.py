@@ -10,6 +10,8 @@ from .schema_compat import move_ref_descriptions, remove_min_max, set_additional
 
 
 class OpenRouterClient(BaseLLMClient):
+    SHORT_NAME = "OpenRouter"
+
     def __init__(self, api_key: Union[str, None] = None, timeout: float = 120.0):
         """
         Args:
