@@ -1,0 +1,75 @@
+{
+    "name": "election_2021",
+    "title": "Volby do Poslanecké sněmovny ČR 2021",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2021.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, postoje k EU/NATO atd.).\n2.  Na základě analýzy odhadni dvě klíčové věci:\n    a) Jaká je pravděpodobnost, že respondent vůbec šel k volbám.\n    b) Pokud volil, jaké jsou pravděpodobnosti pro jednotlivé politické strany.\n3.  Dbej na to, aby součet pravděpodobností účasti byl přesně 1.0.\n4.  Dbej na to, aby součet pravděpodobností VŠECH stran byl přesně 1.0.",
+    "question": " Ve volbách do poslanecké sněmovny v roce 2021 jsem volil:",
+    "reference_results": "data/election_data.csv",
+    "turnout": {
+        "yes": {
+            "column": "Voted",
+            "aliases": [
+                "p_voted"
+            ]
+        },
+        "no": {
+            "column": "Not Voted"
+        }
+    },
+    "options": {
+        "ANO 2011": {
+            "short": "ANO",
+            "aliases": [
+                "p_ANO"
+            ]
+        },
+        "Koalice Spolu (ODS, TOP 09, KDU-ČSL)": {
+            "short": "SPOLU",
+            "aliases": [
+                "p_SPOLU"
+            ]
+        },
+        "Koalice PIRÁTI a STAROSTOVÉ": {
+            "short": "PirSTAN",
+            "aliases": [
+                "p_PirSTAN"
+            ]
+        },
+        "Svoboda a přímá demokracie – Tomio Okamura (SPD)": {
+            "short": "SPD",
+            "aliases": [
+                "p_SPD"
+            ]
+        },
+        "Přísaha Roberta Šlachty": {
+            "short": "Prisaha",
+            "aliases": [
+                "p_Prisaha"
+            ]
+        },
+        "Česká strana sociálně demokratická (ČSSD)": {
+            "short": "CSSD",
+            "aliases": [
+                "p_CSSD"
+            ]
+        },
+        "Komunistická strana Čech a Moravy (KSČM)": {
+            "short": "KSCM",
+            "aliases": [
+                "p_KSCM"
+            ]
+        },
+        "Trikolóra, Svobodní a Soukromníci": {
+            "short": "Trikolora",
+            "aliases": [
+                "p_Trikolora"
+            ]
+        },
+        "Jiná strana": {
+            "short": "Other",
+            "aliases": [
+                "p_Other"
+            ]
+        }
+    },
+    "note": "For runs made with the system-prompt design. The ten runs that predate it live under the frozen topic `election_2021_legacy` - same parties, different prompt construction, so the two are not directly comparable."
+}

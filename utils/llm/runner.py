@@ -27,6 +27,7 @@ def _process_single_item(
         temperature: float,
         client: BaseLLMClient,
         retries: int = 3,
+        instructions: Union[str, None] = None,
 ) -> Tuple[int, Union[Tuple[str, BaseModel], None]]:
     """
     Process a single row with retry logic and return prompt with result.
@@ -35,7 +36,7 @@ def _process_single_item(
 
     for attempt in range(retries):
         try:
-            parsed = client.call_llm(model, prompt, response_format, temperature)
+            parsed = client.call_llm(model, prompt, response_format, temperature, instructions)
             return i, (prompt, parsed)
 
         except RateLimitError:
@@ -70,10 +71,13 @@ def run_llm_batch(
         retries: int = 3,
         client: Union[BaseLLMClient, None] = None,
         api_key: Union[str, None] = None,
+        instructions: Union[str, None] = None,
 ) -> Tuple[Dict[int, Tuple[str, BaseModel]], List[int]]:
     """
     Run parallel LLM calls across DataFrame rows, selecting the right client by model unless provided explicitly.
     Returns a dict of row index -> (prompt, parsed_result) and a list of skipped row indices.
+
+    `instructions` is the system prompt, sent with every call.
     """
     results: Dict[int, Tuple[str, BaseModel]] = {}
     now_skipped: List[int] = []
@@ -92,7 +96,8 @@ def run_llm_batch(
                 response_model,
                 temperature,
                 llm_client,
-                retries
+                retries,
+                instructions,
             ): i
             for i, row in data.iterrows()
         }

@@ -1,14 +1,10 @@
 from typing import Any, Dict, Union
 
 from utils.llm import AnthropicClient, GeminiClient, OpenAIClient, OpenRouterClient
-from utils.voting import VotingPick, VotingProbabilities
 
 from .spec import short_name
 
-_KNOWN = (
-    OpenAIClient, AnthropicClient, GeminiClient, OpenRouterClient,
-    VotingProbabilities, VotingPick,
-)
+_KNOWN = (OpenAIClient, AnthropicClient, GeminiClient, OpenRouterClient)
 
 
 def build_registry(extra: Union[Dict[str, Any], None] = None) -> Dict[str, Any]:
@@ -16,7 +12,8 @@ def build_registry(extra: Union[Dict[str, Any], None] = None) -> Dict[str, Any]:
     Name -> object map for resolving a serialized RunSpec.
 
     Args:
-        extra: entries defined outside `utils`, such as description functions.
+        extra: everything not known here - the description functions, and the response
+            models, which are generated per topic by `make_response_models`.
     """
     registry = {}
     for obj in _KNOWN:

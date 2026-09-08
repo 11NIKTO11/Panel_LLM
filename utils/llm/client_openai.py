@@ -22,11 +22,13 @@ class OpenAIClient(BaseLLMClient):
             raise ValueError("OPENAI_API_KEY must be set for OpenAI models.")
         self.client = OpenAI(api_key=key)
 
-    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float,
+                 instructions: Union[str, None] = None) -> BaseModel:
         response = self.client.responses.parse(
             model=model,
             temperature=temperature,
             input=prompt,
-            text_format=response_format
+            text_format=response_format,
+            **({"instructions": instructions} if instructions else {}),
         )
         return response.output_parsed

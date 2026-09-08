@@ -23,7 +23,8 @@ class GeminiClient(BaseLLMClient):
             raise ValueError("GEMINI_API_KEY must be set for Gemini models.")
         self.client = genai.Client(api_key=key)
 
-    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float,
+                 instructions: Union[str, None] = None) -> BaseModel:
         response = self.client.models.generate_content(
             model=model,
             contents=prompt,
@@ -31,6 +32,7 @@ class GeminiClient(BaseLLMClient):
                 "temperature": temperature,
                 "response_mime_type": "application/json",
                 "response_json_schema": response_format.model_json_schema(),
+                **({"system_instruction": instructions} if instructions else {}),
             },
         )
         parsed = json.loads(response.text)

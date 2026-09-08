@@ -1,74 +1,113 @@
+"""
+Structured response models. The shape is code; the vocabulary is topic data.
+
+`make_response_models(topic)` substitutes the option `Literal` and drops the attendance
+field for a topic that has none. Nothing else about the classes varies: the field
+descriptions here are deliberately generic, because what a run is *about* belongs in the
+system prompt, which is stored with the run (`RunSpec.instructions`). Field names are part
+of the saved JSON, so they stay fixed - `voted_or_not` and `parties` read as election
+vocabulary, and are kept anyway so old result files still parse.
+
+The Czech descriptions are prompt-facing: they end up in the JSON schema the provider is
+sent, so changing them changes the results.
+"""
+from typing import ClassVar, List, Literal, Tuple, Type, Union
+
 import pandas as pd
-from pandas import Series
-from pydantic import BaseModel, Field
-from typing import ClassVar, List, Literal
-from collections import Counter
+from pydantic import BaseModel, Field, create_model
 
-from .constants import VOTED, NOT_VOTED, PARTY_COLUMNS_2021
 
-PARTY_NAMES = PARTY_COLUMNS_2021
+class TurnoutProbability(BaseModel):
+    """Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil."""
+    voted: float = Field(ge=0, le=1, description="Pravděpodobnost, že se respondent zúčastnil.")
+    not_voted: float = Field(ge=0, le=1, description="Pravděpodobnost, že se respondent nezúčastnil.")
 
-class VotedProbability(BaseModel):
-    """
-    Pravděpodobnost, zda respondent volil, nebo nevolil.
-    """
-    voted: float = Field(ge=0, le=1, description="Pravděpodobnost, že respondent volil.")
-    not_voted: float = Field(ge=0, le=1, description="Pravděpodobnost, že respondent nevolil.")
 
-class PartyProbability(BaseModel):
+class TopicResponse(BaseModel):
     """
-    Strukturovaná reprezentace pravděpodobnosti hlasování pro konkrétní stranu.
-    """
-    name: Literal[*PARTY_NAMES] = Field(description="Název politické strany.")
-    probability: float = Field(
-        ge=0, le=1, description="Pravděpodobnost, že respondent hlasoval pro tuto stranu."
-    )
+    What every generated response model can do, whatever its topic.
 
-class VotingProbabilities(BaseModel):
+    `OPTIONS` and `TURNOUT` are set by `make_response_models`; `voted_or_not` exists only
+    on the models of a topic that has an attendance dimension.
     """
-    Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.
-    """
+    OPTIONS: ClassVar[Tuple[str, ...]] = ()
+    TURNOUT: ClassVar[Union[Tuple[str, str], None]] = None
+
+    def turnout_row(self) -> dict:
+        """{yes column: p, no column: p}, or empty for a topic without attendance."""
+        if not self.TURNOUT:
+            return {}
+        yes, no = self.TURNOUT
+        return {yes: self.voted_or_not.voted, no: self.voted_or_not.not_voted}
+
+
+class ProbabilityResponse(TopicResponse):
+    """Base of the per-option probability model."""
     SHORT_NAME: ClassVar[str] = "VProb"
 
-    voted_or_not: VotedProbability = Field(
-        description="Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
-    )
-    parties: List[PartyProbability] = Field(
-        description="Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
-    )
-
-    def to_series(self) -> 'Series':
-        row = {
-            VOTED: self.voted_or_not.voted,
-            NOT_VOTED: self.voted_or_not.not_voted,
-        }
-        for p in (self.parties or []):
-            row[p.name] = p.probability
-
-        for col in PARTY_NAMES:
-            if col not in row.keys():
-                row[col] = 0.0
-
+    def to_series(self) -> pd.Series:
+        """One results row: attendance if any, then every option, missing ones as 0."""
+        row = self.turnout_row()
+        for option in (self.parties or []):
+            row[option.name] = option.probability
+        for name in self.OPTIONS:
+            row.setdefault(name, 0.0)
         return pd.Series(row)
 
-class VotingPick(BaseModel):
-    """Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby."""
+
+class PickResponse(TopicResponse):
+    """Base of the single-choice model."""
     SHORT_NAME: ClassVar[str] = "VPick"
 
-    voted_or_not: VotedProbability = Field(
-        description="Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
-    )
-    choice: Literal[*PARTY_NAMES] = Field(
-        description=(
-            "Zhodnoť poskytnutý sociodemografický profil respondenta a na jeho základě urči nejpravděpodobnější politickou stranu, které odevzdal svůj hlas."
-        )
+    def to_series(self) -> pd.Series:
+        """One results row: attendance if any, then 1 for the chosen option, 0 elsewhere."""
+        row = self.turnout_row()
+        for name in self.OPTIONS:
+            row[name] = 1 if self.choice == name else 0
+        return pd.Series(row)
+
+
+def make_response_models(topic) -> Tuple[Type[ProbabilityResponse], Type[PickResponse]]:
+    """
+    Build a topic's two response models.
+
+    Args:
+        topic: a `utils.topic.Topic`; only `options` and `turnout` are used.
+
+    Returns:
+        (probabilities, pick). Their `__name__` and `SHORT_NAME` are fixed, because the
+        results filename stem and the run record are built from them.
+    """
+    options = tuple(topic.options)
+    option_model = create_model(
+        "OptionProbability",
+        name=(Literal[options], Field(description="Identifikátor jedné z nabízených možností.")),
+        probability=(float, Field(ge=0, le=1, description="Pravděpodobnost této možnosti.")),
+        __doc__="Pravděpodobnost jedné z nabízených možností.",
     )
 
-    def to_series(self) -> 'Series':
-        row = {
-            VOTED: self.voted_or_not.voted,
-            NOT_VOTED: self.voted_or_not.not_voted,
-        }
-        for col in PARTY_COLUMNS_2021:
-            row[col] = 1 if self.choice == col else 0
-        return pd.Series(row)
+    turnout_field = {}
+    if topic.turnout:
+        turnout_field["voted_or_not"] = (
+            TurnoutProbability,
+            Field(description="Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."),
+        )
+
+    probabilities = create_model(
+        "VotingProbabilities", __base__=ProbabilityResponse, **turnout_field,
+        parties=(
+            List[option_model],
+            Field(description="Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0."),
+        ),
+        __doc__="Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+    )
+    pick = create_model(
+        "VotingPick", __base__=PickResponse, **turnout_field,
+        choice=(Literal[options], Field(description="Nejpravděpodobnější možnost pro tento profil.")),
+        __doc__="Zjednodušený výstup: jedna vybraná možnost.",
+    )
+
+    for model in (probabilities, pick):
+        model.OPTIONS = options
+        model.TURNOUT = topic.turnout
+    return probabilities, pick

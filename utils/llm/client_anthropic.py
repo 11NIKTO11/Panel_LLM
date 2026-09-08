@@ -22,7 +22,8 @@ class AnthropicClient(BaseLLMClient):
             raise ValueError("ANTHROPIC_API_KEY must be set for Claude models.")
         self.client = Anthropic(api_key=key)
 
-    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float) -> BaseModel:
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float,
+                 instructions: Union[str, None] = None) -> BaseModel:
         response = self.client.beta.messages.parse(
             model=model,
             max_tokens=2048,
@@ -30,5 +31,6 @@ class AnthropicClient(BaseLLMClient):
             betas=["structured-outputs-2025-11-13"],
             messages=[{"role": "user", "content": prompt}],
             output_format=response_format,
+            **({"system": instructions} if instructions else {}),
         )
         return response.parsed_output

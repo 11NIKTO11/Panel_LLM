@@ -29,6 +29,8 @@ class RunSpec:
         describer: row -> description text.
         question: appended to every description; empty when the describer emits the
             whole prompt itself.
+        instructions: system prompt framing the task, normally the topic's. Recorded with
+            the run, so a run's whole prompt is this plus its stored `Prompt` column.
         client_type: BaseLLMClient subclass to instantiate.
         model: provider model id.
         response_model: Pydantic model the provider must return.
@@ -44,6 +46,7 @@ class RunSpec:
     client_type: Type
     model: str
     response_model: Type[BaseModel]
+    instructions: Union[str, None] = None
     temperature: float = 0.0
     sample: Union[int, None] = None
     random_state: Union[int, None] = 42
@@ -89,6 +92,7 @@ class RunSpec:
             "name": self.name,
             "topic": self.topic,
             "question": self.question,
+            "instructions": self.instructions,
             "client_type": self.client_type.__name__,
             "model": self.model,
             "response_model": self.response_model.__name__,

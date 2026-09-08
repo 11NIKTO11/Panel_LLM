@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Union
 
 from pydantic import BaseModel
 
@@ -27,5 +27,16 @@ class BaseLLMClient:
         prompt: str,
         response_format: Type[BaseModel],
         temperature: float,
+        instructions: Union[str, None] = None,
     ) -> BaseModel:
+        """
+        One structured call.
+
+        Args:
+            model: provider model id.
+            prompt: the user message.
+            response_format: Pydantic model the provider must return.
+            temperature: sampling temperature.
+            instructions: system prompt, if the caller frames the task with one.
+        """
         raise NotImplementedError
