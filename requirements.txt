@@ -2,7 +2,8 @@
 #
 # Floors are the versions this project is verified against (2026-09-07, Python 3.13).
 # For an exact reproduction of a past run, use `pip freeze` output, not this file.
-# Python 3.11+ is required: utils/voting.py uses Literal[*names] unpacking.
+# Python 3.11+ is what the project is tested on. (The old hard requirement, Literal[*names]
+# unpacking in utils/voting.py, is gone - the response models build their Literal at runtime.)
 
 # --- Core data stack ---
 pandas>=2.3.1
