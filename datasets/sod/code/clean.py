@@ -5,7 +5,7 @@ Survey-specific by design: it knows the raw column names (`AGE1`, `KRAJ`, `Q21`)
 answer strings they carry, and changes when the survey's own columns do. The Czech phrases
 built from those answers live in `describe.py`.
 """
-from utils import czech_grammar as cz
+from panel.describe.lang.cs import grammar as cz
 
 
 def is_non_substantive_responses(response):

@@ -3,7 +3,7 @@
 # Floors are the versions this project is verified against (2026-09-07, Python 3.13).
 # For an exact reproduction of a past run, use `pip freeze` output, not this file.
 # Python 3.11+ is what the project is tested on. (The old hard requirement, Literal[*names]
-# unpacking in utils/voting.py, is gone - the response models build their Literal at runtime.)
+# unpacking in panel/topic/response.py, is gone - the response models build their Literal at runtime.)
 
 # --- Core data stack ---
 pandas>=2.3.1
@@ -38,10 +38,6 @@ tqdm>=4.67.1                  # batch progress
 jupyter>=1.1.1
 jupyterlab>=4.4.6
 ipykernel>=6.30.1
-
-# --- Not installed ---
-# any-llm: probed by utils/models_utils.py, whose only caller is commented out.
-#          Listed as a deletable in _Refactor_Plan.md §6. Do not install to "fix" it.
 
 # --- Tests ---
 pytest>=9.1.1                 # tests/ holds the refactor gates; run python -m pytest from the repo root

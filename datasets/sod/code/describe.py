@@ -3,7 +3,7 @@ Turn survey answers into Czech prompt phrases, and render the description templa
 
 Composition root for the survey's half of prompt building: it owns the filters that carry
 Czech grammar over survey answers - including the region case forms - and hands them to the
-generic renderer in `utils/prompts.py`. Run it from the repo root, or call `render()` from
+generic renderer in `panel/describe/template.py`. Run it from the repo root, or call `render()` from
 `prepare.ipynb` right after `clean_data.csv` is written - doing it in the same pass is what
 keeps a table from lagging the data it describes.
 
@@ -18,8 +18,8 @@ from typing import Union
 
 import pandas as pd
 
-from utils import czech_grammar as cz
-from utils.prompts import RowFilter, load_template, render_frame, write_table
+from panel.describe.lang.cs import grammar as cz
+from panel.describe.template import RowFilter, load_template, render_frame, write_table
 
 from .clean import is_non_substantive_responses
 

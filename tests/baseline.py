@@ -31,9 +31,8 @@ import pandas as pd
 import pydantic
 
 from datasets.sod.code.describe import render
-from utils.run import ResultStore
-from utils.topic import load_topic
-from utils.voting import make_response_models
+from panel.run import ResultStore
+from panel.topic import load_topic, make_response_models
 
 from tests.conftest import FIXTURES, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR, topic_names
 from tests.snapshots import (

@@ -38,7 +38,7 @@ def aggregate_results_from_df(df: pd.DataFrame, topic, weighted: bool = True, no
 
     Args:
         df: one row per respondent, carrying the topic's columns.
-        topic: `utils.topic.Topic` naming the option columns and the attendance pair. A
+        topic: `panel.topic.Topic` naming the option columns and the attendance pair. A
             topic without an attendance dimension yields no attendance rows, and
             `weighted` then has nothing to weight by.
         weighted: If True, weight option probabilities by the attendance probability, so a

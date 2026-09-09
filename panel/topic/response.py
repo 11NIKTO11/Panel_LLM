@@ -72,7 +72,7 @@ def make_response_models(topic) -> Tuple[Type[ProbabilityResponse], Type[PickRes
     Build a topic's two response models.
 
     Args:
-        topic: a `utils.topic.Topic`; only `options` and `turnout` are used.
+        topic: a `panel.topic.Topic`; only `options` and `turnout` are used.
 
     Returns:
         (probabilities, pick). Their `__name__` and `SHORT_NAME` are fixed, because the

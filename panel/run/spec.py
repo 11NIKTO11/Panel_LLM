@@ -28,7 +28,7 @@ class RunSpec:
             still compares and hashes by its declaration.
         description: which description variant to send - a column of `data`, which is
             also the name of the template that rendered it and of its prompt table (see
-            `utils/prompts.py`). A string rather than a callable, so a spec is data.
+            `panel/describe/template.py`). A string rather than a callable, so a spec is data.
         question: appended to every description; empty when the description carries the
             whole prompt itself.
         instructions: system prompt framing the task, normally the topic's. Recorded with

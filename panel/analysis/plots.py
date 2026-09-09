@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-from utils.constants import VOTED, NOT_VOTED
+from panel.constants import VOTED, NOT_VOTED
 
 def visualize_comprehensive_results(
     simulated_series: pd.Series,

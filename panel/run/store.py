@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Sequence, Union
 
 import pandas as pd
 
-from utils.data import normalize_groups
-from utils.io_results import results_to_dataframe, save_results_to_json
+from panel.analysis.aggregate import normalize_groups
+from .io_results import results_to_dataframe, save_results_to_json
 from .spec import RunSpec
 
 

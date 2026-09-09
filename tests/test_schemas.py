@@ -3,8 +3,7 @@ import json
 
 import pytest
 
-from utils.topic import load_topic
-from utils.voting import make_response_models
+from panel.topic import load_topic, make_response_models
 
 from tests.conftest import LEGACY_TOPIC, RESULTS_DIR, TOPICS_DIR, load_fixture, require, topic_names
 from tests.snapshots import schema_snapshot

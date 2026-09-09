@@ -30,7 +30,7 @@ relative to wherever the script is called from.
 Usage:
     python -m datasets.grid.generate_grid <config.json> [--output PATH]
 
-Run it from the repo root - that is what puts `utils` on the import path.
+Run it from the repo root - that is what puts `panel` on the import path.
 """
 import argparse
 import itertools
@@ -39,8 +39,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from utils import czech_grammar as cz
-from utils.prompts import load_template, render_frame
+from panel.describe.lang.cs import grammar as cz
+from panel.describe.template import load_template, render_frame
 
 FILTERS = {"years": cz.age_clause}      # grid levels are survey vocabulary; only age needs grammar
 

@@ -10,7 +10,6 @@ SoD-*
 /data/grid_*.csv
 
 # Helper scripts
-/utils/test.py
 /update_script.ipynb
 
 # Computed/Generated data

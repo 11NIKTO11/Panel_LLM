@@ -10,8 +10,8 @@ from typing import Dict, Sequence, Tuple, Type
 
 import pandas as pd
 
-from utils.data import aggregate_results_from_df
-from utils.voting import make_response_models
+from panel.analysis.aggregate import aggregate_results_from_df
+from panel.topic import make_response_models
 
 COMBINATIONS: Tuple[Tuple[bool, bool], ...] = tuple(
     (weighted, normalized) for weighted in (True, False) for normalized in (True, False)

@@ -1,6 +1,6 @@
 from typing import Any, Dict, Union
 
-from utils.llm import AnthropicClient, GeminiClient, OpenAIClient, OpenRouterClient
+from panel.llm import AnthropicClient, GeminiClient, OpenAIClient, OpenRouterClient
 
 from .spec import short_name
 

@@ -18,7 +18,7 @@ def get_claimed_results(respondents: pd.DataFrame, topic, count_non_substantive_
 
     Args:
         respondents: DataFrame with a 'voted_party' column of survey responses
-        topic: `utils.topic.Topic` naming the option columns and the attendance pair
+        topic: `panel.topic.Topic` naming the option columns and the attendance pair
         count_non_substantive_as_not_voted: If True, count "Nevím"/"Nechci uvést" as not voted
 
     Returns:

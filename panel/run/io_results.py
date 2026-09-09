@@ -2,9 +2,9 @@ import json
 import os
 from typing import Dict, Any, Protocol, Tuple, Union, Type
 
-from utils.constants import PROMPT
-from utils.llm import BaseLLMClient
-from utils.voting import BaseModel
+from panel.constants import PROMPT
+from panel.llm import BaseLLMClient
+from pydantic import BaseModel
 import pandas as pd
 
 

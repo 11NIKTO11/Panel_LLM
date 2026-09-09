@@ -14,7 +14,7 @@ CLAUDE_SONNET_45= "claude-sonnet-4-5"
 
 MODELS = [GPT_41_NANO, GPT_4o_MINI, GPT_41, GPT_4o]
 
-# Provider identifiers moved to utils/llm/base.py (the LLM package owns them).
+# Provider identifiers moved to panel/llm/base.py (the LLM package owns them).
 
 # Regions
 COUNTRY = "Česko"
@@ -47,4 +47,4 @@ NOT_VOTED = "Not Voted"
 ATTENDANCE_COLUMNS = [VOTED, NOT_VOTED]
 
 # Parties, and the 2021/2025 party lists, moved to config/topics/*.json (refactor step 3).
-# Read them with utils.topic.load_topic(name).options / .short / .aliases.
+# Read them with panel.topic.load_topic(name).options / .short / .aliases.
