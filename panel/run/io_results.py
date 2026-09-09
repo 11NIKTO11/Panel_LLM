@@ -1,11 +1,11 @@
 import json
-import os
 from typing import Dict, Any, Protocol, Tuple, Union, Type
 
-from panel.constants import PROMPT
 from panel.llm import BaseLLMClient
 from pydantic import BaseModel
 import pandas as pd
+
+PROMPT = "Prompt"
 
 
 class SeriesConvertible(Protocol):
@@ -94,12 +94,3 @@ def results_to_dataframe(results_by_id: Dict[int, tuple[ str, ResultValue]]) -> 
 
     return df
 
-def load_actual_results() -> pd.DataFrame:
-    """
-    Load actual election results from CSV.
-
-    Returns:
-        pd.DataFrame: DataFrame with columns [region, VOTED, NOT_VOTED, ...party columns...]
-    """
-    csv_path = os.path.join("data", "election_data.csv")
-    return pd.read_csv(csv_path, encoding="utf-8-sig")

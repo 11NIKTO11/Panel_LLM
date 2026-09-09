@@ -1,36 +1,8 @@
+"""Aggregate per-subject results into one distribution, and rescale column groups to sum to 1."""
 from typing import Sequence
 
-import numpy as np
 import pandas as pd
 
-def generate_prob_vectors_df(n, m):
-    """Generate n random probability vectors of length m (rows sum to 1), e.g. as mock model output."""
-    random_vectors = np.random.rand(n, m)
-    probability_vectors = random_vectors / random_vectors.sum(axis=1, keepdims=True)
-    df = pd.DataFrame(probability_vectors)
-    return df
-
-def explore_dataset_values(data:pd.DataFrame, columns:list[str]):
-    print("--- Starting Data Exploration: Unique Column Values ---\n")
-
-    for column_name in columns:
-        # First, check if the column actually exists in the DataFrame
-        if column_name in data.columns:
-            print(f"--- Column: '{column_name}' ---")
-            try:
-                # Get unique values and convert to a list for clean printing
-                unique_values = data[column_name].unique().tolist()
-                unique_values.sort()
-                print(unique_values)
-            except Exception as e:
-                print(f"Could not retrieve unique values. Error: {e}")
-            print("\n") # Add a newline for better readability
-        else:
-            # Print a warning if a column is not found
-            print(f"--- Column: '{column_name}' ---")
-            print("WARNING: This column was not found in the DataFrame.\n")
-
-    print("--- Data Exploration Complete ---")
 
 def aggregate_results_from_df(df: pd.DataFrame, topic, weighted: bool = True, normalized: bool = True) -> pd.Series:
     """

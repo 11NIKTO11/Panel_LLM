@@ -41,5 +41,5 @@
             "short": "Other"
         }
     },
-    "note": "Prepared, not yet run. `reference_results` is empty because the repo has no 2025 actual-results CSV - drop one into data/ and name it here. Options are constants.PARTY_COLUMNS_2025 as declared; the Czech text is the 2021 wording with the year changed and has not been reviewed."
+    "note": "Prepared, not yet run. `reference_results` is empty because the repo has no 2025 actual-results CSV - drop one into data/ and name it here. The Czech text is the 2021 wording with the year changed and has not been reviewed."
 }

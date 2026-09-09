@@ -87,22 +87,22 @@ run is declared. Pick a topic, build its response models, write one `RunSpec`, a
 named variant:
 
 ```python
-TOPIC = load_topic("election_2021", constants.TOPICS_DIR)
+TOPIC = load_topic("election_2021", paths.TOPICS_DIR)
 VProb, VPick = make_response_models(TOPIC)
 DESCRIPTION = "self_description_v1"
 
-people = pd.read_csv(f"{constants.DATA_DIR}/clean_data.csv", index_col=0)
+people = pd.read_csv(paths.DATA_DIR / "clean_data.csv", index_col=0)
 data = people.join(read_table(DESCRIPTION, people.index))   # the descriptions, rendered at cleanup
 
 BASE = RunSpec(
     name="sod", topic=TOPIC.name, data=data,
     description=DESCRIPTION,
     question=TOPIC.question, instructions=TOPIC.instructions,
-    client_type=llm.OpenRouterClient, model=constants.GPT_41_NANO,
+    client_type=llm.OpenRouterClient, model="gpt-4.1-nano",
     response_model=VProb, temperature=0,
 )
 
-SPECS = {"nano": BASE, "4o": BASE.variant(model=constants.GPT_4o), "nano-trial": BASE.variant(sample=200)}
+SPECS = {"nano": BASE, "4o": BASE.variant(model="gpt-4o"), "nano-trial": BASE.variant(sample=200)}
 SPEC = SPECS["nano"]
 ```
 

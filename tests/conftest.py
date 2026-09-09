@@ -11,13 +11,14 @@ from typing import Any, List
 import pandas as pd
 import pytest
 
+from panel import paths
 from panel.run import ResultStore
 from panel.topic import Topic, load_topic
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = paths.ROOT
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-TOPICS_DIR = ROOT / "config" / "topics"
-RESULTS_DIR = ROOT / "results"
+TOPICS_DIR = paths.TOPICS_DIR
+RESULTS_DIR = paths.RESULTS_DIR
 LEGACY_TOPIC = "election_2021_legacy"
 
 

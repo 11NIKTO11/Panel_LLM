@@ -1,26 +1,29 @@
 import textwrap
+from typing import Sequence
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-from panel.constants import VOTED, NOT_VOTED
 
 def visualize_comprehensive_results(
     simulated_series: pd.Series,
     actual_series: pd.Series,
     parties: list[str],
+    turnout: Sequence[str] | None,
     model_name: str = None,
     actual_is_claimed: bool = False
 ):
     """
     Generates a two-part plot using pure Matplotlib:
-    1. A bar chart for election attendance (VOTED vs NOT_VOTED) comparing predicted vs reference.
+    1. A bar chart for attendance (the turnout columns) comparing predicted vs reference.
     2. A grouped bar chart comparing predicted party probabilities with reference results.
 
     Args:
-        simulated_series: Aggregated predicted series containing [VOTED, NOT_VOTED] and party indices.
+        simulated_series: Aggregated predicted series indexed by the turnout and option columns.
         actual_series: Reference aggregated series with the same schema.
+        parties: option columns, in display order.
+        turnout: the topic's (yes, no) attendance columns; None for a topic without attendance.
         model_name: Optional model name to include in the figure title.
         actual_is_claimed: If True, label the reference series as "Claimed"; otherwise label as "Actual".
 
@@ -47,7 +50,7 @@ def visualize_comprehensive_results(
 
     # --- Plot 1: Election Attendance Probability ---
     # Use canonical order when present to avoid swapped bar order
-    canonical_attendance = [VOTED, NOT_VOTED]
+    canonical_attendance = list(turnout or ())
     # Determine available labels from Simulated/actual
     attendance_labels = [lbl for lbl in canonical_attendance if lbl in simulated_series.index or lbl in actual_series.index]
 
@@ -75,7 +78,7 @@ def visualize_comprehensive_results(
 
     # --- Plot 2: Simulated vs. Reference Party Results ---
     # Party labels: everything except attendance keys; prefer labels sorted by actual descending
-    attendance_keys = {VOTED, NOT_VOTED}
+    attendance_keys = set(turnout or ())
     # Extract party parts of the series
     actual_parties = actual_series.drop(labels=[k for k in actual_series.index if k in attendance_keys])
     simulated_parties = simulated_series.drop(labels=[k for k in simulated_series.index if k in attendance_keys])

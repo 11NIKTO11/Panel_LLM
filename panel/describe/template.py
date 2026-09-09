@@ -39,7 +39,9 @@ from typing import Callable, Dict, Mapping, Sequence, Tuple, Union
 
 import pandas as pd
 
-TABLE_DIR = "data/prompts"
+from panel import paths
+
+TABLE_DIR = paths.PROMPTS_DIR
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_]+))?\}")
 
 

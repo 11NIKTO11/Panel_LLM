@@ -41,7 +41,8 @@ from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 
-TOPICS_DIR = "config/topics"
+from panel import paths
+
 REQUIRED_KEYS = {"name", "title", "instructions", "question", "reference_results", "turnout", "options"}
 OPTIONAL_KEYS = {"note"}
 ENTRY_KEYS = {"short", "aliases"}
@@ -109,7 +110,7 @@ class Topic:
         """
         if not self.reference_results:
             raise ValueError(f"topic '{self.name}' declares no reference_results")
-        frame = pd.read_csv(self.reference_results, encoding="utf-8-sig")
+        frame = pd.read_csv(paths.ROOT / self.reference_results, encoding="utf-8-sig")
         missing = [column for column in self.columns if column not in frame.columns]
         if missing:
             raise ValueError(f"{self.reference_results} is missing {len(missing)} topic columns: {missing}")
@@ -123,13 +124,13 @@ def _claim(aliases: Dict[str, str], foreign: str, ours: str, path: Path) -> None
     aliases[foreign] = ours
 
 
-def load_topic(name: str, topics_dir: Union[str, Path] = TOPICS_DIR) -> Topic:
+def load_topic(name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> Topic:
     """
     Read one topic config. Option order is the order in the file (see the module docstring).
 
     Args:
         name: file stem under `topics_dir`, and the topic's own name.
-        topics_dir: where the configs live; relative paths need cwd = repo root.
+        topics_dir: where the configs live; the repo's `config/topics` by default.
 
     Raises:
         FileNotFoundError: if there is no config of that name.

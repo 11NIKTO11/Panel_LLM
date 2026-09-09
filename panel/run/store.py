@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Sequence, Union
 
 import pandas as pd
 
+from panel import paths
 from panel.analysis.aggregate import normalize_groups
 from .io_results import results_to_dataframe, save_results_to_json
 from .spec import RunSpec
@@ -24,7 +25,7 @@ class RunPaths:
 def _git_commit() -> Union[str, None]:
     """Current HEAD, or None when git is unavailable."""
     try:
-        done = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5)
+        done = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5, cwd=paths.ROOT)
         return done.stdout.strip() or None
     except Exception:
         return None

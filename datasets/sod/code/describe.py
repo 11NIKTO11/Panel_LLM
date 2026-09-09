@@ -19,6 +19,7 @@ from typing import Union
 import pandas as pd
 
 from panel.describe.lang.cs import grammar as cz
+from panel import paths
 from panel.describe.template import RowFilter, load_template, render_frame, write_table
 
 from .clean import is_non_substantive_responses
@@ -138,7 +139,7 @@ def render(people: pd.DataFrame, variant: str = DEFAULT_VARIANT) -> pd.Series:
 def main(argv: Union[list, None] = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.add_argument("--variant", default=DEFAULT_VARIANT, help="template file stem")
-    parser.add_argument("--data", default="data/clean_data.csv", help="cleaned respondents")
+    parser.add_argument("--data", type=Path, default=paths.DATA_DIR / "clean_data.csv", help="cleaned respondents")
     args = parser.parse_args(argv)
 
     people = pd.read_csv(args.data, index_col=0)
