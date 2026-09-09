@@ -87,8 +87,9 @@ run is declared. Pick a topic, build its response models, write one `RunSpec`, a
 named variant:
 
 ```python
-TOPIC = load_topic("election_2021", paths.TOPICS_DIR)
-VProb, VPick = make_response_models(TOPIC)
+TOPIC = load_topic("election_2021")
+FRAMING = load_framing(TOPIC, "cs")
+VProb, VPick = make_response_models(TOPIC, FRAMING)
 DESCRIPTION = "self_v1"
 
 people = read_profile(load_dataset("sod"))
@@ -97,7 +98,7 @@ data = people.join(read_table("sod", DESCRIPTION, people.index))   # the descrip
 BASE = RunSpec(
     name="sod", topic=TOPIC.name, data=data,
     description=DESCRIPTION,
-    question=TOPIC.question, instructions=TOPIC.instructions,
+    question=FRAMING.question, instructions=FRAMING.instructions,
     client_type=llm.OpenRouterClient, model="gpt-4.1-nano",
     response_model=VProb, temperature=0,
 )
@@ -131,9 +132,10 @@ run says how it was produced.
 
 ## 3. Topics
 
-A topic is what a run is about. One JSON file in `config/topics/` owns the options the model may
-answer with, the question appended to each description, the system prompt, and the real-world
-results to compare against.
+A topic is what a run is about. One folder in `config/topics/` owns it: `topic.json` holds the
+options the model may answer with and the real-world results to compare against, and one framing
+file per language (`cs.json`) holds the question appended to each description, the system prompt,
+the option labels and the wording of the response schema.
 
 | topic | state |
 |---|---|
@@ -144,16 +146,19 @@ results to compare against.
 
 ### 3.1 Adding one
 
-Copy the closest existing file and change four things: `name` (must match the filename),
-`instructions`, `question`, and `options`. Then `load_topic("<name>")` and run as in §2.1.
+Copy the closest existing folder and change `name` (must match the folder) and `options` in
+`topic.json`, then `instructions` and `question` in `cs.json`. Then `load_topic("<name>")`,
+`load_framing(TOPIC, "cs")` and run as in §2.1.
 
-- each option is named once, with its short label and any foreign column aliases beneath it.
+- each option is an ASCII id, which is also its result column, with its native name and any
+  foreign column aliases beneath it; a framing may relabel it for the model.
 - **the order of the options is the order the model sees them** — it becomes the `enum` order in
   the schema sent to the provider, so it is part of the prompt, not presentation.
 - `"turnout": null` for a question with no participation dimension; the response model then has
   no turnout field at all.
-- the loader refuses unknown keys, a name that disagrees with the filename, duplicate short
-  labels and reused aliases, so a typo fails at load instead of producing an empty column.
+- the loaders refuse unknown keys, a name that disagrees with the folder, a label for an
+  unknown id, duplicate labels and reused aliases, so a typo fails at load instead of producing
+  an empty column.
 
 Two topics that share a vocabulary but were asked differently stay in **separate** topics — the
 folder is what keeps their results from overwriting each other, since the filename stem is the

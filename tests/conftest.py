@@ -6,7 +6,7 @@ the path it needed, rather than fail.
 """
 import json
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -14,7 +14,7 @@ import pytest
 from panel import paths
 from panel.dataset import load_dataset, profile_path, read_profile
 from panel.run import ResultStore
-from panel.topic import Topic, load_topic
+from panel.topic import Framing, Topic, load_framing, load_topic
 
 ROOT = paths.ROOT
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -26,10 +26,6 @@ LEGACY_TOPIC = "election_2021_legacy"
 def load_fixture(name: str) -> Any:
     """A JSON fixture by path under `tests/fixtures/` without extension, e.g. `schemas/election_2021`."""
     return json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8"))
-
-
-def topic_names() -> List[str]:
-    return sorted(path.stem for path in TOPICS_DIR.glob("*.json"))
 
 
 def require(path: Path) -> Path:
@@ -49,6 +45,11 @@ def people() -> pd.DataFrame:
 @pytest.fixture(scope="session")
 def legacy_topic() -> Topic:
     return load_topic(LEGACY_TOPIC, TOPICS_DIR)
+
+
+@pytest.fixture(scope="session")
+def legacy_framing(legacy_topic) -> Framing:
+    return load_framing(legacy_topic, "cs", TOPICS_DIR)
 
 
 @pytest.fixture(scope="session")

@@ -7,8 +7,8 @@
           "name": {
             "description": "Identifikátor jedné z nabízených možností.",
             "enum": [
-              "abolish_fees_state_budget",
-              "keep_fees"
+              "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
+              "Zachovat současné poplatky"
             ],
             "title": "Name",
             "type": "string"
@@ -52,8 +52,8 @@
       "choice": {
         "description": "Nejpravděpodobnější možnost pro tento profil.",
         "enum": [
-          "abolish_fees_state_budget",
-          "keep_fees"
+          "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
+          "Zachovat současné poplatky"
         ],
         "title": "Choice",
         "type": "string"

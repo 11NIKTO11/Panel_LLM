@@ -40,7 +40,7 @@ def test_dataset_loads(name):
     assert dataset.short.isascii() and "_" not in dataset.short
     for topic_name in dataset.claims:
         claims = load_claims(dataset, topic_name)
-        assert set(claims.options.values()) <= set(load_topic(topic_name).by_short), topic_name
+        assert set(claims.options.values()) <= set(load_topic(topic_name).options), topic_name
 
 
 def test_dataset_shorts_unique():
@@ -86,6 +86,7 @@ def test_claimed_matches_stored(sod, schema):
     require(profile_path(sod))
     topic = load_topic("election_2021")
     stored = pd.read_csv(require(RESULTS_DIR / topic.name / "sod_claimed_votes.csv"), index_col=0).iloc[:, 0]
+    stored = stored.rename(index=topic.rename_map)
     actual = claimed_distribution(read_profile(sod, schema), load_claims(sod, topic.name), topic)
     assert list(actual.index) == list(stored.index)
     np.testing.assert_allclose(actual.to_numpy(), stored.to_numpy(), rtol=0, atol=ATOL)

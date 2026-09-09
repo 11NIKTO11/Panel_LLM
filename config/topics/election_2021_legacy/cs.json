@@ -1,0 +1,34 @@
+{
+    "name": "cs",
+    "topic": "election_2021_legacy",
+    "language": "cs",
+    "short": "cs",
+    "title": "Volby do Poslanecke snemovny CR 2021 (legacy runs)",
+    "instructions": null,
+    "question": " Ve volbách do poslanecké sněmovny v roce 2021 jsem volil:",
+    "labels": {},
+    "schema": {
+        "turnout": {
+            "title": "VotedProbability",
+            "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
+            "voted": "Pravděpodobnost, že respondent volil.",
+            "not_voted": "Pravděpodobnost, že respondent nevolil.",
+            "field": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
+        },
+        "option": {
+            "title": "PartyProbability",
+            "description": "Strukturovaná reprezentace pravděpodobnosti hlasování pro konkrétní stranu.",
+            "name": "Název politické strany.",
+            "probability": "Pravděpodobnost, že respondent hlasoval pro tuto stranu."
+        },
+        "probabilities": {
+            "description": "Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.",
+            "parties": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
+        },
+        "pick": {
+            "description": "Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby.",
+            "choice": "Zhodnoť poskytnutý sociodemografický profil respondenta a na jeho základě urči nejpravděpodobnější politickou stranu, které odevzdal svůj hlas."
+        }
+    },
+    "note": "What the ten legacy runs were actually shown: no system prompt, and the task framing in the schema text, including the class titles PartyProbability and VotedProbability. Reproduced from results/election_2021_legacy/config.json; the test suite holds it to that file."
+}

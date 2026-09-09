@@ -12,8 +12,8 @@ Writes under tests/fixtures/:
     prompt_tables.json        row count and digest per stored prompt table, keyed
                               <dataset>/<description>, after checking that rendering from
                               the dataset's profile reproduces it
-    schemas/<topic>.json      the response schemas a run on that topic is shown; for the
-                              legacy topic the frozen copy from its results config.json
+    schemas/<topic>/<framing>.json   the response schemas a run on that topic under that framing
+                              is shown; for the legacy topic the frozen copy from its results config.json
     legacy_aggregates.json    country-level aggregation per legacy run, per CSV, for all
                               four weighted x normalized combinations
     legacy_reparse.json       per legacy run: response model, JSON shape and a digest of the
@@ -36,9 +36,9 @@ from panel.describe.render import render
 from panel.describe.tables import read_table
 from panel.describe.template import load_description
 from panel.run import ResultStore
-from panel.topic import load_topic, make_response_models
+from panel.topic import framing_names, load_framing, load_topic, make_response_models, topic_names
 
-from tests.conftest import FIXTURES, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR, topic_names
+from tests.conftest import FIXTURES, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR
 from tests.snapshots import (
     aggregate_all, frame_digest, json_shape, models_by_name, prompt_table_digest, reparse,
     schema_snapshot,
@@ -81,10 +81,15 @@ def prompt_tables() -> Dict:
 
 
 def schemas() -> Dict[str, Dict]:
-    """Today's generated schemas per topic; the legacy topic gets what its runs were actually shown."""
-    out = {name: schema_snapshot(*make_response_models(load_topic(name, TOPICS_DIR))) for name in topic_names()}
+    """Today's generated schemas per topic and framing, keyed <topic>/<framing>; the legacy topic gets what its runs were shown."""
+    out = {}
+    for name in topic_names(TOPICS_DIR):
+        topic = load_topic(name, TOPICS_DIR)
+        for framing_name in framing_names(name, TOPICS_DIR):
+            framing = load_framing(topic, framing_name, TOPICS_DIR)
+            out[f"{name}/{framing_name}"] = schema_snapshot(*make_response_models(topic, framing))
     config = json.loads((RESULTS_DIR / LEGACY_TOPIC / "config.json").read_text(encoding="utf-8"))
-    out[LEGACY_TOPIC] = config["schemas"]
+    out[f"{LEGACY_TOPIC}/cs"] = config["schemas"]
     return out
 
 

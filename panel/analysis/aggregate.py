@@ -75,7 +75,7 @@ def claimed_distribution(frame: pd.DataFrame, claims, topic, count_excluded_as_a
 
     Args:
         frame: profile rows carrying the claims' answer column.
-        claims: `panel.dataset.Claims` sorting the dataset's answer strings into options,
+        claims: `panel.dataset.Claims` sorting the dataset's answer strings into option ids,
             abstained and excluded.
         topic: `panel.topic.Topic` whose columns key the series.
         count_excluded_as_abstained: if True, non-substantive answers stay in the turnout
@@ -87,13 +87,13 @@ def claimed_distribution(frame: pd.DataFrame, claims, topic, count_excluded_as_a
 
     Raises:
         ValueError: if an answer string is not in the claims map, or the map names an option
-            short the topic does not have.
+            id the topic does not have.
     """
     answers = frame[claims.column].astype(str)
     unknown = sorted(set(answers) - set(claims.answers))
     if unknown:
         raise ValueError(f"claims map {claims.dataset}/{claims.topic} does not cover answers {unknown}")
-    foreign = sorted(set(claims.options.values()) - set(topic.by_short))
+    foreign = sorted(set(claims.options.values()) - set(topic.options))
     if foreign:
         raise ValueError(f"claims map {claims.dataset}/{claims.topic} names options unknown to topic '{topic.name}': {foreign}")
 
@@ -108,5 +108,5 @@ def claimed_distribution(frame: pd.DataFrame, claims, topic, count_excluded_as_a
         yes, no = topic.turnout
         result[yes], result[no] = turnout, 1 - turnout
     for option in topic.options:
-        result[option] = counts.get(topic.short[option], 0) / len(chosen) if len(chosen) else 0.0
+        result[option] = counts.get(option, 0) / len(chosen) if len(chosen) else 0.0
     return pd.Series(result, dtype=float)

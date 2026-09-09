@@ -1,0 +1,27 @@
+{
+    "name": "cs",
+    "topic": "media_fees_2026",
+    "language": "cs",
+    "short": "cs",
+    "title": "Zrušení poplatků za ČT a ČRo a financování ze státního rozpočtu",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu postojů české veřejnosti. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho postoj k otázce zrušení poplatků za Českou televizi a Český rozhlas a jejich financování ze státního rozpočtu.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, zájem o politiku).\n2.  Odhadni pravděpodobnost obou postojů: zrušit poplatky a financovat ze státního rozpočtu, nebo zachovat současné poplatky.\n3.  Dbej na to, aby součet pravděpodobností obou možností byl přesně 1.0.",
+    "question": " V otázce poplatků za Českou televizi a Český rozhlas zastávám postoj:",
+    "labels": {},
+    "schema": {
+        "option": {
+            "title": "OptionProbability",
+            "description": "Pravděpodobnost jedné z nabízených možností.",
+            "name": "Identifikátor jedné z nabízených možností.",
+            "probability": "Pravděpodobnost této možnosti."
+        },
+        "probabilities": {
+            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+            "parties": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0."
+        },
+        "pick": {
+            "description": "Zjednodušený výstup: jedna vybraná možnost.",
+            "choice": "Nejpravděpodobnější možnost pro tento profil."
+        }
+    },
+    "note": "The Czech text is ours: the colleague's prompt is not in their report, so check it against theirs before comparing runs. Until phase 4 of the overhaul the options were shown as the colleague's English ids inside this Czech prompt; they are Czech phrases now, the one deliberate change to prompt-facing text in that phase, on a topic that has never been run."
+}

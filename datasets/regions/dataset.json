@@ -12,5 +12,5 @@
         "latent_direct_v1"
     ],
     "claims": {},
-    "note": "Subjects for the latent runs, which ask about a place rather than a person. The country is a subject like the regions. regions.csv also carries a level column (country / region) that the analysis notebook reads to find the country row; it is not part of the profile."
+    "note": "Subjects for the latent runs, which ask about a place rather than a person. The country is a subject like the regions; which row of a reference table is the whole is the topic's business (its reference.total)."
 }

@@ -1,0 +1,42 @@
+{
+    "name": "election_2025",
+    "reference": null,
+    "turnout": {
+        "yes": {
+            "column": "Voted",
+            "aliases": [
+                "p_voted"
+            ]
+        },
+        "no": {
+            "column": "Not Voted"
+        }
+    },
+    "options": {
+        "ANO": {
+            "name": "ANO 2011"
+        },
+        "SPOLU": {
+            "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)"
+        },
+        "Pirati": {
+            "name": "Česká pirátská strana"
+        },
+        "STAN": {
+            "name": "STAROSTOVÉ A NEZÁVISLÍ (STAN)"
+        },
+        "SPD": {
+            "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)"
+        },
+        "AUTO": {
+            "name": "Motoristé sobě (AUTO)"
+        },
+        "Stacilo": {
+            "name": "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)"
+        },
+        "Other": {
+            "name": "Jiná strana"
+        }
+    },
+    "note": "Prepared, not yet run. reference is null because the repo has no 2025 actual-results CSV - drop one into data/ and declare it here with its key column and total row."
+}

@@ -1,0 +1,76 @@
+{
+    "name": "election_2021",
+    "reference": {
+        "path": "data/election_data.csv",
+        "key": "region",
+        "total": "Česko"
+    },
+    "turnout": {
+        "yes": {
+            "column": "Voted",
+            "aliases": [
+                "p_voted"
+            ]
+        },
+        "no": {
+            "column": "Not Voted"
+        }
+    },
+    "options": {
+        "ANO": {
+            "name": "ANO 2011",
+            "aliases": [
+                "p_ANO"
+            ]
+        },
+        "SPOLU": {
+            "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+            "aliases": [
+                "p_SPOLU"
+            ]
+        },
+        "PirSTAN": {
+            "name": "Koalice PIRÁTI a STAROSTOVÉ",
+            "aliases": [
+                "p_PirSTAN"
+            ]
+        },
+        "SPD": {
+            "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+            "aliases": [
+                "p_SPD"
+            ]
+        },
+        "Prisaha": {
+            "name": "Přísaha Roberta Šlachty",
+            "aliases": [
+                "p_Prisaha"
+            ]
+        },
+        "CSSD": {
+            "name": "Česká strana sociálně demokratická (ČSSD)",
+            "aliases": [
+                "p_CSSD"
+            ]
+        },
+        "KSCM": {
+            "name": "Komunistická strana Čech a Moravy (KSČM)",
+            "aliases": [
+                "p_KSCM"
+            ]
+        },
+        "Trikolora": {
+            "name": "Trikolóra, Svobodní a Soukromníci",
+            "aliases": [
+                "p_Trikolora"
+            ]
+        },
+        "Other": {
+            "name": "Jiná strana",
+            "aliases": [
+                "p_Other"
+            ]
+        }
+    },
+    "note": "The 2021 Chamber of Deputies election, for runs made with the system-prompt design. Option ids are the former short labels, so result columns, claims maps and the colleague's p_* columns line up. The ten runs that predate the system prompt live under the frozen topic election_2021_legacy: same options, different framing, so the two are not directly comparable."
+}

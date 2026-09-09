@@ -37,9 +37,9 @@ def schema_snapshot(probabilities: Type, pick: Type) -> Dict:
     return {model.__name__: model.model_json_schema() for model in (probabilities, pick)}
 
 
-def models_by_name(topic) -> Dict[str, Type]:
-    """A topic's response models keyed by class name, as a run record names them."""
-    return {model.__name__: model for model in make_response_models(topic)}
+def models_by_name(topic, framing) -> Dict[str, Type]:
+    """A topic's response models under one framing, keyed by class name as a run record names them."""
+    return {model.__name__: model for model in make_response_models(topic, framing)}
 
 
 def aggregate_all(frame: pd.DataFrame, topic) -> Dict[str, Dict[str, float]]:
