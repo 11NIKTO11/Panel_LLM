@@ -1,0 +1,10 @@
+{
+  "self_description_v1": {
+    "rows": 3880,
+    "sha256": "8b1ec34d6b32e61098200442d3546ec4d99c821bcc17627c3baa8dd2a1d5ebc6"
+  },
+  "self_description_v2": {
+    "rows": 3880,
+    "sha256": "5b204810aca337da73c22ca7f8ecabd30f5bb2c586d8c1153756795e022f12cc"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "VotingProbabilities": {
+    "$defs": {
+      "OptionProbability": {
+        "description": "Pravděpodobnost jedné z nabízených možností.",
+        "properties": {
+          "name": {
+            "description": "Identifikátor jedné z nabízených možností.",
+            "enum": [
+              "abolish_fees_state_budget",
+              "keep_fees"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "Pravděpodobnost této možnosti.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "OptionProbability",
+        "type": "object"
+      }
+    },
+    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+    "properties": {
+      "parties": {
+        "description": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0.",
+        "items": {
+          "$ref": "#/$defs/OptionProbability"
+        },
+        "title": "Parties",
+        "type": "array"
+      }
+    },
+    "required": [
+      "parties"
+    ],
+    "title": "VotingProbabilities",
+    "type": "object"
+  },
+  "VotingPick": {
+    "description": "Zjednodušený výstup: jedna vybraná možnost.",
+    "properties": {
+      "choice": {
+        "description": "Nejpravděpodobnější možnost pro tento profil.",
+        "enum": [
+          "abolish_fees_state_budget",
+          "keep_fees"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "choice"
+    ],
+    "title": "VotingPick",
+    "type": "object"
+  }
+}

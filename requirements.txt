@@ -42,3 +42,6 @@ ipykernel>=6.30.1
 # --- Not installed ---
 # any-llm: probed by utils/models_utils.py, whose only caller is commented out.
 #          Listed as a deletable in _Refactor_Plan.md §6. Do not install to "fix" it.
+
+# --- Tests ---
+pytest>=9.1.1                 # tests/ holds the refactor gates; run python -m pytest from the repo root

@@ -1,0 +1,76 @@
+{
+  "sod_OpenAI_gpt-4.1-nano_VPick_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingPick",
+    "json": null
+  },
+  "sod_OpenAI_gpt-4.1-nano_VProb_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "bare",
+      "rows": 3880,
+      "sha256": "bef50b512dd083525ae1488baf21e992abf06849a11a5f22bc8183a7ee2e56e1"
+    }
+  },
+  "sod_OpenAI_gpt-4.1_VPick_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingPick",
+    "json": null
+  },
+  "sod_OpenAI_gpt-4.1_VProb_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "bare",
+      "rows": 3880,
+      "sha256": "bbd6a4bf6cb80f29ffe42e3d68cc13090126abd7235894d25ec93c5c81f5a7d0"
+    }
+  },
+  "sod_OpenAI_gpt-4o-mini_VPick_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingPick",
+    "json": null
+  },
+  "sod_OpenAI_gpt-4o-mini_VProb_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "bare",
+      "rows": 3880,
+      "sha256": "da306294bdf4416abf038c42b2d96c23cbcec8e142a11639944c4d755116e014"
+    }
+  },
+  "sod_OpenAI_gpt-4o_VPick_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingPick",
+    "json": null
+  },
+  "sod_OpenAI_gpt-4o_VProb_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "bare",
+      "rows": 3880,
+      "sha256": "b665f33812759f5411b1050deb35aa02b31c3d7e5b5fb3ee5f7e2d667145db61"
+    }
+  },
+  "sod_OpenRouter_claude-sonnet-4-5_VProb_t=0.0_subset=200": {
+    "rows": 200,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "wrapped",
+      "rows": 200,
+      "sha256": "00118cbe5c4011e32bb1dc5340635d991c5e025c441a61bff10bcb77e3b53af3"
+    }
+  },
+  "sod_OpenRouter_gemini-3-flash-preview_VProb_t=0.0": {
+    "rows": 3880,
+    "response_model": "VotingProbabilities",
+    "json": {
+      "shape": "wrapped",
+      "rows": 3880,
+      "sha256": "c970f7c0ea088f752cc73335382572ee6b003c1a5a568f42a722c151b5e3c42a"
+    }
+  }
+}

@@ -25,3 +25,4 @@ tmp
 
 
 _delete
+.pytest_cache
