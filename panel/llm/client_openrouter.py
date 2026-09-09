@@ -68,6 +68,7 @@ class OpenRouterClient(BaseLLMClient):
                 f"{response.text[:500]}"
             )
         data = response.json()
+        self.last_model = data.get("model")
         if "error" in data:  # OpenRouter can return HTTP 200 with an error payload
             raise ValueError(f"OpenRouter returned an error for '{provider}/{model_id}': {data['error']}")
         try:

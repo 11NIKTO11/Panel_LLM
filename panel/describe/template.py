@@ -13,6 +13,7 @@ Template shape:
         "name": "self_v1",              the file stem, the table name and the column
         "short": "v1",                  its part of a results stem: ASCII, no underscore
         "language": "cs",               which language pack supplies the filters
+        "standalone": false,            true when the description is the whole prompt
         "note": "...",
         "sentences": [
             ["Jsem {gender}, {age|years}, mé vzdělání je {education_level}.",
@@ -32,6 +33,7 @@ Template shape:
 - the renderer capitalises each sentence, so filters return lowercase phrases.
 - a value that is absent, empty, or rejected by the caller's `usable` predicate leaves its
   slot unfilled, which drops that alternative.
+- a `standalone` description is the whole prompt: a run appends no question after it.
 
 Rendering over a dataset, with its language pack, is `panel.describe.render`; storing the
 result is `panel.describe.tables`.
@@ -48,7 +50,7 @@ from panel import paths
 
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_]+))?\}")
 REQUIRED_KEYS = {"name", "short", "language", "sentences"}
-OPTIONAL_KEYS = {"note"}
+OPTIONAL_KEYS = {"note", "standalone"}
 
 
 def _default_usable(value) -> bool:
@@ -80,12 +82,14 @@ class PromptTemplate:
         short: the description's part of a results stem.
         language: the language pack whose filters render it.
         sentences: alternatives in priority order, per sentence.
+        standalone: the description is the whole prompt; no question follows it.
         note: free text; not used by code.
     """
     name: str
     short: str
     language: str
     sentences: Tuple[Tuple[str, ...], ...]
+    standalone: bool = False
     note: str = ""
 
     @property
@@ -191,7 +195,7 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
         raise ValueError(f"{path}: every sentence needs at least one alternative")
     return PromptTemplate(
         name=config["name"], short=short, language=config["language"], sentences=sentences,
-        note=config.get("note", ""),
+        standalone=bool(config.get("standalone", False)), note=config.get("note", ""),
     )
 
 

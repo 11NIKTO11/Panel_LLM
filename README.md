@@ -73,7 +73,7 @@ Then, in order:
 | step | notebook | what it does |
 |---|---|---|
 | 1 | `python -m datasets.sod.prepare` | `.sav` → `data/profiles/sod.csv` |
-| 2 | `election_simulation.ipynb` | respondents → LLM → `results/<topic>/` |
+| 2 | `simulate.ipynb` | subjects → LLM → `results/<topic>/` |
 | 3 | `election_results_analysis.ipynb` | evaluate one run: MAE by region, covariance, distributions |
 | 4 | `panel_analysis.ipynb` | statistical layer: MANOVA, PERMANOVA, distribution distances |
 
@@ -82,33 +82,24 @@ result names. See `CLAUDE.md` §5.
 
 ### 2.1 Declaring a run
 
-The run-setup cell of `election_simulation.ipynb`, right after the imports, is the only place a
-run is declared. Pick a topic, build its response models, write one `RunSpec`, and select a
-named variant:
+The run-setup cell of `simulate.ipynb`, right after the imports, is the only place a run is
+declared: one `RunSpec` of names and numbers, a dict of named variants, and the one to run:
 
 ```python
-TOPIC = load_topic("election_2021")
-FRAMING = load_framing(TOPIC, "cs")
-VProb, VPick = make_response_models(TOPIC, FRAMING)
-DESCRIPTION = "self_v1"
-
-people = read_profile(load_dataset("sod"))
-data = people.join(read_table("sod", DESCRIPTION, people.index))   # the descriptions, rendered at cleanup
-
-BASE = RunSpec(
-    name="sod", topic=TOPIC.name, data=data,
-    description=DESCRIPTION,
-    question=FRAMING.question, instructions=FRAMING.instructions,
-    client_type=llm.OpenRouterClient, model="gpt-4.1-nano",
-    response_model=VProb, temperature=0,
-)
-
+BASE = RunSpec(dataset="sod", description="self_v1", topic="election_2021", framing="cs",
+               client="OpenRouter", model="gpt-4.1-nano", shape="VProb", temperature=0)
 SPECS = {"nano": BASE, "4o": BASE.variant(model="gpt-4o"), "nano-trial": BASE.variant(sample=200)}
 SPEC = SPECS["nano"]
+
+RUN = resolve(SPEC)                                  # loads the five artifacts, joins profile and prompt table
+STORE = ResultStore(paths.RESULTS_DIR, SPEC.topic)
+execute(RUN, STORE, client_class(SPEC.client)())     # batch, capped rerun of skipped calls, archived + plain save
 ```
 
-Everything downstream reads the spec, and the spec is written into the run's record, so a saved
-run says how it was produced.
+`resolve` loads what the names point at and lays out the calls; `execute` runs the batch, reruns
+skipped calls a capped number of times, and saves twice - an archived copy, then the plain files.
+The record beside them holds the spec, the template and framing text, the response schema and the
+exact subject ids, so a saved run says how it was produced.
 
 **Cost warning.** A full run makes one API call per respondent — 3880 of them. Use
 `SPECS["nano-trial"]`, which sets `sample=200`, for a cheap trial; its results land under a
@@ -116,8 +107,8 @@ run says how it was produced.
 
 ### 2.2 Other entry points
 
-- `election_preferences.ipynb` — region-level prompts with no respondent profile, to probe what
-  the model "believes" about a region directly. Ten repeats per region, two describer variants.
+- the `latent-*` specs in `simulate.ipynb` — the `regions` dataset with a place-level description
+  instead of a respondent, ten repeats per area, to probe what the model "believes" about a region.
 - `datasets/grid/generate.py` — build the synthetic full-factorial profile grid instead of
   using real respondents; its factor levels are in `grid_income3.json`:
 

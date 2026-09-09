@@ -33,4 +33,5 @@ class AnthropicClient(BaseLLMClient):
             output_format=response_format,
             **({"system": instructions} if instructions else {}),
         )
+        self.last_model = getattr(response, "model", None)
         return response.parsed_output

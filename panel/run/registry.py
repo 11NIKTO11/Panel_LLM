@@ -1,24 +1,29 @@
-from typing import Any, Dict, Union
+"""Name -> client class, so the client a spec or a record names resolves to code."""
+from typing import Dict, Type
 
-from panel.llm import AnthropicClient, GeminiClient, OpenAIClient, OpenRouterClient
+from panel.llm import AnthropicClient, BaseLLMClient, GeminiClient, OpenAIClient, OpenRouterClient
 
-from .spec import short_name
+from .fake import FakeClient
 
-_KNOWN = (OpenAIClient, AnthropicClient, GeminiClient, OpenRouterClient)
+KNOWN = (OpenAIClient, AnthropicClient, GeminiClient, OpenRouterClient, FakeClient)
 
 
-def build_registry(extra: Union[Dict[str, Any], None] = None) -> Dict[str, Any]:
+def short_name(cls) -> str:
+    """A class's SHORT_NAME if it declares one, else its __name__."""
+    return getattr(cls, "SHORT_NAME", None) or cls.__name__
+
+
+def registry() -> Dict[str, Type[BaseLLMClient]]:
+    """Every known client under both its short name and its class name."""
+    return {name: cls for cls in KNOWN for name in (short_name(cls), cls.__name__)}
+
+
+def client_class(name: str) -> Type[BaseLLMClient]:
     """
-    Name -> object map for resolving a serialized RunSpec.
-
-    Args:
-        extra: everything not known here - in practice the response models, which are
-            generated per topic by `make_response_models`. Descriptions need no entry: a
-            spec names a column, not a callable.
+    Raises:
+        KeyError: naming the known clients, if `name` is not one of them.
     """
-    registry = {}
-    for obj in _KNOWN:
-        registry[obj.__name__] = obj
-        registry[short_name(obj)] = obj
-    registry.update(extra or {})
-    return registry
+    known = registry()
+    if name not in known:
+        raise KeyError(f"unknown client '{name}'; known: {sorted(short_name(cls) for cls in KNOWN)}")
+    return known[name]

@@ -35,5 +35,6 @@ class GeminiClient(BaseLLMClient):
                 **({"system_instruction": instructions} if instructions else {}),
             },
         )
+        self.last_model = getattr(response, "model_version", None)
         parsed = json.loads(response.text)
         return response_format(**parsed)

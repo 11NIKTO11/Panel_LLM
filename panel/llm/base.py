@@ -21,6 +21,12 @@ def detect_provider(model: str) -> str:
 
 
 class BaseLLMClient:
+    """
+    One structured call per provider. `last_model` is the model id the provider reported for
+    the most recent call, when it reports one, so a run record can pin an alias to a version.
+    """
+    last_model: Union[str, None] = None
+
     def call_llm(
         self,
         model: str,

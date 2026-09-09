@@ -1,111 +1,72 @@
-from dataclasses import dataclass, field, replace
-from typing import Any, Dict, Type, Union
+"""
+A run, declared in full by names and numbers.
 
-import pandas as pd
-from pydantic import BaseModel
+Five axes name a run - dataset, description, topic, framing, and the model (client, model id,
+temperature) - plus how much of the data (sample) and how often (repeats). Every field is a
+string or a number, so a spec serialises into the run record as it is and a record turns back
+into the spec that wrote it. Resolving the names into loaded artifacts is `panel.run.resolve`;
+sending the calls and saving what comes back is `panel.run.execute`.
+"""
+from dataclasses import asdict, dataclass, replace
+from typing import Any, Dict, Union
 
-
-def short_name(obj) -> str:
-    """A class's SHORT_NAME if it declares one, else its __name__."""
-    return getattr(obj, "SHORT_NAME", None) or obj.__name__
+SHAPES = ("VProb", "VPick")
 
 
 @dataclass(frozen=True)
 class RunSpec:
     """
-    One LLM run, declared in full: everything `run_llm_batch` needs to execute it.
-
-    `to_dict` records everything that identifies a run except the rows themselves; the
-    prompts those rows produced are stored with the results, in the `Prompt` column. No
-    field holds a callable, so a record fully describes the run that wrote it.
-
     Attributes:
-        name: label for the run; the first part of every filename.
-        topic: what the run is about - an election, or an issue. Also the results
-            folder the run lands in, so runs sharing a response vocabulary sit
-            together. Selects that vocabulary in a later step.
-        data: rows to run, one subject each. Excluded from equality and repr, so a spec
-            still compares and hashes by its declaration.
-        description: which description variant to send - a column of `data`, which is
-            also the name of the template that rendered it and of its prompt table (see
-            `panel/describe/template.py`). A string rather than a callable, so a spec is data.
-        question: appended to every description; empty when the description carries the
-            whole prompt itself.
-        instructions: system prompt framing the task, normally the topic's. Recorded with
-            the run, so a run's whole prompt is this plus its stored `Prompt` column.
-        client_type: BaseLLMClient subclass to instantiate.
+        dataset: whose subjects; a folder under `datasets/`.
+        description: which description template; a file under `config/descriptions/`.
+        topic: what the run is about; a folder under `config/topics/`, and the results folder.
+        framing: which wording of the topic; a file in the topic folder.
+        client: the LLM client, by its short name (`OpenRouter`, `OpenAI`, `Fake`, ...).
         model: provider model id.
-        response_model: Pydantic model the provider must return.
+        shape: which response model: `VProb` (a distribution) or `VPick` (one choice).
         temperature: sampling temperature.
-        sample: run this many rows instead of all of them.
+        repeats: calls per subject; each becomes its own results row.
+        sample: run this many subjects instead of all of them.
         random_state: seed for `sample`.
     """
-    name: str
-    topic: str
-    data: pd.DataFrame = field(compare=False, repr=False)
+    dataset: str
     description: str
-    question: str
-    client_type: Type
+    topic: str
+    framing: str
+    client: str
     model: str
-    response_model: Type[BaseModel]
-    instructions: Union[str, None] = None
+    shape: str = "VProb"
     temperature: float = 0.0
+    repeats: int = 1
     sample: Union[int, None] = None
     random_state: Union[int, None] = 42
 
-    @property
-    def stem(self) -> str:
+    def __post_init__(self):
         """
-        Filename stem: enough to tell runs apart at a glance, not the whole spec.
-
-        The topic is not in it - it is the folder the run lands in. `subset=<n>`
-        appears only for a sampled run; a full run carries no suffix.
-        """
-        parts = [
-            self.name,
-            short_name(self.client_type),
-            self.model,
-            short_name(self.response_model),
-            f"t={round(float(self.temperature), 2)}",
-        ]
-        if self.sample is not None:
-            parts.append(f"subset={self.sample}")
-        return "_".join(parts)
-
-    def make_client(self, api_key: Union[str, None] = None):
-        return self.client_type(api_key=api_key)
-
-    def prompt(self, row: pd.Series) -> str:
-        """
-        What one row is sent: its stored description plus the topic's question.
-
         Raises:
-            KeyError: if `data` carries no such description column.
+            ValueError: on an unknown shape, or a repeats or sample below 1.
         """
-        return row[self.description] + self.question
-
-    def rows(self) -> pd.DataFrame:
-        """The rows this run covers: all of `data`, or a random `sample` of them."""
-        if self.sample is None:
-            return self.data
-        return self.data.sample(n=self.sample, random_state=self.random_state)
+        if self.shape not in SHAPES:
+            raise ValueError(f"shape must be one of {SHAPES}, not {self.shape!r}")
+        if self.repeats < 1:
+            raise ValueError("repeats must be at least 1")
+        if self.sample is not None and self.sample < 1:
+            raise ValueError("sample must be at least 1")
 
     def variant(self, **changes) -> "RunSpec":
         """A copy with some fields changed, for declaring a family of runs."""
         return replace(self, **changes)
 
     def to_dict(self) -> Dict[str, Any]:
-        """The identifying fields, for the run record. The rows themselves are omitted."""
-        return {
-            "name": self.name,
-            "topic": self.topic,
-            "description": self.description,
-            "question": self.question,
-            "instructions": self.instructions,
-            "client_type": self.client_type.__name__,
-            "model": self.model,
-            "response_model": self.response_model.__name__,
-            "temperature": float(self.temperature),
-            "sample": self.sample,
-            "random_state": self.random_state,
-        }
+        """The spec as the run record stores it."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, record: Dict[str, Any]) -> "RunSpec":
+        """
+        The spec a record stores, back as an object.
+
+        Raises:
+            TypeError: on a legacy record's spec, whose fields are not these.
+        """
+        return cls(**record)

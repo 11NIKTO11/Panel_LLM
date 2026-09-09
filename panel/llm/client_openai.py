@@ -31,4 +31,5 @@ class OpenAIClient(BaseLLMClient):
             text_format=response_format,
             **({"instructions": instructions} if instructions else {}),
         )
+        self.last_model = getattr(response, "model", None)
         return response.output_parsed
