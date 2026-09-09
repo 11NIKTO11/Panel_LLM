@@ -1,0 +1,12 @@
+{
+    "name": "regions",
+    "short": "regions",
+    "title": "The fourteen regions and the country",
+    "language": "cs",
+    "source": "regions.csv",
+    "required": [
+        "region"
+    ],
+    "claims": {},
+    "note": "Subjects for the latent runs, which ask about a place rather than a person. The country is a subject like the regions. regions.csv also carries a level column (country / region) that the analysis notebook reads to find the country row; it is not part of the profile."
+}

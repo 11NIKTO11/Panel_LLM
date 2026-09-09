@@ -1,4 +1,7 @@
-"""Aggregate per-subject results into one distribution, and rescale column groups to sum to 1."""
+"""
+Aggregate per-subject rows into one distribution - predicted from a results frame, claimed from
+a profile's answers - and rescale column groups to sum to 1.
+"""
 from typing import Sequence
 
 import pandas as pd
@@ -64,3 +67,46 @@ def normalize_groups(df: pd.DataFrame, groups: Sequence[Sequence[str]]) -> pd.Da
         columns = list(columns)
         out[columns] = out[columns].div(out[columns].sum(axis=1), axis=0)
     return out
+
+
+def claimed_distribution(frame: pd.DataFrame, claims, topic, count_excluded_as_abstained: bool = False) -> pd.Series:
+    """
+    What subjects said they chose - the *claimed* reference series, in the topic's columns.
+
+    Args:
+        frame: profile rows carrying the claims' answer column.
+        claims: `panel.dataset.Claims` sorting the dataset's answer strings into options,
+            abstained and excluded.
+        topic: `panel.topic.Topic` whose columns key the series.
+        count_excluded_as_abstained: if True, non-substantive answers stay in the turnout
+            denominator as non-voters instead of dropping out of it.
+
+    Returns:
+        pd.Series: attendance (if the topic has it), then each option's share of the
+            substantive choices, summing to 1.
+
+    Raises:
+        ValueError: if an answer string is not in the claims map, or the map names an option
+            short the topic does not have.
+    """
+    answers = frame[claims.column].astype(str)
+    unknown = sorted(set(answers) - set(claims.answers))
+    if unknown:
+        raise ValueError(f"claims map {claims.dataset}/{claims.topic} does not cover answers {unknown}")
+    foreign = sorted(set(claims.options.values()) - set(topic.by_short))
+    if foreign:
+        raise ValueError(f"claims map {claims.dataset}/{claims.topic} names options unknown to topic '{topic.name}': {foreign}")
+
+    substantive = answers[~answers.isin(claims.excluded)]
+    chosen = substantive[~substantive.isin(claims.abstained)]
+    denominator = len(answers) if count_excluded_as_abstained else len(substantive)
+    turnout = len(chosen) / denominator if denominator else 0.0
+    counts = chosen.map(claims.options).value_counts()
+
+    result = {}
+    if topic.turnout:
+        yes, no = topic.turnout
+        result[yes], result[no] = turnout, 1 - turnout
+    for option in topic.options:
+        result[option] = counts.get(topic.short[option], 0) / len(chosen) if len(chosen) else 0.0
+    return pd.Series(result, dtype=float)

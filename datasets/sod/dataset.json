@@ -1,0 +1,33 @@
+{
+    "name": "sod",
+    "short": "sod",
+    "title": "Society of Distrust, Czech survey (2021)",
+    "language": "cs",
+    "source": "SoD-CZ/Society_of_Distrust - CZ.sav",
+    "required": [
+        "gender",
+        "age",
+        "age_range",
+        "education_level",
+        "region",
+        "district",
+        "town_size",
+        "living_standard",
+        "interest_in_politics",
+        "voted_party",
+        "opinion_on_eu",
+        "opinion_on_nato",
+        "covid_vaccinated"
+    ],
+    "claims": {
+        "election_2021": {
+            "column": "voted_party",
+            "map": "claims/election_2021.json"
+        },
+        "election_2021_legacy": {
+            "column": "voted_party",
+            "map": "claims/election_2021.json"
+        }
+    },
+    "note": "3880 respondents, keyed by the survey's own id (60696-77113). employment_status and income_range are the two answers a respondent may lack (9 and 347 do), so they are not required and a template degrades around them. The raw .sav is not in git. The legacy topic shares the 2021 claims map because its vocabulary is the same."
+}

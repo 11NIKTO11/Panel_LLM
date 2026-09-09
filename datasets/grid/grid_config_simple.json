@@ -1,6 +1,6 @@
 {
     "grid_name": "simple",
-    "note": "NOT a prompt source. This reproduces the colleague's design in their own vocabulary (English level ids), for reading their results through sod_to_grid_categories.json. Our describers splice levels straight into Czech sentences, so these ids come out as Czenglish - 'Jsem female, ... None o politiku.' Prompt from grid_config_sod.json instead; reproducing their run would need their prompt text, which their report does not include.",
+    "note": "NOT a prompt source. This reproduces the colleague's design in their own vocabulary (English level ids), for reading their results through sod_to_grid_categories.json. Our describers splice levels straight into Czech sentences, so these ids come out as Czenglish - 'Jsem female, ... None o politiku.' Prompt from grid_income3.json instead; reproducing their run would need their prompt text, which their report does not include.",
     "factors": {
         "gender": [
             "female",

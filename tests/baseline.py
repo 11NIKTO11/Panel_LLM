@@ -10,7 +10,7 @@ the commit that does it.
 Writes under tests/fixtures/:
     manifest.json             when, from which commit, with which library versions
     prompt_tables.json        row count and digest per stored description table, after
-                              checking that rendering from clean_data.csv reproduces it
+                              checking that rendering from the survey's profile reproduces it
     schemas/<topic>.json      the response schemas a run on that topic is shown; for the
                               legacy topic the frozen copy from its results config.json
     legacy_aggregates.json    country-level aggregation per legacy run, per CSV, for all
@@ -30,7 +30,8 @@ import numpy as np
 import pandas as pd
 import pydantic
 
-from datasets.sod.code.describe import render
+from datasets.sod.describe import render
+from panel.dataset import load_dataset, read_profile
 from panel.run import ResultStore
 from panel.topic import load_topic, make_response_models
 
@@ -57,12 +58,12 @@ def _write(path: Path, payload) -> None:
 
 def prompt_tables() -> Dict:
     """
-    Digest each stored table, after rendering it again from clean_data.csv.
+    Digest each stored table, after rendering it again from the survey's profile table.
 
     Raises:
         RuntimeError: if rendering does not reproduce the stored table exactly.
     """
-    people = pd.read_csv(ROOT / "data" / "clean_data.csv", index_col="id")
+    people = read_profile(load_dataset("sod"))
     out = {}
     for variant in VARIANTS:
         rendered = render(people, variant)

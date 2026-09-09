@@ -1,0 +1,63 @@
+{
+    "note": "The shared profile schema: what a subject can be described by, independent of dataset. A concept is the attribute; its columns are the representations a dataset may hold it in - exact number, band, phrase. Column ids are language-neutral and name the representation; values are phrase-ready strings in the dataset's own language. A profile table may carry only columns declared here plus the claim columns its dataset declares, so two datasets that share a column mean the same thing by it. Common scales for grouping across datasets are added when analysis needs them.",
+    "concepts": {
+        "gender": {
+            "columns": {
+                "gender": "the dataset's own label for the respondent's gender"
+            }
+        },
+        "age": {
+            "columns": {
+                "age": "exact age in years, an integer",
+                "age_range": "an age band as the dataset writes it, e.g. '25–34 let' or '30-44'"
+            }
+        },
+        "education": {
+            "columns": {
+                "education_level": "highest attained education, as a phrase"
+            }
+        },
+        "region": {
+            "columns": {
+                "region": "region name, spelled as the reference results spell it",
+                "district": "district name",
+                "town_size": "settlement size band, as a phrase"
+            }
+        },
+        "employment": {
+            "columns": {
+                "employment_status": "employment status, several joined by commas, as a phrase"
+            }
+        },
+        "income": {
+            "columns": {
+                "income_range": "household income band, as a phrase"
+            }
+        },
+        "living_standard": {
+            "columns": {
+                "living_standard": "self-assessed living standard, as a phrase"
+            }
+        },
+        "interest": {
+            "columns": {
+                "interest_in_politics": "interest in politics, as a phrase"
+            }
+        },
+        "eu": {
+            "columns": {
+                "opinion_on_eu": "satisfaction with EU membership, as a phrase already agreeing with the gender"
+            }
+        },
+        "nato": {
+            "columns": {
+                "opinion_on_nato": "satisfaction with NATO membership, as a phrase already agreeing with the gender"
+            }
+        },
+        "covid": {
+            "columns": {
+                "covid_vaccinated": "covid vaccination answer - yes, no or non-substantive - as the dataset writes it"
+            }
+        }
+    }
+}

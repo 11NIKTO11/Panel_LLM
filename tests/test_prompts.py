@@ -2,7 +2,7 @@
 import pandas as pd
 import pytest
 
-from datasets.sod.code.describe import render
+from datasets.sod.describe import render
 
 from tests.conftest import ROOT, load_fixture
 from tests.snapshots import prompt_table_digest

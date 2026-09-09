@@ -1,7 +1,5 @@
 {
-    "grid_name": "income3_sod",
-    "note": "The prompt source. Levels are the survey's own vocabulary - each one is the representative the SoD value_map in sod_to_grid_categories.json folds into a common level, and the ages sit inside its bins - so a profile built here reads like a respondent and its run is comparable with the survey runs.",
-    "description_template": "grid_description_v1",
+    "note": "The grid's factor levels, taken verbatim from the survey's own vocabulary: each level is the representative of one common band in the grid-comparison layer (kept standalone in CoRe/_grid_separate), and the ages sit inside its bins, so a profile built here reads like a respondent and its run is comparable with the survey runs. Which bands and incomes to vary is a research choice and lives only here.",
     "factors": {
         "gender": [
             "muž",

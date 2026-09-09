@@ -1,0 +1,21 @@
+{
+    "note": "The survey's Q21 answers sorted by what they mean for the 2021 election: a party answer maps onto the topic's option short, an abstained answer counts toward turnout only, and a non-substantive answer drops out of every denominator unless the analysis asks otherwise.",
+    "options": {
+        "ANO 2011": "ANO",
+        "Koalice Spolu (ODS, TOP 09, KDU-ČSL)": "SPOLU",
+        "Koalice PIRÁTI a STAROSTOVÉ": "PirSTAN",
+        "Svoboda a přímá demokracie – Tomio Okamura (SPD)": "SPD",
+        "Přísaha Roberta Šlachty": "Prisaha",
+        "Česká strana sociálně demokratická (ČSSD)": "CSSD",
+        "Komunistická strana Čech a Moravy (KSČM)": "KSCM",
+        "Trikolóra, Svobodní a Soukromníci": "Trikolora",
+        "Jiná strana": "Other"
+    },
+    "abstained": [
+        "Nebyl/a jsem volit"
+    ],
+    "excluded": [
+        "Nevím",
+        "Nechci uvést"
+    ]
+}

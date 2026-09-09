@@ -3,12 +3,11 @@ Turn survey answers into Czech prompt phrases, and render the description templa
 
 Composition root for the survey's half of prompt building: it owns the filters that carry
 Czech grammar over survey answers - including the region case forms - and hands them to the
-generic renderer in `panel/describe/template.py`. Run it from the repo root, or call `render()` from
-`prepare.ipynb` right after `clean_data.csv` is written - doing it in the same pass is what
-keeps a table from lagging the data it describes.
+generic renderer in `panel/describe/template.py`. It reads the profile table `prepare` wrote,
+so a description never describes rows that are not there.
 
 Usage:
-    python -m datasets.sod.code.describe [--variant self_description_v1]
+    python -m datasets.sod.describe [--variant self_description_v1]
 """
 import argparse
 import json
@@ -19,12 +18,12 @@ from typing import Union
 import pandas as pd
 
 from panel.describe.lang.cs import grammar as cz
-from panel import paths
+from panel.dataset import load_dataset, read_profile
 from panel.describe.template import RowFilter, load_template, render_frame, write_table
 
-from .clean import is_non_substantive_responses
+from .clean import is_non_substantive
 
-SLICE_DIR = Path(__file__).resolve().parents[1]      # datasets/sod - templates and forms
+SLICE_DIR = Path(__file__).resolve().parent      # datasets/sod - templates and forms
 TEMPLATE_DIR = SLICE_DIR
 DEFAULT_VARIANT = "self_description_v1"
 REGION_FORMS = SLICE_DIR / "forms" / "regions.json"
@@ -70,25 +69,9 @@ def _gender(row) -> cz.Gender:
     return cz.Gender.FEMALE if str(row["gender"]).lower() == "žena" else cz.Gender.MALE
 
 
-def _own_form(value: str, gender: cz.Gender) -> str:
-    """
-    One respondent's form of an answer the survey writes for both genders.
-
-    "rozhodně spokojený/á" -> "rozhodně spokojený" or "rozhodně spokojená". The slash is the
-    survey's shorthand, not something a person would say, so it never reaches a prompt.
-
-    Raises:
-        ValueError: if the answer carries no slash form, which means the vocabulary changed.
-    """
-    masculine, slash, feminine = str(value).rpartition("/")
-    if not slash:
-        raise ValueError(f"expected a '<masculine>/<feminine ending>' answer, got {value!r}")
-    return masculine[:-1] + feminine if gender is cz.Gender.FEMALE else masculine
-
-
-def _satisfied(value, row) -> str:
-    """"jsem spíše nespokojená" - the answer is an adjective, so it agrees with the gender."""
-    return f"jsem {_own_form(value, _gender(row))}"
+def _satisfied(value) -> str:
+    """"jsem spíše nespokojená" - cleaning already resolved the answer to the respondent's gender."""
+    return f"jsem {value}"
 
 
 def _vaccinated(value, row) -> str:
@@ -111,14 +94,14 @@ FILTERS = {
     "in": region_in,
     "of": region_of,
     "have": _living_standard,
-    "satisfied": RowFilter(_satisfied),
+    "satisfied": _satisfied,
     "vaccinated": RowFilter(_vaccinated),
 }
 
 
 def usable(value) -> bool:
     """A survey answer can fill a slot unless it is missing, empty or non-substantive."""
-    return not pd.isna(value) and str(value) != "" and not is_non_substantive_responses(value)
+    return not pd.isna(value) and str(value) != "" and not is_non_substantive(value)
 
 
 def render(people: pd.DataFrame, variant: str = DEFAULT_VARIANT) -> pd.Series:
@@ -126,7 +109,7 @@ def render(people: pd.DataFrame, variant: str = DEFAULT_VARIANT) -> pd.Series:
     Describe every respondent, as the named variant.
 
     Args:
-        people: cleaned respondents, indexed by survey id.
+        people: the survey's profile table, indexed by survey id.
         variant: template file stem under `datasets/sod/`; also the column and table name.
 
     Returns:
@@ -139,10 +122,9 @@ def render(people: pd.DataFrame, variant: str = DEFAULT_VARIANT) -> pd.Series:
 def main(argv: Union[list, None] = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.add_argument("--variant", default=DEFAULT_VARIANT, help="template file stem")
-    parser.add_argument("--data", type=Path, default=paths.DATA_DIR / "clean_data.csv", help="cleaned respondents")
     args = parser.parse_args(argv)
 
-    people = pd.read_csv(args.data, index_col=0)
+    people = read_profile(load_dataset("sod"))
     descriptions = render(people, args.variant)
     path = write_table(descriptions)
     print(f"{len(descriptions)} descriptions -> {path}")

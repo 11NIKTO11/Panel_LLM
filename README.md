@@ -72,7 +72,7 @@ Then, in order:
 
 | step | notebook | what it does |
 |---|---|---|
-| 1 | `datasets/sod/prepare.ipynb` | `.sav` → `data/clean_data.csv` |
+| 1 | `python -m datasets.sod.prepare` | `.sav` → `data/profiles/sod.csv` |
 | 2 | `election_simulation.ipynb` | respondents → LLM → `results/<topic>/` |
 | 3 | `election_results_analysis.ipynb` | evaluate one run: MAE by region, covariance, distributions |
 | 4 | `panel_analysis.ipynb` | statistical layer: MANOVA, PERMANOVA, distribution distances |
@@ -117,12 +117,11 @@ run says how it was produced.
 
 - `election_preferences.ipynb` — region-level prompts with no respondent profile, to probe what
   the model "believes" about a region directly. Ten repeats per region, two describer variants.
-- `datasets/grid/generate_grid.py` — build a synthetic full-factorial profile grid instead
-  of using real respondents. A config naming a `description_template` is a prompt source, and
-  its grid is written with the description already in a column:
+- `datasets/grid/generate.py` — build the synthetic full-factorial profile grid instead of
+  using real respondents; its factor levels are in `grid_income3.json`:
 
   ```bash
-  python datasets/grid/generate_grid.py --config datasets/grid/grid_config_sod.json
+  python -m datasets.grid.generate
   ```
 
 - `update_script.ipynb` — spent one-off migrations, kept as a record. Each has a `DRY_RUN` flag

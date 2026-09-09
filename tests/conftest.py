@@ -1,7 +1,7 @@
 """
 Shared fixtures: where things are, and loaders for the phase 0 baselines under `fixtures/`.
 
-An input that is not in git (`data/clean_data.csv`, `results/`) makes a test skip naming
+An input that is not in git (`data/profiles/sod.csv`, `results/`) makes a test skip naming
 the path it needed, rather than fail.
 """
 import json
@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 
 from panel import paths
+from panel.dataset import load_dataset, profile_path, read_profile
 from panel.run import ResultStore
 from panel.topic import Topic, load_topic
 
@@ -40,7 +41,9 @@ def require(path: Path) -> Path:
 
 @pytest.fixture(scope="session")
 def people() -> pd.DataFrame:
-    return pd.read_csv(require(ROOT / "data" / "clean_data.csv"), index_col="id")
+    dataset = load_dataset("sod")
+    require(profile_path(dataset))
+    return read_profile(dataset)
 
 
 @pytest.fixture(scope="session")
