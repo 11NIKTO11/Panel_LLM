@@ -74,11 +74,11 @@ Then, in order:
 |---|---|---|
 | 1 | `python -m datasets.sod.prepare` | `.sav` → `data/profiles/sod.csv` |
 | 2 | `simulate.ipynb` | subjects → LLM → `results/<topic>/` |
-| 3 | `election_results_analysis.ipynb` | evaluate one run: MAE by region, covariance, distributions |
-| 4 | `panel_analysis.ipynb` | statistical layer: MANOVA, PERMANOVA, distribution distances |
+| 3 | `analyze.ipynb` | evaluate one run: MAE by region, covariance, distributions, every run of the topic |
+| 4 | `panel_stats.ipynb` | statistical layer: MANOVA, PERMANOVA, distances by area, spread of options |
 
-Step 4 is **currently broken on purpose** — it is the last notebook still on the pre-refactor
-result names. See `CLAUDE.md` §5.
+Every notebook restarts and runs to the end offline: `simulate.ipynb` through the fake client, the
+other two over the saved legacy runs. Nothing is defined in a notebook; the code is in `panel/`.
 
 ### 2.1 Declaring a run
 
