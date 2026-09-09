@@ -35,10 +35,10 @@ Not distributed with the repo.
 - extract and place the `.sav` file at:
 
   ```
-  ./SoD-CZ/Society_of_Distrust - CZ.sav
+  ./datasets/sod/SoD-CZ/Society_of_Distrust - CZ.sav
   ```
 
-- a different location or name means editing the path in `SoD/dataset_preparation.ipynb`.
+- a different location or name means editing the path in `datasets/sod/prepare.ipynb`.
 
 ### 1.3 API keys
 
@@ -72,7 +72,7 @@ Then, in order:
 
 | step | notebook | what it does |
 |---|---|---|
-| 1 | `SoD/dataset_preparation.ipynb` | `.sav` → `data/clean_data.csv` |
+| 1 | `datasets/sod/prepare.ipynb` | `.sav` → `data/clean_data.csv` |
 | 2 | `election_simulation.ipynb` | respondents → LLM → `results/<topic>/` |
 | 3 | `election_results_analysis.ipynb` | evaluate one run: MAE by region, covariance, distributions |
 | 4 | `panel_analysis.ipynb` | statistical layer: MANOVA, PERMANOVA, distribution distances |
@@ -89,10 +89,14 @@ named variant:
 ```python
 TOPIC = load_topic("election_2021", constants.TOPICS_DIR)
 VProb, VPick = make_response_models(TOPIC)
+DESCRIPTION = "self_description_v1"
+
+people = pd.read_csv(f"{constants.DATA_DIR}/clean_data.csv", index_col=0)
+data = people.join(read_table(DESCRIPTION, people.index))   # the descriptions, rendered at cleanup
 
 BASE = RunSpec(
     name="sod", topic=TOPIC.name, data=data,
-    describer=create_respondent_description,
+    description=DESCRIPTION,
     question=TOPIC.question, instructions=TOPIC.instructions,
     client_type=llm.OpenRouterClient, model=constants.GPT_41_NANO,
     response_model=VProb, temperature=0,
@@ -113,11 +117,12 @@ run says how it was produced.
 
 - `election_preferences.ipynb` — region-level prompts with no respondent profile, to probe what
   the model "believes" about a region directly. Ten repeats per region, two describer variants.
-- `experiments/artificial_matrix/generate_grid.py` — build a synthetic full-factorial profile
-  grid instead of using real respondents:
+- `datasets/grid/generate_grid.py` — build a synthetic full-factorial profile grid instead
+  of using real respondents. A config naming a `description_template` is a prompt source, and
+  its grid is written with the description already in a column:
 
   ```bash
-  python experiments/artificial_matrix/generate_grid.py --config experiments/artificial_matrix/grid_config_sod.json
+  python datasets/grid/generate_grid.py --config datasets/grid/grid_config_sod.json
   ```
 
 - `update_script.ipynb` — spent one-off migrations, kept as a record. Each has a `DRY_RUN` flag
@@ -161,9 +166,11 @@ same either way.
 
 | path | contents | in git |
 |---|---|---|
-| `data/clean_data.csv` | one cleaned row per respondent | no |
+| `data/clean_data.csv` | one cleaned row per respondent, keyed by the survey `id` | no |
+| `data/legacy_clean_data.csv` | the same table frozen at 2026-09-08, keyed by row position, for the legacy runs | no |
 | `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
-| `data/prompts.csv` | the generated description per respondent | yes |
+| `data/prompts/<variant>.csv` | the rendered descriptions, keyed by survey `id` | no |
+| `data/prompts.csv` | the descriptions the ten legacy runs were sent | yes |
 | `results/<topic>/` | model predictions, run records, derived tables | no |
 | `graphs/` | generated figures | no |
 

@@ -12,8 +12,9 @@ def build_registry(extra: Union[Dict[str, Any], None] = None) -> Dict[str, Any]:
     Name -> object map for resolving a serialized RunSpec.
 
     Args:
-        extra: everything not known here - the description functions, and the response
-            models, which are generated per topic by `make_response_models`.
+        extra: everything not known here - in practice the response models, which are
+            generated per topic by `make_response_models`. Descriptions need no entry: a
+            spec names a column, not a callable.
     """
     registry = {}
     for obj in _KNOWN:

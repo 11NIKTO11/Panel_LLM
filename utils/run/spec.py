@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from typing import Any, Callable, Dict, Type, Union
+from typing import Any, Dict, Type, Union
 
 import pandas as pd
 from pydantic import BaseModel
@@ -15,9 +15,9 @@ class RunSpec:
     """
     One LLM run, declared in full: everything `run_llm_batch` needs to execute it.
 
-    `to_dict` records only the fields that identify a run, not the ones that carry it
-    out. The rows and the describer stay out of the record - the prompts they produced
-    are stored with the results, in the `Prompt` column.
+    `to_dict` records everything that identifies a run except the rows themselves; the
+    prompts those rows produced are stored with the results, in the `Prompt` column. No
+    field holds a callable, so a record fully describes the run that wrote it.
 
     Attributes:
         name: label for the run; the first part of every filename.
@@ -26,8 +26,10 @@ class RunSpec:
             together. Selects that vocabulary in a later step.
         data: rows to run, one subject each. Excluded from equality and repr, so a spec
             still compares and hashes by its declaration.
-        describer: row -> description text.
-        question: appended to every description; empty when the describer emits the
+        description: which description variant to send - a column of `data`, which is
+            also the name of the template that rendered it and of its prompt table (see
+            `utils/prompts.py`). A string rather than a callable, so a spec is data.
+        question: appended to every description; empty when the description carries the
             whole prompt itself.
         instructions: system prompt framing the task, normally the topic's. Recorded with
             the run, so a run's whole prompt is this plus its stored `Prompt` column.
@@ -41,7 +43,7 @@ class RunSpec:
     name: str
     topic: str
     data: pd.DataFrame = field(compare=False, repr=False)
-    describer: Callable[[pd.Series], str]
+    description: str
     question: str
     client_type: Type
     model: str
@@ -74,7 +76,13 @@ class RunSpec:
         return self.client_type(api_key=api_key)
 
     def prompt(self, row: pd.Series) -> str:
-        return self.describer(row) + self.question
+        """
+        What one row is sent: its stored description plus the topic's question.
+
+        Raises:
+            KeyError: if `data` carries no such description column.
+        """
+        return row[self.description] + self.question
 
     def rows(self) -> pd.DataFrame:
         """The rows this run covers: all of `data`, or a random `sample` of them."""
@@ -87,10 +95,11 @@ class RunSpec:
         return replace(self, **changes)
 
     def to_dict(self) -> Dict[str, Any]:
-        """The identifying fields, for the run record. Rows and describer are omitted."""
+        """The identifying fields, for the run record. The rows themselves are omitted."""
         return {
             "name": self.name,
             "topic": self.topic,
+            "description": self.description,
             "question": self.question,
             "instructions": self.instructions,
             "client_type": self.client_type.__name__,

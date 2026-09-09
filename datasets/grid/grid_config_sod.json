@@ -1,6 +1,7 @@
 {
     "grid_name": "income3_sod",
     "note": "The prompt source. Levels are the survey's own vocabulary - each one is the representative the SoD value_map in sod_to_grid_categories.json folds into a common level, and the ages sit inside its bins - so a profile built here reads like a respondent and its run is comparable with the survey runs.",
+    "description_template": "grid_description_v1",
     "factors": {
         "gender": [
             "muž",
