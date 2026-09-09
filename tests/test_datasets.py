@@ -31,7 +31,7 @@ def minimal_profile(dataset) -> pd.DataFrame:
 
 
 def test_schema_declares_each_column_once(schema):
-    assert len(schema.columns) == sum(len(columns) for columns in schema.concepts.values())
+    assert len(schema.columns) == sum(len(concept.columns) for concept in schema.concepts.values())
 
 
 @pytest.mark.parametrize("name", DATASETS)
