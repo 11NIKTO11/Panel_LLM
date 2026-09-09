@@ -1,16 +1,16 @@
-region
-Česko
-Hlavní město Praha
-Středočeský kraj
-Jihočeský kraj
-Plzeňský kraj
-Karlovarský kraj
-Ústecký kraj
-Liberecký kraj
-Královéhradecký kraj
-Pardubický kraj
-Kraj Vysočina
-Jihomoravský kraj
-Olomoucký kraj
-Zlínský kraj
-Moravskoslezský kraj
+region,population
+Česko,10900000
+Hlavní město Praha,1389000
+Středočeský kraj,1404000
+Jihočeský kraj,648000
+Plzeňský kraj,593000
+Karlovarský kraj,281000
+Ústecký kraj,822000
+Liberecký kraj,446000
+Královéhradecký kraj,551000
+Pardubický kraj,524000
+Kraj Vysočina,512000
+Jihomoravský kraj,1195000
+Olomoucký kraj,632000
+Zlínský kraj,579000
+Moravskoslezský kraj,1188000

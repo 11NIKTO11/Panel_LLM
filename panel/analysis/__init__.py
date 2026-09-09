@@ -1,1 +1,1 @@
-"""Reading results: aggregation, output validation and figures."""
+"""Reading results: aggregation and grouping, validation, comparison, the statistical layer (`stats`) and figures (`plots`)."""
