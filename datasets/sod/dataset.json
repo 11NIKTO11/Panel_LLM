@@ -19,6 +19,10 @@
         "opinion_on_nato",
         "covid_vaccinated"
     ],
+    "descriptions": [
+        "self_v1",
+        "self_v2"
+    ],
     "claims": {
         "election_2021": {
             "column": "voted_party",

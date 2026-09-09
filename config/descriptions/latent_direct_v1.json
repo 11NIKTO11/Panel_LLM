@@ -1,0 +1,11 @@
+{
+    "name": "latent_direct_v1",
+    "short": "direct-v1",
+    "language": "cs",
+    "note": "The direct forecast: the whole prompt is the description and the run sends no separate question. It names the 2021 election, so it is tied to that topic; a per-topic wording belongs in the framing once the run layer can compose one. Ported verbatim from the direct_forecast function of election_preferences.ipynb.",
+    "sentences": [
+        [
+            "Účast a výsledek voleb do poslanecké sněmovny {region|in} v roce 2021 budou:"
+        ]
+    ]
+}

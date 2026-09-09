@@ -1,0 +1,26 @@
+{
+    "name": "self_v1",
+    "short": "v1",
+    "language": "cs",
+    "note": "The first-person self-description the ten legacy runs were built from, sentence for sentence. Sentences are alternatives in priority order: an exact age over a band, the employment/income block degrades to whichever answer exists, and a sentence whose column the dataset lacks or whose answer is non-substantive is dropped. Filters carry the grammar (years, in, have) from the cs language pack. Over the survey it reproduces the legacy prompts on 3880 of 3880 rows; over the grid it yields the three sentences the grid has columns for. Changing any wording here means a new variant file, not an edit.",
+    "sentences": [
+        [
+            "Jsem {gender}, {age|years}, mé vzdělání je {education_level}.",
+            "Jsem {gender}, {age_range|years}, mé vzdělání je {education_level}."
+        ],
+        [
+            "Žiji {region|in}, v okresu {district} a obci o velikosti {town_size}."
+        ],
+        [
+            "Z hlediska zaměstnání jsem {employment_status} a příjem naší domácnosti je {income_range}.",
+            "Z hlediska zaměstnání jsem {employment_status}.",
+            "Příjem naší domácnosti je {income_range}."
+        ],
+        [
+            "{living_standard|have} životní úroveň."
+        ],
+        [
+            "{interest_in_politics} o politiku."
+        ]
+    ]
+}

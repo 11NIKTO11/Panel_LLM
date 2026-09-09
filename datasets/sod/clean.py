@@ -14,12 +14,6 @@ FEMININE = "žena"
 MASCULINE = "muž"
 
 
-def is_non_substantive(response) -> bool:
-    """`nevím` and `nechci uvést`, in any casing: an answer that says nothing about the person."""
-    text = str(response).lower()
-    return "nevím" in text or "nechci" in text
-
-
 def own_form(value: str, gender: str) -> str:
     """
     One respondent's form of an answer the survey writes for both genders.
@@ -33,7 +27,7 @@ def own_form(value: str, gender: str) -> str:
     """
     masculine, slash, feminine = value.rpartition("/")
     if not slash:
-        if is_non_substantive(value):
+        if cz.is_non_substantive(value):
             return value
         raise ValueError(f"expected a '<masculine>/<feminine ending>' answer, got {value!r}")
     if gender == FEMININE:
@@ -51,7 +45,7 @@ def _employment(row) -> str | None:
 
 
 def _income(value) -> str | None:
-    return None if not value or is_non_substantive(value) else cz.decapitalize(value)
+    return None if not value or cz.is_non_substantive(value) else cz.decapitalize(value)
 
 
 def _town_size(value: str) -> str:

@@ -89,10 +89,10 @@ named variant:
 ```python
 TOPIC = load_topic("election_2021", paths.TOPICS_DIR)
 VProb, VPick = make_response_models(TOPIC)
-DESCRIPTION = "self_description_v1"
+DESCRIPTION = "self_v1"
 
-people = pd.read_csv(paths.DATA_DIR / "clean_data.csv", index_col=0)
-data = people.join(read_table(DESCRIPTION, people.index))   # the descriptions, rendered at cleanup
+people = read_profile(load_dataset("sod"))
+data = people.join(read_table("sod", DESCRIPTION, people.index))   # the descriptions, rendered at cleanup
 
 BASE = RunSpec(
     name="sod", topic=TOPIC.name, data=data,
@@ -168,7 +168,7 @@ same either way.
 | `data/clean_data.csv` | one cleaned row per respondent, keyed by the survey `id` | no |
 | `data/legacy_clean_data.csv` | the same table frozen at 2026-09-08, keyed by row position, for the legacy runs | no |
 | `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
-| `data/prompts/<variant>.csv` | the rendered descriptions, keyed by survey `id` | no |
+| `data/prompts/<dataset>/<description>.csv` | the rendered descriptions, keyed by subject `id` | no |
 | `data/prompts.csv` | the descriptions the ten legacy runs were sent | yes |
 | `results/<topic>/` | model predictions, run records, derived tables | no |
 | `graphs/` | generated figures | no |

@@ -11,6 +11,9 @@
         "income_range",
         "interest_in_politics"
     ],
+    "descriptions": [
+        "self_v1"
+    ],
     "claims": {},
     "note": "288 profiles = 2 x 3 x 4 x 3 x 4, levels in the survey's own vocabulary so a shared template renders them. The short says which grid this is: three income levels. grid_config_simple.json beside it reproduces the colleague's design in English level ids and is not a dataset here; it belongs to the grid-comparison layer kept standalone in CoRe/_grid_separate."
 }

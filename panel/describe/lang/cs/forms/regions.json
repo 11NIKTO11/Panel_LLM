@@ -1,5 +1,5 @@
 {
-    "note": "Czech case forms for the region names, written out rather than derived. `in` carries the preposition, because it vocalises: v -> ve before the st- and zl- clusters. The rules this replaces got every noun right and those two prepositions wrong, which is 18% of the survey (_Refactor_Plan.md §3.4). Closed set of 15, so a table is both simpler and verifiable. A shared copy for non-survey callers comes with the election_preferences migration.",
+    "note": "Czech case forms for the fifteen area names - the country and the fourteen regions - written out rather than derived. `in` carries the preposition, because it vocalises: v -> ve before the st- and zl- clusters. The rules this replaced got every noun right and those two prepositions wrong, which is 18% of the survey. A closed set of fifteen is both simpler and verifiable, and an unknown name raises instead of being mangled. Part of the cs language pack, so every Czech dataset with a region column shares it.",
     "forms": {
         "Česko": {
             "in": "v Česku",

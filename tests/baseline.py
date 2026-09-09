@@ -1,16 +1,17 @@
 """
-Write the phase 0 baseline fixtures from the code as it stands.
+Write the baseline fixtures from the code as it stands.
 
     python -m tests.baseline [--overwrite]
 
-Run from the repo root, before any code change. Refuses to overwrite an existing fixture
-set unless told to: a baseline is taken once, and retaking it is a decision to record in
-the commit that does it.
+Taken once, before the overhaul changed any code (phase 0). Refuses to overwrite an existing
+fixture set unless told to: retaking a baseline is a decision to record in the commit that
+does it.
 
 Writes under tests/fixtures/:
     manifest.json             when, from which commit, with which library versions
-    prompt_tables.json        row count and digest per stored description table, after
-                              checking that rendering from the survey's profile reproduces it
+    prompt_tables.json        row count and digest per stored prompt table, keyed
+                              <dataset>/<description>, after checking that rendering from
+                              the dataset's profile reproduces it
     schemas/<topic>.json      the response schemas a run on that topic is shown; for the
                               legacy topic the frozen copy from its results config.json
     legacy_aggregates.json    country-level aggregation per legacy run, per CSV, for all
@@ -30,8 +31,10 @@ import numpy as np
 import pandas as pd
 import pydantic
 
-from datasets.sod.describe import render
-from panel.dataset import load_dataset, read_profile
+from panel.dataset import dataset_names, load_dataset, profile_path, read_profile
+from panel.describe.render import render
+from panel.describe.tables import read_table
+from panel.describe.template import load_description
 from panel.run import ResultStore
 from panel.topic import load_topic, make_response_models
 
@@ -41,7 +44,6 @@ from tests.snapshots import (
     schema_snapshot,
 )
 
-VARIANTS = ("self_description_v1", "self_description_v2")
 ATOL = 1e-12
 
 
@@ -58,22 +60,23 @@ def _write(path: Path, payload) -> None:
 
 def prompt_tables() -> Dict:
     """
-    Digest each stored table, after rendering it again from the survey's profile table.
+    Digest each stored prompt table of each prepared dataset, after rendering it again.
 
     Raises:
-        RuntimeError: if rendering does not reproduce the stored table exactly.
+        RuntimeError: if rendering does not reproduce a stored table exactly.
     """
-    people = read_profile(load_dataset("sod"))
     out = {}
-    for variant in VARIANTS:
-        rendered = render(people, variant)
-        stored = pd.read_csv(ROOT / "data" / "prompts" / f"{variant}.csv", index_col=0).iloc[:, 0]
-        if not rendered.index.equals(stored.index):
-            raise RuntimeError(f"{variant}: rendered index differs from the stored table")
-        differing = int((rendered.values != stored.values).sum())
-        if differing:
-            raise RuntimeError(f"{variant}: rendering differs from the stored table on {differing} rows")
-        out[variant] = prompt_table_digest(stored)
+    for name in dataset_names():
+        dataset = load_dataset(name)
+        if not dataset.descriptions or not profile_path(dataset).exists():
+            continue
+        profile = read_profile(dataset)
+        for description in dataset.descriptions:
+            rendered = render(dataset, load_description(description), profile)
+            stored = read_table(dataset.name, description).iloc[:, 0]
+            if not rendered.index.equals(stored.index) or int((rendered.values != stored.values).sum()):
+                raise RuntimeError(f"{dataset.name}/{description}: rendering differs from the stored table")
+            out[f"{dataset.name}/{description}"] = prompt_table_digest(stored)
     return out
 
 

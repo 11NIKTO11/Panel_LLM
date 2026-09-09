@@ -9,6 +9,7 @@ profile built here reads like a respondent and shares the survey's column schema
 numbered 1..n in `itertools.product` order, so a regenerated grid keeps its ids.
 
 Which factors to vary and at which levels is a research choice, and lives only in the config.
+The descriptions the dataset declares are rendered into `data/prompts/grid/` in the same pass.
 """
 import itertools
 import json
@@ -16,6 +17,7 @@ import json
 import pandas as pd
 
 from panel.dataset import load_dataset, write_profile
+from panel.describe.render import render_all
 from panel.schema import load_schema
 
 CONFIG_KEYS = {"factors"}
@@ -44,6 +46,8 @@ def main() -> None:
     written = write_profile(dataset, profile, load_schema())
     sizes = " x ".join(str(len(levels)) for levels in config["factors"].values())
     print(f"{sizes} = {len(profile)} profiles -> {written}")
+    for name, table in render_all(dataset, profile).items():
+        print(f"{name} -> {table}")
 
 
 if __name__ == "__main__":

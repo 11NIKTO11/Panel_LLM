@@ -16,6 +16,7 @@ Config shape:
         "language": "cs",                       the language of the values
         "source": "SoD-CZ/....sav",             what prepare reads, relative to the slice folder
         "required": ["gender", "age", ...],     columns every row must carry, non-null
+        "descriptions": ["self_v1", "self_v2"], templates prepare renders for it, in its language
         "claims": {                             topic -> the column holding the answer, and its map
             "election_2021": {"column": "voted_party", "map": "claims/election_2021.json"}
         },
@@ -42,7 +43,7 @@ from panel import paths
 from panel.schema import Schema, load_schema
 
 CONFIG_NAME = "dataset.json"
-REQUIRED_KEYS = {"name", "short", "title", "language", "source", "required", "claims"}
+REQUIRED_KEYS = {"name", "short", "title", "language", "source", "required", "descriptions", "claims"}
 OPTIONAL_KEYS = {"note"}
 CLAIM_KEYS = {"column", "map"}
 MAP_KEYS = {"options", "abstained", "excluded"}
@@ -67,6 +68,7 @@ class Dataset:
         language: language code of the values, e.g. "cs".
         source: what `prepare` reads, relative to `dir`.
         required: columns every profile row must carry with a value.
+        descriptions: the description templates rendered for it at prepare time.
         claims: topic name -> where the dataset's answer to it lives.
         dir: the slice folder.
         note: free text; not used by code.
@@ -77,6 +79,7 @@ class Dataset:
     language: str
     source: str
     required: Tuple[str, ...]
+    descriptions: Tuple[str, ...]
     claims: Dict[str, ClaimRef]
     dir: Path
     note: str = ""
@@ -142,7 +145,8 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
 
     return Dataset(
         name=config["name"], short=short, title=config["title"], language=config["language"],
-        source=config["source"], required=tuple(config["required"]), claims=claims,
+        source=config["source"], required=tuple(config["required"]),
+        descriptions=tuple(config["descriptions"]), claims=claims,
         dir=directory, note=config.get("note", ""),
     )
 

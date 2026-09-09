@@ -1,9 +1,12 @@
 {
-    "name": "self_description_v2",
-    "note": "v1's five sentences, unchanged so the two variants stay comparable, plus the three answers the base variant never used: satisfaction with EU membership (Q18), with NATO membership (Q17), and covid vaccination (Q23). The wording follows the survey's own questions - \"s tím, že ... je členem\" is how they are asked. Nothing here needs a flag: a respondent whose data lacks these columns renders exactly v1, and a nevím or nechci uvést answer drops its own sentence. The satisfied and vaccinated filters are row-aware because both answers are adjectives that agree with gender.",
+    "name": "self_v2",
+    "short": "v2",
+    "language": "cs",
+    "note": "self_v1's five sentences, unchanged so the two variants stay comparable, plus the three answers the base variant never used: satisfaction with EU membership (the survey's Q18), with NATO membership (Q17), and covid vaccination (Q23). The wording follows the survey's own questions - \"s tím, že ... je členem\" is how they are asked. A dataset lacking these columns renders exactly self_v1, and a non-substantive answer drops its own sentence. The satisfaction answers arrive already agreeing with the gender (resolved at cleaning); the vaccinated filter reads the row's gender for the verb.",
     "sentences": [
         [
-            "Jsem {gender}, {age|years}, mé vzdělání je {education_level}."
+            "Jsem {gender}, {age|years}, mé vzdělání je {education_level}.",
+            "Jsem {gender}, {age_range|years}, mé vzdělání je {education_level}."
         ],
         [
             "Žiji {region|in}, v okresu {district} a obci o velikosti {town_size}."

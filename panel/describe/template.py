@@ -1,28 +1,30 @@
 """
-Prompt tables: render a description template over a frame, and read the result back.
+Description templates: a prompt as data, rendered over a frame.
 
-A description is data, not a runtime callable. A dataset renders its template once, at
-cleanup, into `data/prompts/<variant>.csv`; a run then names that variant and reads the
-column. So the prompt a run used is a stored artifact rather than the output of whatever
-the describer happened to be that day, and `RunSpec` stays serialisable.
+A template is a list of **sentences**, each a list of **alternatives in priority order**, and
+the first alternative whose slots are all filled wins. That is how a sentence degrades when an
+answer is missing, and how a thinner profile drops a sentence entirely. Templates live in
+`config/descriptions/`, one file per variant, and are shared across datasets: they are written
+against the schema's column ids, not against one dataset's columns.
 
-Template shape - one JSON file per variant, named for the variant:
+Template shape:
 
     {
-        "name": "self_description_v1",
+        "name": "self_v1",              the file stem, the table name and the column
+        "short": "v1",                  its part of a results stem: ASCII, no underscore
+        "language": "cs",               which language pack supplies the filters
+        "note": "...",
         "sentences": [
-            ["Jsem {gender}, {age|years}, mé vzdělání je {education_level}."],
+            ["Jsem {gender}, {age|years}, mé vzdělání je {education_level}.",
+             "Jsem {gender}, {age_range|years}, mé vzdělání je {education_level}."],
             ["Z hlediska zaměstnání jsem {employment_status} a příjem je {income_range}.",
              "Z hlediska zaměstnání jsem {employment_status}.",
              "Příjem naší domácnosti je {income_range}."]
         ]
     }
 
-- one entry per sentence; the entry's lines are **alternatives in priority order**, and the
-  first whose slots are all filled wins. That is how a sentence degrades when an answer is
-  missing, and how a thinner profile drops a sentence entirely.
 - `{column}` splices the value as it stands; `{column|filter}` passes it through a named
-  filter the caller supplies. Filters are where grammar lives, because Czech case and
+  filter the language pack supplies. Filters are where grammar lives, because Czech case and
   agreement cannot be expressed in a template.
 - a filter wrapped in `RowFilter` receives `(value, row)` instead of just the value, because
   agreement can depend on another column: an adjective about the respondent has to know
@@ -30,19 +32,23 @@ Template shape - one JSON file per variant, named for the variant:
 - the renderer capitalises each sentence, so filters return lowercase phrases.
 - a value that is absent, empty, or rejected by the caller's `usable` predicate leaves its
   slot unfilled, which drops that alternative.
+
+Rendering over a dataset, with its language pack, is `panel.describe.render`; storing the
+result is `panel.describe.tables`.
 """
 import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Mapping, Sequence, Tuple, Union
+from typing import Callable, Mapping, Tuple, Union
 
 import pandas as pd
 
 from panel import paths
 
-TABLE_DIR = paths.PROMPTS_DIR
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_]+))?\}")
+REQUIRED_KEYS = {"name", "short", "language", "sentences"}
+OPTIONAL_KEYS = {"note"}
 
 
 def _default_usable(value) -> bool:
@@ -55,9 +61,8 @@ class RowFilter:
     """
     A filter that needs the whole row, not only the cell it is spliced into.
 
-    Marked rather than sniffed, so a template's filter table says which filters read
-    elsewhere in the row. `_satisfied` in the survey's describer is the case that forced it:
-    "rozhodně spokojený/á" has to agree with `gender`.
+    Marked rather than sniffed, so a language pack's filter table says which filters read
+    elsewhere in the row.
     """
     fn: Callable
 
@@ -67,8 +72,19 @@ class RowFilter:
 
 @dataclass(frozen=True)
 class PromptTemplate:
-    """One description variant. `name` names the file, the table and its column."""
+    """
+    One description variant.
+
+    Attributes:
+        name: names the file, the table and its column.
+        short: the description's part of a results stem.
+        language: the language pack whose filters render it.
+        sentences: alternatives in priority order, per sentence.
+        note: free text; not used by code.
+    """
     name: str
+    short: str
+    language: str
     sentences: Tuple[Tuple[str, ...], ...]
     note: str = ""
 
@@ -138,23 +154,6 @@ class PromptTemplate:
         return filter_fn(value) if filter_fn else value
 
 
-def load_template(path: Union[str, Path]) -> PromptTemplate:
-    """
-    Read a template file. Its `name` must match its filename, so the variant has one name.
-
-    Raises:
-        ValueError: if the name disagrees with the filename, or a sentence has no lines.
-    """
-    path = Path(path)
-    config = json.loads(path.read_text(encoding="utf-8"))
-    if config["name"] != path.stem:
-        raise ValueError(f"{path} declares name '{config['name']}'")
-    sentences = tuple(tuple(block) for block in config["sentences"])
-    if not sentences or any(not block for block in sentences):
-        raise ValueError(f"{path}: every sentence needs at least one alternative")
-    return PromptTemplate(name=config["name"], sentences=sentences, note=config.get("note", ""))
-
-
 def render_frame(
     template: PromptTemplate,
     frame: pd.DataFrame,
@@ -165,51 +164,37 @@ def render_frame(
     return frame.apply(lambda row: template.render(row, filters, usable), axis=1).rename(template.name)
 
 
-def write_table(descriptions: pd.Series, table_dir: Union[str, Path] = TABLE_DIR) -> Path:
+def load_template(path: Union[str, Path]) -> PromptTemplate:
     """
-    Store a rendered variant as `<table_dir>/<name>.csv`, keyed by the frame's index.
-
-    A variant is additive: rendering a *different* wording means a new name, never an
-    overwrite, so a run's recorded variant keeps meaning what it meant.
-    """
-    directory = Path(table_dir)
-    directory.mkdir(parents=True, exist_ok=True)
-    path = directory / f"{descriptions.name}.csv"
-    descriptions.to_frame().to_csv(path, index=True)
-    return path
-
-
-def read_table(
-    name: str,
-    expected_index: Union[pd.Index, None] = None,
-    table_dir: Union[str, Path] = TABLE_DIR,
-) -> pd.DataFrame:
-    """
-    A rendered variant, as a one-column frame to join onto the data.
-
-    Args:
-        name: the variant, which is also the file stem and the column name.
-        expected_index: the index of the rows about to be run. Given it, coverage is checked
-            here rather than discovered as a NaN prompt in the middle of a paid run.
+    Read a template file. Its `name` must match its filename, so the variant has one name.
 
     Raises:
-        FileNotFoundError: if that variant has not been rendered.
-        ValueError: if the table does not cover exactly `expected_index`, or repeats a key.
+        FileNotFoundError: if there is no such file.
+        ValueError: on unknown or missing keys, a name that disagrees with the filename, a
+            short that could not sit in a stem, or a sentence without alternatives.
     """
-    path = Path(table_dir) / f"{name}.csv"
+    path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(f"no prompt table at {path}; render it from its template first")
+        raise FileNotFoundError(f"no description template at {path}")
+    config = json.loads(path.read_text(encoding="utf-8"))
+    unknown = sorted(set(config) - REQUIRED_KEYS - OPTIONAL_KEYS)
+    missing = sorted(REQUIRED_KEYS - set(config))
+    if unknown or missing:
+        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    if config["name"] != path.stem:
+        raise ValueError(f"{path} declares name '{config['name']}'")
+    short = config["short"]
+    if not short or not short.isascii() or "_" in short:
+        raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
+    sentences = tuple(tuple(block) for block in config["sentences"])
+    if not sentences or any(not block for block in sentences):
+        raise ValueError(f"{path}: every sentence needs at least one alternative")
+    return PromptTemplate(
+        name=config["name"], short=short, language=config["language"], sentences=sentences,
+        note=config.get("note", ""),
+    )
 
-    table = pd.read_csv(path, index_col=0)
-    if not table.index.is_unique:
-        raise ValueError(f"{path}: index has duplicates")
-    if expected_index is not None:
-        missing = expected_index.difference(table.index)
-        extra = table.index.difference(expected_index)
-        if len(missing) or len(extra):
-            raise ValueError(
-                f"{path} does not match the data: {len(missing)} rows without a description, "
-                f"{len(extra)} descriptions without a row. Re-render the variant."
-            )
-        table = table.loc[expected_index]
-    return table
+
+def load_description(name: str, descriptions_dir: Union[str, Path] = paths.DESCRIPTIONS_DIR) -> PromptTemplate:
+    """The description of that name from `config/descriptions/`; see `load_template` for what it raises."""
+    return load_template(Path(descriptions_dir) / f"{name}.json")

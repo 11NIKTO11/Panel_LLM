@@ -71,6 +71,15 @@ def decapitalize(string: str) -> str:
     return string[0].lower() + string[1:]
 
 
+NON_SUBSTANTIVE = ("nevím", "nechci")
+
+
+def is_non_substantive(response) -> bool:
+    """`nevím` / `nechci uvést` in any casing: an answer that says nothing about the person."""
+    text = str(response).lower()
+    return any(marker in text for marker in NON_SUBSTANTIVE)
+
+
 def parse_yes_no(response: str) -> bool | None:
     normalized_response = response.lower().strip()
 
