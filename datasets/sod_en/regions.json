@@ -1,0 +1,19 @@
+{
+    "note": "The English edition's region labels, mapped onto the canonical names the reference results and the language packs use.",
+    "regions": {
+        "Prague": "Hlavní město Praha",
+        "Central Bohemian Region": "Středočeský kraj",
+        "South Bohemian Region": "Jihočeský kraj",
+        "Plzeň Region": "Plzeňský kraj",
+        "Karlovy Vary Region": "Karlovarský kraj",
+        "Ústí nad Labem Region": "Ústecký kraj",
+        "Liberec Region": "Liberecký kraj",
+        "Hradec Králové Region": "Královéhradecký kraj",
+        "Pardubice Region": "Pardubický kraj",
+        "Vysočina Region": "Kraj Vysočina",
+        "South Moravian Region": "Jihomoravský kraj",
+        "Olomouc Region": "Olomoucký kraj",
+        "Zlín Region": "Zlínský kraj",
+        "Moravian-Silesian Region": "Moravskoslezský kraj"
+    }
+}

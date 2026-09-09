@@ -45,13 +45,13 @@ class ProbabilityResponse(TopicResponse):
     SHORT_NAME: ClassVar[str] = "VProb"
 
     def to_series(self) -> pd.Series:
-        """One results row: attendance if any, then every option id, missing ones as 0."""
+        """One results row in the topic's column order: attendance if any, then every option id, missing ones as 0."""
         row = self.turnout_row()
         for option in (self.parties or []):
             row[self.LABELS[option.name]] = option.probability
         for option in self.OPTIONS:
             row.setdefault(option, 0.0)
-        return pd.Series(row)
+        return pd.Series(row).reindex(list(self.TURNOUT or ()) + list(self.OPTIONS))
 
 
 class PickResponse(TopicResponse):

@@ -1,0 +1,144 @@
+{
+  "VotingProbabilities": {
+    "$defs": {
+      "OptionProbability": {
+        "description": "The probability of one of the offered options.",
+        "properties": {
+          "name": {
+            "description": "The identifier of one of the offered options.",
+            "enum": [
+              "ANO 2011",
+              "Spolu Alliance (ODS, TOP 09, KDU-ČSL)",
+              "Pirates and Mayors alliance",
+              "Freedom and Direct Democracy – Tomio Okamura (SPD)",
+              "Robert Šlachta's Přísaha",
+              "Czech Social Democratic Party (ČSSD)",
+              "Communist Party of Bohemia and Moravia (KSČM)",
+              "Tricolour, Svobodní and Soukromníci",
+              "Other party"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "The probability of this option.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "OptionProbability",
+        "type": "object"
+      },
+      "TurnoutProbability": {
+        "description": "The probability that the respondent took part, and that they did not.",
+        "properties": {
+          "voted": {
+            "description": "The probability that the respondent took part.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "The probability that the respondent did not take part.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutProbability",
+        "type": "object"
+      }
+    },
+    "description": "Structured output: a probability distribution over the offered options.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutProbability",
+        "description": "The probabilities of taking part and of not taking part. They must sum to 1.0."
+      },
+      "parties": {
+        "description": "The offered options with their probabilities. They must sum to 1.0.",
+        "items": {
+          "$ref": "#/$defs/OptionProbability"
+        },
+        "title": "Parties",
+        "type": "array"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "parties"
+    ],
+    "title": "VotingProbabilities",
+    "type": "object"
+  },
+  "VotingPick": {
+    "$defs": {
+      "TurnoutProbability": {
+        "description": "The probability that the respondent took part, and that they did not.",
+        "properties": {
+          "voted": {
+            "description": "The probability that the respondent took part.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "The probability that the respondent did not take part.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutProbability",
+        "type": "object"
+      }
+    },
+    "description": "Simplified output: one chosen option.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutProbability",
+        "description": "The probabilities of taking part and of not taking part. They must sum to 1.0."
+      },
+      "choice": {
+        "description": "The most likely option for this profile.",
+        "enum": [
+          "ANO 2011",
+          "Spolu Alliance (ODS, TOP 09, KDU-ČSL)",
+          "Pirates and Mayors alliance",
+          "Freedom and Direct Democracy – Tomio Okamura (SPD)",
+          "Robert Šlachta's Přísaha",
+          "Czech Social Democratic Party (ČSSD)",
+          "Communist Party of Bohemia and Moravia (KSČM)",
+          "Tricolour, Svobodní and Soukromníci",
+          "Other party"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "choice"
+    ],
+    "title": "VotingPick",
+    "type": "object"
+  }
+}

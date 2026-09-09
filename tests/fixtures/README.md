@@ -29,3 +29,6 @@ recompute each of these and compare; a difference is drift, not a new truth.
 - `schemas/media_fees_2026/cs.json` was regenerated in phase 4, deliberately: the topic's two
   options were shown to the model as the colleague's English ids (`abolish_fees_state_budget`,
   `keep_fees`) inside a Czech prompt; they are Czech phrases now. The topic has never been run.
+- `schemas/election_2021/en.json` was added in phase 8 as the first snapshot of the English
+  framing: English labels for the parties that translate, `ANO 2011` kept, English schema text.
+  Built offline; no run has been sent with it.

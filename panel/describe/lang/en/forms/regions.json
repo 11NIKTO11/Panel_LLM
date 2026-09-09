@@ -1,0 +1,20 @@
+{
+    "note": "English forms for the fifteen area names, keyed by the canonical (Czech) names the reference results and every profile use. `in` is the prepositional phrase, `of` the noun phrase that follows 'of' or 'resident of'. The English edition of the survey spells the regions this way.",
+    "forms": {
+        "Česko": {"in": "in the Czech Republic", "of": "the Czech Republic"},
+        "Hlavní město Praha": {"in": "in Prague", "of": "Prague"},
+        "Středočeský kraj": {"in": "in the Central Bohemian Region", "of": "the Central Bohemian Region"},
+        "Jihočeský kraj": {"in": "in the South Bohemian Region", "of": "the South Bohemian Region"},
+        "Plzeňský kraj": {"in": "in the Plzeň Region", "of": "the Plzeň Region"},
+        "Karlovarský kraj": {"in": "in the Karlovy Vary Region", "of": "the Karlovy Vary Region"},
+        "Ústecký kraj": {"in": "in the Ústí nad Labem Region", "of": "the Ústí nad Labem Region"},
+        "Liberecký kraj": {"in": "in the Liberec Region", "of": "the Liberec Region"},
+        "Královéhradecký kraj": {"in": "in the Hradec Králové Region", "of": "the Hradec Králové Region"},
+        "Pardubický kraj": {"in": "in the Pardubice Region", "of": "the Pardubice Region"},
+        "Kraj Vysočina": {"in": "in the Vysočina Region", "of": "the Vysočina Region"},
+        "Jihomoravský kraj": {"in": "in the South Moravian Region", "of": "the South Moravian Region"},
+        "Olomoucký kraj": {"in": "in the Olomouc Region", "of": "the Olomouc Region"},
+        "Zlínský kraj": {"in": "in the Zlín Region", "of": "the Zlín Region"},
+        "Moravskoslezský kraj": {"in": "in the Moravian-Silesian Region", "of": "the Moravian-Silesian Region"}
+    }
+}

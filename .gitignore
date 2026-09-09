@@ -8,6 +8,7 @@ __pycache__
 SoD-*
 /data/clean_data.csv
 /data/profiles/sod.csv
+/data/profiles/sod_en.csv
 /data/grid_*.csv
 
 # Helper scripts
