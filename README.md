@@ -13,6 +13,11 @@ Everything the model is shown is data: the subjects (`datasets/`), the descripti
 names one of each plus a model, so a new election, a new issue question, a new description or a
 new language is a config change, never a code edit.
 
+**In transition (2026-11-10):** the prepare step was reshaped - `python prepare.py sod` writes
+`data/sod/values.csv` and `data/sod/prompts/`; see `DECISIONS.md` §7. The run, the analysis
+notebooks and the other datasets are not ported yet, so the sections below that mention
+`data/profiles/`, `config/descriptions/` or `datasets/schema.json` describe the previous shape.
+
 Contributors: `CLAUDE.md` maps the modules, `AGENTS.md` sets the working conventions,
 `DECISIONS.md` records why things are the way they are.
 

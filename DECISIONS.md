@@ -62,6 +62,14 @@ Each with the reason that superseded it, so the old reason is not re-argued.
   `data/prompts/<dataset>/<description>.csv`, written by the dataset's prepare step.
 - **A stem without the description** - two descriptions of one model would have overwritten each
   other.
+- **Templates shared across datasets, generalised by concept** (§1, Q3) - superseded 2026-11-10
+  by §7. The shared schema was the in-between level nobody needed yet, and it blocked progress
+  repeatedly: age and income come as numbers, bands and differently cut bands, education levels
+  are split or bundled per source, and casting to a shared vocabulary loses information.
+- **Profile values phrase-ready** (lower-cased, gender resolved at cleaning) - superseded by §7:
+  one cell was both the category analysis groups by and the fragment a sentence splices.
+- **Language packs with grammar code** (`panel/describe/lang/`) - superseded by §7: every phrase
+  is written down per dataset in `forms.json`.
 
 ## 3. Still binding from `_Refactor_Plan.md`
 
@@ -163,6 +171,44 @@ Open to review; each names its reason.
 - keeping the fake run the notebook check wrote inside `results/election_2021/` - a fake run in a
   real results folder would show up in every comparison. Removed after the check.
 - a `panel/dataset/` subpackage - two modules (`dataset.py`, `schema.py`) carry the load.
+
+## 7. Prepare reshaped (2026-11-10)
+
+Decided with Martin in discussion, prototyped in a sandbox, then ported. **The branch is in
+transition:** prepare works in this shape; `panel.run`, the analysis notebooks, the datasets
+`sod_en`, `grid` and `regions`, and their tests still expect the old one and fail until ported.
+
+- **Two levels, nothing in between**: general code in `panel/`, which knows no column and no
+  value, and a dataset's own vocabulary in `datasets/<name>/`. "Swap the topic and the dataset
+  and run" needs a contract, not a shared vocabulary.
+  - comparing two datasets is a later, separate layer, written per pair.
+  - a shared attribute schema is a refactor for later, if ever; do not reintroduce it in passing.
+- **Prepare has two outputs**, under one folder per dataset:
+  - `data/<dataset>/values.csv` - the dataset's own answers, untouched, for analysis and rendering.
+  - `data/<dataset>/prompts/<description>.csv` - one rendered text per subject, for a run.
+- **Wording is data**: `datasets/<name>/forms.json` maps each answer to the phrase a sentence
+  needs. Several named forms per column (`{region|in}`, `{region|of}`), agreement with another
+  column (`by`), non-answers listed once (`none`), several answers in one cell (`split`/`join`).
+  An answer that is neither worded nor a non-answer raises.
+  - rejected: a "just lower-case it" rule for the simple columns - a second mechanism to save a
+    few lines, and it would let an unexpected answer into a prompt.
+- **Descriptions belong to a dataset**: `datasets/<name>/descriptions/*.json`, found by listing
+  the folder. A template names that dataset's columns, so sharing one only works by coincidence.
+- **One representation per attribute**: the prompt and the analysis use the same column. SoD
+  keeps the exact `age`; `age_range` is gone. Showing one level and analysing another is a
+  later refactor.
+- **The declaration states roles**: `columns`, `optional`, `groups` (what analysis may group
+  by), `area` (the column naming a row of reference results), `claims`.
+- **One entry point**: `python prepare.py [dataset] [-d descriptions] [--prompts-only]`; without
+  a dataset it asks. A dataset supplies one function, `datasets/<name>/build.py::build(dataset)`.
+- **SoD wording corrected against the survey's question text** - every description differs from
+  the legacy prompts, deliberately:
+  - income is the respondent's own net monthly income (`INCOMEP`), not the household's.
+  - living standard is the household's (Q19): "Životní úroveň naší domácnosti považuji za ...".
+  - employment agrees with gender; `OSVČ` keeps its capitals; several statuses join with
+    "a zároveň"; education drops the repeated "vzdělání" and writes "+" as "nebo"; the survey's
+    typo "Vice než" reads "více než" in the prompt only.
+  - `self_v1` / `self_v2` are `default` / `extended`.
 
 ## 6. Pending Martin's decision
 
