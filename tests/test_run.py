@@ -34,6 +34,7 @@ def test_stem_encodes_every_axis():
     assert prepared(SOD).stem == "sod_v1_cs_Fake_fake-model_VProb_t=0.0_subset=20"
     assert prepared(REGIONS).stem == "regions_citizen-v1_cs_Fake_fake-model_VProb_t=0.0_x3"
     assert prepared(SOD.variant(shape="VPick", temperature=0.3, sample=None)).stem == "sod_v1_cs_Fake_fake-model_VPick_t=0.3"
+    assert prepared(SOD.variant(temperature=None)).stem == "sod_v1_cs_Fake_fake-model_VProb_t=default_subset=20"
 
 
 def test_execute_offline(tmp_path):

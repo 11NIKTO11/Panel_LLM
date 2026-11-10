@@ -30,7 +30,7 @@ class OpenRouterClient(BaseLLMClient):
         self.url = "https://openrouter.ai/api/v1/chat/completions"
         self.timeout = timeout
 
-    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: float,
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:
         provider, model_id = self._route(model)
         response_format_json = response_format.model_json_schema()
@@ -50,7 +50,7 @@ class OpenRouterClient(BaseLLMClient):
                 "messages": (
                     [{"role": "system", "content": instructions}] if instructions else []
                 ) + [{"role": "user", "content": prompt}],
-                "temperature": temperature,
+                **({} if temperature is None else {"temperature": temperature}),
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {

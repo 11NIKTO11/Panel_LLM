@@ -32,7 +32,7 @@ class BaseLLMClient:
         model: str,
         prompt: str,
         response_format: Type[BaseModel],
-        temperature: float,
+        temperature: Union[float, None],
         instructions: Union[str, None] = None,
     ) -> BaseModel:
         """
@@ -42,7 +42,7 @@ class BaseLLMClient:
             model: provider model id.
             prompt: the user message.
             response_format: Pydantic model the provider must return.
-            temperature: sampling temperature.
+            temperature: sampling temperature, or None to send none.
             instructions: system prompt, if the caller frames the task with one.
         """
         raise NotImplementedError

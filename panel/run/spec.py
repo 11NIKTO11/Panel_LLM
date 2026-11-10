@@ -24,7 +24,7 @@ class RunSpec:
         client: the LLM client, by its short name (`OpenRouter`, `OpenAI`, `Fake`, ...).
         model: provider model id.
         shape: which response model: `VProb` (a distribution) or `VPick` (one choice).
-        temperature: sampling temperature.
+        temperature: sampling temperature; None sends none, for a provider that takes no such setting.
         repeats: calls per subject; each becomes its own results row.
         sample: run this many subjects instead of all of them.
         random_state: seed for `sample`.
@@ -36,7 +36,7 @@ class RunSpec:
     client: str
     model: str
     shape: str = "VProb"
-    temperature: float = 0.0
+    temperature: Union[float, None] = 0.0
     repeats: int = 1
     sample: Union[int, None] = None
     random_state: Union[int, None] = 42

@@ -216,7 +216,8 @@ results/election_2021/
 
 The stem is `<dataset>_<description>_<framing>_<Client>_<model>_<Shape>_t=<t>`, plus
 `_x<repeats>` for a repeated run and `_subset=<n>` for a sampled one; every part is the
-artifact's `short`. The topic is the folder. Legacy stems lack the description and framing parts;
+artifact's `short`. A spec with `temperature=None` sends no temperature and reads `t=default`;
+Claude models require it. The topic is the folder. Legacy stems lack the description and framing parts;
 their records keep their older shape, and their CSV headers are native names that `Topic.rename`
 turns into ids in memory.
 

@@ -57,12 +57,14 @@ class Resolved:
     def stem(self) -> str:
         """
         Filename stem, every part a short:
-        `<dataset>_<description>_<framing>_<Client>_<model>_<Shape>_t=<t>[_x<repeats>][_subset=<n>]`.
+        `<dataset>_<description>_<framing>_<Client>_<model>_<Shape>_t=<t>[_x<repeats>][_subset=<n>]`;
+        `t=default` when the spec sends no temperature.
         """
         spec = self.spec
         parts = [
             self.dataset.short, self.description.short, self.framing.short, short_name(self.client_type),
-            spec.model, spec.shape, f"t={round(float(spec.temperature), 2)}",
+            spec.model, spec.shape,
+            "t=default" if spec.temperature is None else f"t={round(float(spec.temperature), 2)}",
         ]
         if spec.repeats > 1:
             parts.append(f"x{spec.repeats}")

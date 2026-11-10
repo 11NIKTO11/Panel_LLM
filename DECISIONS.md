@@ -128,6 +128,20 @@ Open to review; each names its reason.
   otherwise mark every run dirty.
 - **Fixture keys were renamed, digests unchanged** (`sod/self_v1`), schema snapshots live per
   framing, and the legacy schema fixture *is* the frozen `config.json`, not a generation.
+- **Temperature is optional** (2026-11-10): `RunSpec.temperature=None` sends no temperature and
+  the stem reads `t=default`; the default stays `0.0`, so earlier specs and stems are unchanged.
+  - the reason: API version `2026-10-21` (what `anthropic` 2.x sends) rejects `temperature` on
+    every Claude model, and Opus 4.7 and later rejected it before that.
+  - the Anthropic client raises on a set temperature instead of dropping it; the other three
+    clients send it only when it is set.
+  - rejected: dropping it silently in the client for models known to refuse it - a model list
+    hidden in code, and a stem and record claiming `t=0.0` for a run it was never applied to.
+  - consequence: Claude runs are not deterministic; `repeats` is how their spread is measured,
+    and comparing them with `t=0.0` runs compares two sampling settings.
+- **The Anthropic client uses `messages.parse`** (2026-11-10), no beta header, `max_tokens`
+  16000 because thinking is always on for current models and counts against the limit. A call
+  with no parsed output (refusal, truncation) raises with its `stop_reason`. Server-side
+  refusal fallbacks are deliberately off: a run answers with the model it names, or fails.
 
 ## 5. Rejected during implementation
 

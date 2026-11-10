@@ -34,7 +34,7 @@ class FakeClient(BaseLLMClient):
         model: str,
         prompt: str,
         response_format: Type[BaseModel],
-        temperature: float,
+        temperature: Union[float, None],
         instructions: Union[str, None] = None,
     ) -> BaseModel:
         """
