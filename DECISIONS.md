@@ -32,7 +32,7 @@ are open to his review. `CLAUDE.md` describes the tree this produced; this file 
     level map either way.
 - **`datasets` keeps its name** (Q4, 2026-09-09); the HuggingFace collision is a README remark.
 - **A topic is a folder**: `topic.json` (vocabulary) plus one framing file per language.
-  Implemented on the handoff's recommendation; Martin's confirmation is still pending (§6).
+  Implemented on the handoff's recommendation; confirmed by Martin 2026-11-10.
   - one multilingual file was rejected: two system prompts nested in one JSON are unreadable,
     editing the Czech prompt touches the English one's file, and what must be shared sits mixed
     with what must not.
@@ -141,7 +141,8 @@ Open to review; each names its reason.
 
 ## 6. Pending Martin's decision
 
-- the topic folder shape (§1) - proceed on the recommendation, or switch.
-- repeats semantics (§4) - one row per call, or the colleague's aggregated shape.
-- the `media_fees_2026` labels (§4) - keep or revert.
-- income cut points for `to_levels` (§4).
+- income cut points for `to_levels` (§4) - left open on purpose (2026-11-10); only needed for
+  grid-versus-survey comparison.
+
+Confirmed 2026-11-10, as implemented: the topic folder shape (§1), repeats as one row per call
+(§4), the Czech `media_fees_2026` labels (§4).
