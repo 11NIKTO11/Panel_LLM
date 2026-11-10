@@ -10,10 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = ROOT / "config"
 TOPICS_DIR = CONFIG_DIR / "topics"
-DESCRIPTIONS_DIR = CONFIG_DIR / "descriptions"
 DATASETS_DIR = ROOT / "datasets"
 DATA_DIR = ROOT / "data"
-PROFILES_DIR = DATA_DIR / "profiles"
-PROMPTS_DIR = DATA_DIR / "prompts"
 RESULTS_DIR = ROOT / "results"
 GRAPHS_DIR = ROOT / "graphs"

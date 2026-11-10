@@ -1,0 +1,233 @@
+{
+    "note": "How each survey answer is worded inside a sentence. Keys are the survey's own answer strings, exactly as the values table holds them. A column may have several named forms and a template slot picks one, {region|in}; the names are ours: a case (nom, acc), a use (in, of), a whole clause, or plain for a phrase that only needed its capital dropped. `none` lists the answers that say nothing about the person; a sentence needing one is dropped. `by` names the column a phrase agrees with (Czech nouns and adjectives follow the respondent's gender). `split`/`join` are for a cell holding several answers. A column with no entry (age, district) is spliced as it stands. An answer that is neither worded nor in `none` is an error, not a guess.",
+    "columns": {
+        "gender": {
+            "forms": {
+                "nom": {
+                    "Muž": "muž",
+                    "Žena": "žena"
+                }
+            }
+        },
+        "education_level": {
+            "forms": {
+                "nom": {
+                    "Základní + středoškolské vzdělání bez maturity": "základní nebo středoškolské bez maturity",
+                    "Středoškolské vzdělání s maturitou": "středoškolské s maturitou",
+                    "Vysokoškolské vzdělání": "vysokoškolské"
+                }
+            }
+        },
+        "region": {
+            "forms": {
+                "in": {
+                    "Hlavní město Praha": "v Praze",
+                    "Jihomoravský kraj": "v Jihomoravském kraji",
+                    "Jihočeský kraj": "v Jihočeském kraji",
+                    "Karlovarský kraj": "v Karlovarském kraji",
+                    "Kraj Vysočina": "v Kraji Vysočina",
+                    "Královéhradecký kraj": "v Královéhradeckém kraji",
+                    "Liberecký kraj": "v Libereckém kraji",
+                    "Moravskoslezský kraj": "v Moravskoslezském kraji",
+                    "Olomoucký kraj": "v Olomouckém kraji",
+                    "Pardubický kraj": "v Pardubickém kraji",
+                    "Plzeňský kraj": "v Plzeňském kraji",
+                    "Středočeský kraj": "ve Středočeském kraji",
+                    "Zlínský kraj": "ve Zlínském kraji",
+                    "Ústecký kraj": "v Ústeckém kraji"
+                },
+                "of": {
+                    "Hlavní město Praha": "Prahy",
+                    "Jihomoravský kraj": "Jihomoravského kraje",
+                    "Jihočeský kraj": "Jihočeského kraje",
+                    "Karlovarský kraj": "Karlovarského kraje",
+                    "Kraj Vysočina": "Kraje Vysočina",
+                    "Královéhradecký kraj": "Královéhradeckého kraje",
+                    "Liberecký kraj": "Libereckého kraje",
+                    "Moravskoslezský kraj": "Moravskoslezského kraje",
+                    "Olomoucký kraj": "Olomouckého kraje",
+                    "Pardubický kraj": "Pardubického kraje",
+                    "Plzeňský kraj": "Plzeňského kraje",
+                    "Středočeský kraj": "Středočeského kraje",
+                    "Zlínský kraj": "Zlínského kraje",
+                    "Ústecký kraj": "Ústeckého kraje"
+                }
+            }
+        },
+        "town_size": {
+            "forms": {
+                "plain": {
+                    "1.000 - 5.000 obyvatel": "1.000 - 5.000 obyvatel",
+                    "20.001 - 100.000 obyvatel": "20.001 - 100.000 obyvatel",
+                    "5.001 - 20.000 obyvatel": "5.001 - 20.000 obyvatel",
+                    "Méně než 1.000": "méně než 1.000 obyvatel",
+                    "Více než 100.000 obyvatel": "více než 100.000 obyvatel"
+                }
+            }
+        },
+        "employment_status": {
+            "by": "gender",
+            "split": "; ",
+            "join": " a zároveň ",
+            "forms": {
+                "nom": {
+                    "Zaměstnanec na plný úvazek": {
+                        "Muž": "zaměstnanec na plný úvazek",
+                        "Žena": "zaměstnankyně na plný úvazek"
+                    },
+                    "Zaměstnanec na částečný úvazek": {
+                        "Muž": "zaměstnanec na částečný úvazek",
+                        "Žena": "zaměstnankyně na částečný úvazek"
+                    },
+                    "Podnikatel, živnostník, OSVČ": {
+                        "Muž": "podnikatel, živnostník nebo OSVČ",
+                        "Žena": "podnikatelka, živnostnice nebo OSVČ"
+                    },
+                    "Bez zaměstnání, hledající práci": {
+                        "Muž": "nezaměstnaný hledající práci",
+                        "Žena": "nezaměstnaná hledající práci"
+                    },
+                    "Bez zaměstnání, nehledající práci": {
+                        "Muž": "nezaměstnaný nehledající práci",
+                        "Žena": "nezaměstnaná nehledající práci"
+                    },
+                    "Důchodce": {
+                        "Muž": "důchodce",
+                        "Žena": "důchodkyně"
+                    },
+                    "Invalidní důchodce": {
+                        "Muž": "invalidní důchodce",
+                        "Žena": "invalidní důchodkyně"
+                    },
+                    "Student": {
+                        "Muž": "student",
+                        "Žena": "studentka"
+                    },
+                    "V domácnosti": {
+                        "Muž": "v domácnosti",
+                        "Žena": "v domácnosti"
+                    },
+                    "Na mateřské / rodičovské dovolené": {
+                        "Muž": "na mateřské nebo rodičovské dovolené",
+                        "Žena": "na mateřské nebo rodičovské dovolené"
+                    }
+                }
+            }
+        },
+        "income_range": {
+            "none": [
+                "Nevím, nechci odpovědět"
+            ],
+            "forms": {
+                "plain": {
+                    "15.001 - 20.000 Kč": "15.001 - 20.000 Kč",
+                    "20.001 - 25.000 Kč": "20.001 - 25.000 Kč",
+                    "25.001 - 30.000 Kč": "25.001 - 30.000 Kč",
+                    "30.001 - 40.000 Kč": "30.001 - 40.000 Kč",
+                    "40.001 - 60.000 Kč": "40.001 - 60.000 Kč",
+                    "60.001 - 80.000 Kč": "60.001 - 80.000 Kč",
+                    "Do 15.000 Kč": "do 15.000 Kč",
+                    "Vice než 80.000 Kč": "více než 80.000 Kč"
+                }
+            }
+        },
+        "living_standard": {
+            "none": [
+                "Nevím"
+            ],
+            "forms": {
+                "acc": {
+                    "Ani dobrou, ani špatnou": "ani dobrou, ani špatnou",
+                    "Spíše dobrou": "spíše dobrou",
+                    "Spíše špatnou": "spíše špatnou",
+                    "Velmi dobrou": "velmi dobrou",
+                    "Velmi špatnou": "velmi špatnou"
+                }
+            }
+        },
+        "interest_in_politics": {
+            "none": [
+                "Nevím"
+            ],
+            "forms": {
+                "clause": {
+                    "Spíše se nezajímám": "spíše se nezajímám",
+                    "Spíše se zajímám": "spíše se zajímám",
+                    "Velmi se zajímám": "velmi se zajímám",
+                    "Vůbec se nezajímám": "vůbec se nezajímám"
+                }
+            }
+        },
+        "opinion_on_eu": {
+            "by": "gender",
+            "none": [
+                "Nevím"
+            ],
+            "forms": {
+                "nom": {
+                    "Rozhodně nespokojený/á": {
+                        "Muž": "rozhodně nespokojený",
+                        "Žena": "rozhodně nespokojená"
+                    },
+                    "Rozhodně spokojený/á": {
+                        "Muž": "rozhodně spokojený",
+                        "Žena": "rozhodně spokojená"
+                    },
+                    "Spíše nespokojený/á": {
+                        "Muž": "spíše nespokojený",
+                        "Žena": "spíše nespokojená"
+                    },
+                    "Spíše spokojený/á": {
+                        "Muž": "spíše spokojený",
+                        "Žena": "spíše spokojená"
+                    }
+                }
+            }
+        },
+        "opinion_on_nato": {
+            "by": "gender",
+            "none": [
+                "Nevím"
+            ],
+            "forms": {
+                "nom": {
+                    "Rozhodně nespokojený/á": {
+                        "Muž": "rozhodně nespokojený",
+                        "Žena": "rozhodně nespokojená"
+                    },
+                    "Rozhodně spokojený/á": {
+                        "Muž": "rozhodně spokojený",
+                        "Žena": "rozhodně spokojená"
+                    },
+                    "Spíše nespokojený/á": {
+                        "Muž": "spíše nespokojený",
+                        "Žena": "spíše nespokojená"
+                    },
+                    "Spíše spokojený/á": {
+                        "Muž": "spíše spokojený",
+                        "Žena": "spíše spokojená"
+                    }
+                }
+            }
+        },
+        "covid_vaccinated": {
+            "by": "gender",
+            "none": [
+                "Nechci uvést",
+                "Nevím"
+            ],
+            "forms": {
+                "clause": {
+                    "Ano": {
+                        "Muž": "jsem očkovaný",
+                        "Žena": "jsem očkovaná"
+                    },
+                    "Ne": {
+                        "Muž": "nejsem očkovaný",
+                        "Žena": "nejsem očkovaná"
+                    }
+                }
+            }
+        }
+    }
+}

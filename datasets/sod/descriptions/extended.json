@@ -1,0 +1,33 @@
+{
+    "name": "extended",
+    "short": "extended",
+    "note": "default's five sentences, unchanged so the two variants stay comparable, plus satisfaction with EU membership (Q18), with NATO membership (Q17), and covid vaccination (Q23).",
+    "sentences": [
+        [
+            "Jsem {gender}, je mi {age} let, mé vzdělání je {education_level}."
+        ],
+        [
+            "Žiji {region|in}, v okresu {district} a obci o velikosti {town_size}."
+        ],
+        [
+            "Z hlediska zaměstnání jsem {employment_status} a můj čistý měsíční příjem je {income_range}.",
+            "Z hlediska zaměstnání jsem {employment_status}.",
+            "Můj čistý měsíční příjem je {income_range}."
+        ],
+        [
+            "Životní úroveň naší domácnosti považuji za {living_standard}."
+        ],
+        [
+            "{interest_in_politics} o politiku."
+        ],
+        [
+            "Jsem {opinion_on_eu} s tím, že je Česká republika členem Evropské unie."
+        ],
+        [
+            "Jsem {opinion_on_nato} s tím, že je Česká republika členem NATO."
+        ],
+        [
+            "{covid_vaccinated} proti covidu-19."
+        ]
+    ]
+}
