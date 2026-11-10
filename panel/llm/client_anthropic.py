@@ -16,7 +16,13 @@ class AnthropicClient(BaseLLMClient):
     SHORT_NAME = "Anthropic"
     API_VERSION: Union[str, None] = None
 
-    def __init__(self, api_key: Union[str, None] = None):
+    # NOTE: effort is fixed here until it becomes a RunSpec field; a run's record does not show it.
+    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = "low"):
+        """
+        Args:
+            api_key: Anthropic key; falls back to ANTHROPIC_API_KEY.
+            effort: `low` .. `max`, how much the model thinks per call; None leaves the model's default.
+        """
         if Anthropic is None:
             raise ImportError("anthropic package is required for Claude models.")
         key = api_key or os.getenv("ANTHROPIC_API_KEY")
@@ -24,6 +30,7 @@ class AnthropicClient(BaseLLMClient):
             raise ValueError("ANTHROPIC_API_KEY must be set for Claude models.")
         headers = {"anthropic-version": self.API_VERSION} if self.API_VERSION else None
         self.client = Anthropic(api_key=key, default_headers=headers)
+        self.effort = effort
 
     def _sampling(self, temperature: Union[float, None]) -> dict:
         """
@@ -32,7 +39,8 @@ class AnthropicClient(BaseLLMClient):
         """
         if temperature is not None:
             raise ValueError(
-                "the Anthropic API takes no temperature; declare the run with temperature=None"
+                "the Anthropic API takes no temperature; declare the run with temperature=None, "
+                "or with client='AnthropicLegacy' on a model that still accepts one"
             )
         return {}
 
@@ -44,6 +52,7 @@ class AnthropicClient(BaseLLMClient):
             messages=[{"role": "user", "content": prompt}],
             output_format=response_format,
             **({"system": instructions} if instructions else {}),
+            **({"output_config": {"effort": self.effort}} if self.effort else {}),
             **self._sampling(temperature),
         )
         self.last_model = getattr(response, "model", None)
@@ -51,3 +60,20 @@ class AnthropicClient(BaseLLMClient):
             raise ValueError(f"no parsed output from '{model}': stop_reason={response.stop_reason}")
         return response.parsed_output
 
+
+class AnthropicLegacyClient(AnthropicClient):
+    """
+    Claude on API version 2023-06-01, the last that accepts a temperature.
+
+    For the models that still honour one there (Opus 4.6, Sonnet 4.6, Haiku 4.5, Opus 4.5);
+    Opus 4.7 and later refuse it on any version. The installed SDK's own call has no
+    temperature argument any more, so it travels in the request body.
+    """
+    SHORT_NAME = "AnthropicLegacy"
+    API_VERSION = "2023-06-01"
+
+    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None):
+        super().__init__(api_key, effort)
+
+    def _sampling(self, temperature: Union[float, None]) -> dict:
+        return {} if temperature is None else {"extra_body": {"temperature": temperature}}

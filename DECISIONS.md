@@ -142,6 +142,17 @@ Open to review; each names its reason.
   16000 because thinking is always on for current models and counts against the limit. A call
   with no parsed output (refusal, truncation) raises with its `stop_reason`. Server-side
   refusal fallbacks are deliberately off: a run answers with the model it names, or fails.
+- **`AnthropicLegacy` is a separate client** (2026-11-10): the same call pinned to API version
+  `2023-06-01`, the last that accepts a temperature, for the models that still honour one
+  (Opus 4.6, Sonnet 4.6, Haiku 4.5, Opus 4.5). The temperature travels in `extra_body`.
+  - a separate name so the stem and the record say which API behaviour a run used.
+  - rejected: the `Anthropic` client switching version by itself when a temperature is set - a
+    different API behind one client name.
+  - a stopgap: it lasts as long as Anthropic serves that version. Unverified live.
+- **Effort is fixed at `low` in `AnthropicClient`** (2026-11-10), a constructor default marked
+  `NOTE:`; `AnthropicLegacy` sends none, because Haiku 4.5 rejects the setting.
+  - debt: effort is not a `RunSpec` field yet, so neither the stem nor the record shows it. Add
+    it to the spec before runs at different effort levels exist, or they share a stem.
 
 ## 5. Rejected during implementation
 
