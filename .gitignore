@@ -7,6 +7,13 @@ __pycache__
 # Dataset
 SoD-*
 /data/clean_data.csv
+/data/legacy_clean_data.csv
+/data/prompts.csv
+/data/prompts/sod/
+/data/prompts/sod_en/
+/data/prompts/self_description*.csv
+/datasets/sod/data/
+/results.zip
 /data/profiles/sod.csv
 /data/profiles/sod_en.csv
 /data/grid_*.csv
