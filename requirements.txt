@@ -1,43 +1,45 @@
 # Panel_LLM dependencies.
 #
-# Floors are the versions this project is verified against (2026-09-07, Python 3.13).
+# Floors are the newest releases on PyPI as of 2026-11-10. NOT yet verified: the project was last
+# verified (2026-09-07, Python 3.13) against pandas 2.3, openai 1.101, anthropic 0.76,
+# google-genai 1.57 and plotly 6.7 - all of which have had a major release since.
 # For an exact reproduction of a past run, use `pip freeze` output, not this file.
 # Python 3.11+ is what the project is tested on. (The old hard requirement, Literal[*names]
 # unpacking in panel/topic/response.py, is gone - the response models build their Literal at runtime.)
 
 # --- Core data stack ---
-pandas>=2.3.1
-numpy>=2.3.2
+pandas>=3.1.1
+numpy>=2.5.4
 
 # --- Plotting ---
-matplotlib>=3.10.5
+matplotlib>=3.11.2
 seaborn>=0.13.2
-plotly>=6.7.0                 # interactive distance figures in panel_analysis.ipynb
+plotly>=7.1.0                 # interactive distance figures in panel_analysis.ipynb
 
 # --- Statistics ---
-scipy>=1.16.2                 # JSD / Wasserstein / entropy distances
-scikit-learn>=1.7.2           # cosine + euclidean distances, MAE
-statsmodels>=0.14.6           # MANOVA in panel_analysis.ipynb
+scipy>=1.18.1                 # JSD / Wasserstein / entropy distances
+scikit-learn>=1.9.1           # cosine + euclidean distances, MAE
+statsmodels>=0.15.0           # MANOVA in panel_analysis.ipynb
 
 # --- Dataset ---
-pyreadstat>=1.3.1             # backs pandas.read_spss for the SoD .sav file
+pyreadstat>=1.3.7             # backs pandas.read_spss for the SoD .sav file
 
 # --- LLM clients ---
 # Only the provider actually used needs to be installed; each client guards its import.
-openai>=1.101.0               # OpenAIClient
-anthropic>=0.76.0             # AnthropicClient
-google-genai>=1.57.0          # GeminiClient
-requests>=2.32.5              # OpenRouterClient (raw HTTP)
+openai>=3.49.0                # OpenAIClient
+anthropic>=2.7.0              # AnthropicClient
+google-genai>=3.0.0           # GeminiClient
+requests>=2.34.2              # OpenRouterClient (raw HTTP)
 
 # --- LLM support ---
-pydantic>=2.11.7              # structured output schemas
-python-dotenv>=1.2.2          # .env loading in notebook composition roots
-tqdm>=4.67.1                  # batch progress
+pydantic>=2.14.3              # structured output schemas
+python-dotenv>=1.2.4          # .env loading in notebook composition roots
+tqdm>=4.70.1                  # batch progress
 
 # --- Notebooks ---
 jupyter>=1.1.1
-jupyterlab>=4.4.6
-ipykernel>=6.30.1
+jupyterlab>=4.6.6
+ipykernel>=7.4.0
 
 # --- Tests ---
-pytest>=9.1.1                 # tests/ holds the refactor gates; run python -m pytest from the repo root
+pytest>=9.2.0                 # tests/ holds the refactor gates; run python -m pytest from the repo root
