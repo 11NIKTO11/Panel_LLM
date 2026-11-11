@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 from panel import paths
 from panel.run import ResultStore, execute, resolve
-from panel.run.check import check, report
+from panel.run.check import check, means, report
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
 
@@ -61,7 +61,7 @@ def main() -> None:
     run = resolve(spec)
     store = ResultStore(paths.RESULTS_DIR, spec.topic)
     if args.check:
-        print(report(check(run, store), len(run.topic.options)))
+        print(f"{report(check(run, store), len(run.topic.options))}\n\n{means(run.topic.rename(store.frame(run.stem)), run.topic).round(3).to_string()}")
         return
     saved = store.paths(run.stem).record.exists()
     print(f"{run.stem}: {len(run.calls)} calls over {len(run.rows)} subjects{' - replaces a saved run' if saved else ''}")
@@ -80,7 +80,7 @@ def main() -> None:
             return
     written = execute(run, store, client)
     print(f"-> {written.results_csv}\n")
-    print(report(check(run, store), len(run.topic.options)))
+    print(f"{report(check(run, store), len(run.topic.options))}\n\n{means(run.topic.rename(store.frame(run.stem)), run.topic).round(3).to_string()}")
 
 
 if __name__ == "__main__":

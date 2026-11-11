@@ -8,7 +8,7 @@ from panel import paths
 from panel.analysis import validate
 from panel.dataset import load_dataset
 from panel.run import ResultStore, RunSpec, execute, resolve
-from panel.run.check import check, report
+from panel.run.check import MEAN, TOP, check, means, report
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
 from panel.run.registry import client_class
@@ -92,14 +92,16 @@ def test_check_of_a_saved_run(tmp_path):
     sent = run.rows.apply(run.prompt, axis=1)
     assert result.subjects == 20 and result.identical_prompts == sent.duplicated(keep=False).sum()
     assert result.turnout.off == 0 and result.options.off == 0 and result.listed == {total: 20}
-    assert list(result.means) == run.topic.columns and abs(sum(result.top.values()) - 1) < 1e-9
+    assert result.abstained == 0 and result.undefined == 0 and result.both == 0
+    table = means(store.frame(run.stem), run.topic)
+    assert list(table.index) == run.topic.columns and abs(table[TOP].sum() - 1) < 1e-9
     assert run.stem in report(result, total)
 
     pick = prepared(SOD.variant(shape="Pick"))
     execute(pick, store, FakeClient(), max_workers=4)
     picked = check(pick, store)
-    assert picked.options is None and picked.top is None and picked.turnout.off == 0
-    assert abs(sum(picked.means[option] for option in pick.topic.options) - 1) < 1e-9
+    assert picked.options is None and picked.undefined is None and picked.both is None and picked.turnout.off == 0
+    assert abs(means(store.frame(pick.stem), pick.topic).loc[list(pick.topic.options), MEAN].sum() - 1) < 1e-9
     assert pick.stem in report(picked, total)
 
 

@@ -1,8 +1,9 @@
 """
-A saved run looked over once: is it complete, is each answer consistent, what does it predict.
+A saved run looked over once, from the saved files alone, so it holds for any run a store has.
 
-A sanity check and a first reading, from the saved files alone, so it holds for any run a
-store has. Nothing here compares against a reference - that is analysis.
+Two parts: `check` asks whether the run is complete and each answer consistent, and `report`
+words that for a person; `means` is the first reading of what the run predicts, as a table.
+Nothing here compares against a reference - that is analysis.
 """
 from collections import Counter
 from dataclasses import dataclass
@@ -10,8 +11,13 @@ from typing import Dict, Tuple, Union
 
 import pandas as pd
 
+from panel.topic import Topic
+
 from .resolve import REPEAT, SUBJECT, Resolved
 from .store import ResultStore
+
+MEAN, TOP = "mean", "top"
+ZERO = 0.001
 
 
 @dataclass(frozen=True)
@@ -42,9 +48,11 @@ class Check:
         listed: options listed in an answer -> answers; None for a pick.
         duplicates: answers naming an option twice; None for a pick.
         identical: answers equal to another subject's in every column; None for a pick.
-        means: column -> mean over the answers, as saved, not normalised. For a pick an
-            option's mean is the share of answers choosing it.
-        top: option -> share of answers where it has the highest probability; None for a pick.
+        abstained: answers giving going to vote a probability of zero; None without turnout.
+        undefined: answers whose option probabilities sum to zero, so no preference can be
+            read from them; None for a pick.
+        both: answers that are both; an undefined answer outside this overlap is a subject
+            who may vote but prefers nothing. None for a pick or without turnout.
         highest: mean of the highest option probability per answer; None for a pick.
     """
     stem: str
@@ -63,8 +71,9 @@ class Check:
     listed: Union[Dict[int, int], None]
     duplicates: Union[int, None]
     identical: Union[int, None]
-    means: Dict[str, float]
-    top: Union[Dict[str, float], None]
+    abstained: Union[int, None]
+    undefined: Union[int, None]
+    both: Union[int, None]
     highest: Union[float, None]
 
 
@@ -83,7 +92,7 @@ def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Ch
     record = store.record(stem)
     loaded = store.load(stem, resolved.response_model)
     responses = [response for _, response in loaded.values()]
-    frame = store.frame(stem)
+    frame = topic.rename(store.frame(stem))
     expected = {(int(subject), int(repeat)) for subject, repeat in zip(resolved.calls[SUBJECT], resolved.calls[REPEAT])}
     probabilities = "options" in resolved.response_model.model_fields
     options = list(topic.options)
@@ -94,6 +103,8 @@ def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Ch
     if probabilities:
         values += [option.probability for response in responses for option in response.options]
         names = [[option.name for option in response.options] for response in responses]
+    abstained = frame[topic.turnout[0]] <= ZERO if topic.turnout else None
+    undefined = frame[options].sum(axis=1) <= ZERO if probabilities else None
 
     return Check(
         stem=stem,
@@ -112,10 +123,31 @@ def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Ch
         listed=dict(sorted(Counter(len(set(listed)) for listed in names).items())) if probabilities else None,
         duplicates=sum(len(listed) != len(set(listed)) for listed in names) if probabilities else None,
         identical=int(frame.duplicated(subset=topic.columns, keep=False).sum()) if probabilities else None,
-        means={column: float(frame[column].mean()) for column in topic.columns},
-        top={o: float(share) for o, share in frame[options].idxmax(axis=1).value_counts(normalize=True).reindex(options, fill_value=0).items()} if probabilities else None,
+        abstained=int(abstained.sum()) if topic.turnout else None,
+        undefined=int(undefined.sum()) if probabilities else None,
+        both=int((abstained & undefined).sum()) if topic.turnout and probabilities else None,
         highest=float(frame[options].max(axis=1).mean()) if probabilities else None,
     )
+
+
+def means(frame: pd.DataFrame, topic: Topic) -> pd.DataFrame:
+    """
+    What a run's answers say on average, as saved, not normalised and compared with nothing.
+
+    Args:
+        frame: a run's results table, one row per answer.
+        topic: the topic it answered.
+
+    Returns:
+        One row per topic column: `mean` over the answers, and for an option `top`, the share
+        of the answers with a preference in which it has the highest probability. For a pick
+        both are the share of answers choosing the option.
+    """
+    options = list(topic.options)
+    defined = frame.loc[frame[options].sum(axis=1) > ZERO, options]
+    table = pd.DataFrame({MEAN: frame[topic.columns].mean()})
+    table[TOP] = defined.idxmax(axis=1).value_counts(normalize=True).reindex(options, fill_value=0.0)
+    return table
 
 
 def report(result: Check, total: int) -> str:
@@ -134,7 +166,10 @@ def report(result: Check, total: int) -> str:
         ("out of range", str(result.out_of_range)),
     )
     if result.turnout:
-        rows += (("turnout sum", _sums_text(result.turnout, result.tolerance)),)
+        rows += (
+            ("turnout sum", _sums_text(result.turnout, result.tolerance)),
+            ("certain abstainers", f"{_share(result.abstained, result.answers)} give going to vote a probability of 0"),
+        )
     if result.options:
         fewer = {count: answers for count, answers in result.listed.items() if count != total}
         rows += (
@@ -142,16 +177,16 @@ def report(result: Check, total: int) -> str:
             ("options listed", f"all {total} in {result.listed.get(total, 0)} answers" + (f"; fewer: {fewer}" if fewer else "")),
             ("duplicate options", str(result.duplicates)),
             ("identical answers", str(result.identical)),
+            ("no preference", f"{_share(result.undefined, result.answers)} have options summing to 0"),
+            ("highest option", f"{result.highest:.3f} on average"),
         )
-    width = max(len(column) for column in result.means)
-    lines = [result.stem] + [f"  {label:<18} {text}" for label, text in rows]
-    lines += ["", f"  {'':<{width}}   mean" + ("     top" if result.top else "")]
-    for column, mean in result.means.items():
-        top = f"  {result.top[column]:>6.1%}" if result.top and column in result.top else ""
-        lines.append(f"  {column:<{width}}  {mean:>5.3f}{top}")
-    if result.highest is not None:
-        lines += ["", f"  highest probability in an answer, mean: {result.highest:.3f}"]
-    return "\n".join(lines)
+    if result.both is not None:
+        rows += (("overlap", f"{result.both} are both, {result.abstained - result.both} abstain with a preference, {result.undefined - result.both} may vote with none"),)
+    return "\n".join([result.stem] + [f"  {label:<18} {text}" for label, text in rows])
+
+
+def _share(count: int, total: int) -> str:
+    return f"{count} ({count / total:.1%})"
 
 
 def _sums_text(sums: Sums, tolerance: float) -> str:
