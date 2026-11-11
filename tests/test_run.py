@@ -10,7 +10,7 @@ from panel.dataset import load_dataset
 from panel.run import ResultStore, RunSpec, execute, resolve
 from panel.run.check import check, report
 from panel.run.fake import FakeClient
-from panel.run.named import FIELDS, OWN, build_spec, load_runs, parse
+from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
 from panel.run.registry import client_class
 
 from tests.conftest import TOPICS_DIR, require
@@ -18,8 +18,10 @@ from tests.conftest import TOPICS_DIR, require
 SOD = RunSpec(dataset="sod", description="default", topic="election_2021", framing="cs", question="default",
               client="Fake", model="fake-model", shape="Prob", temperature=0.0, sample=20)
 REPEATED = SOD.variant(sample=5, repeats=3)
+CITIZEN = SOD.variant(dataset="regions", description="citizen", sample=None, repeats=3)
+DIRECT = CITIZEN.variant(description="direct", question=None)
 FOUR = ("results_csv", "results_json", "normalized_csv", "record")
-RUNS = paths.CONFIG_DIR / "runs.json"
+PRESETS = paths.CONFIG_DIR / "presets.json"
 
 
 def prepared(spec: RunSpec):
@@ -29,9 +31,9 @@ def prepared(spec: RunSpec):
     return resolve(spec)
 
 
-def write_runs(tmp_path, base: dict, runs: dict):
-    path = tmp_path / "runs.json"
-    path.write_text(json.dumps({"base": base, "runs": runs}), encoding="utf-8")
+def write_presets(tmp_path, base: dict, data: dict, models: dict):
+    path = tmp_path / "presets.json"
+    path.write_text(json.dumps({"base": base, "data": data, "models": models}), encoding="utf-8")
     return path
 
 
@@ -154,6 +156,26 @@ def test_one_form_question_reads_the_same_for_everyone():
     assert run.question.by is None and run.rows["question"].nunique() == 1
 
 
+def test_a_dataset_without_the_vocabulary_reads_the_fallback():
+    run = prepared(CITIZEN)
+    assert run.stem == "regions_citizen_cs_default_Fake_fake-model_Prob_t=0.0_x3"
+    assert set(run.rows["question"]) == {run.question.forms[run.question.fallback]}
+    assert run.prompt(run.calls.iloc[0]) == f"Jsem obyvatel/ka Česka. {run.question.forms[run.question.fallback]}"
+
+
+def test_standalone_description_is_the_whole_prompt(tmp_path):
+    run = prepared(DIRECT)
+    assert run.stem == "regions_direct_cs_Fake_fake-model_Prob_t=0.0_x3" and run.question is None
+    assert run.prompt(run.calls.iloc[0]) == "Účast a výsledek voleb do poslanecké sněmovny v Česku v roce 2021 budou:"
+    with pytest.raises(ValueError):
+        prepared(DIRECT.variant(question="default"))
+    store = ResultStore(tmp_path, DIRECT.topic)
+    execute(run, store, FakeClient(), max_workers=4)
+    assert len(store.frame(run.stem)) == 45 and store.record(run.stem)["question"] is None
+    result = check(run, store)
+    assert result.answers == result.calls == 45 and result.same_calls and result.subjects == 15 and result.identical_prompts == 0
+
+
 def test_resolve_refuses_a_missing_or_unknown_question():
     with pytest.raises(ValueError):
         prepared(SOD.variant(question=None))
@@ -206,26 +228,38 @@ def test_spec_rejects_nonsense():
         RunSpec.from_dict({"name": "sod", "topic": "election_2021_legacy"})
 
 
-def test_named_runs_are_complete_specs():
-    runs = load_runs(RUNS)
-    assert runs and all(set(named) == set(FIELDS) for named in runs.values())
-    assert build_spec(runs["fake"], {"sample": 5}).sample == 5 and build_spec(runs["fake"], {}).client == "Fake"
-    stems = [prepared(build_spec(named, {})).stem for named in runs.values()]
-    assert len(set(stems)) == len(stems)
+def test_presets_combine_into_complete_specs():
+    presets = load_presets(PRESETS)
+    assert set(DATA) | set(MODEL) | {"sample", "random_state"} == set(FIELDS)
+    base = presets.base
+    assert build_spec(base, None, None, {}).client == "Fake"
+    for name, data in presets.data.items():
+        spec = build_spec(base, data, None, {})
+        assert spec.sample is None and prepared(spec).stem, name
+    assert build_spec(base, presets.data["sod"], None, {"sample": 5, "question": "neutral"}).question == "neutral"
+    stems = {prepared(build_spec(base, data, None, {})).stem for data in presets.data.values()}
+    assert len(stems) == len(presets.data)
+    for name, model in presets.models.items():
+        assert prepared(build_spec(base, None, model, {"sample": 5})).spec.model == model["model"], name
 
 
-def test_named_runs_keep_model_settings_out_of_the_base(tmp_path):
-    base = {field: getattr(SOD, field) for field in FIELDS if field not in OWN}
-    own = {field: getattr(SOD, field) for field in OWN}
-    assert load_runs(write_runs(tmp_path, base, {"a": own, "b": {**own, "shape": "Pick"}}))["b"]["shape"] == "Pick"
-    with pytest.raises(ValueError):
-        load_runs(write_runs(tmp_path, {**base, "model": "fake-model"}, {"a": own}))
-    with pytest.raises(ValueError):
-        load_runs(write_runs(tmp_path, base, {"a": {field: own[field] for field in OWN[1:]}}))
-    with pytest.raises(ValueError):
-        load_runs(write_runs(tmp_path, base, {"a": {**own, "nobody": 1}}))
-    with pytest.raises(ValueError):
-        build_spec(None, {"dataset": "sod"})
+def test_presets_lay_over_a_complete_base(tmp_path):
+    base = {field: getattr(SOD, field) for field in DATA + MODEL}
+    data, model = {"description": "extended"}, {"model": "other", "temperature": None}
+    loaded = load_presets(write_presets(tmp_path, base, {"a": data}, {"m": model}))
+    assert build_spec(loaded.base, None, None, {"sample": 20}) == SOD
+    spec = build_spec(loaded.base, loaded.data["a"], loaded.models["m"], {"model": "third"})
+    assert spec == SOD.variant(description="extended", model="third", temperature=None, sample=None)
+    for bad_base, bad_data, bad_models in (
+        ({field: base[field] for field in DATA}, {"a": data}, {"m": model}),
+        ({**base, "sample": 5}, {"a": data}, {"m": model}),
+        (base, {"a": {**data, "model": "fake-model"}}, {"m": model}),
+        (base, {"a": {}}, {"m": model}),
+        (base, {"a": data}, {"m": {**model, "sample": 5}}),
+        (base, {"a": data}, {"m": {**model, "repeats": 2}}),
+    ):
+        with pytest.raises(ValueError):
+            load_presets(write_presets(tmp_path, bad_base, bad_data, bad_models))
 
 
 def test_parse_reads_what_a_person_typed():
