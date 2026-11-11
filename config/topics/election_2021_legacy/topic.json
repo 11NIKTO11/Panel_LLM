@@ -59,10 +59,11 @@
                 "p_KSCM"
             ]
         },
-        "Trikolora": {
+        "TSS": {
             "name": "Trikolóra, Svobodní a Soukromníci",
             "aliases": [
-                "p_Trikolora"
+                "p_Trikolora",
+                "Trikolora"
             ]
         },
         "Other": {
