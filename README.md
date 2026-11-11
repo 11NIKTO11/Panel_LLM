@@ -13,10 +13,11 @@ Everything the model is shown is data: the subjects (`datasets/`), the descripti
 names one of each plus a model, so a new election, a new issue question, a new description or a
 new language is a config change, never a code edit.
 
-**In transition (2026-11-10):** the prepare step was reshaped - `python prepare.py sod` writes
-`data/sod/values.csv` and `data/sod/prompts/`; see `DECISIONS.md` §7. The run, the analysis
-notebooks and the other datasets are not ported yet, so the sections below that mention
-`data/profiles/`, `config/descriptions/` or `datasets/schema.json` describe the previous shape.
+**In transition (2026-11-11):** prepare and the run were reshaped - `python prepare.py sod`
+writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py <name>` sends a run; see
+`DECISIONS.md` §7 and §8. The analysis notebooks and the other datasets are not ported yet, so
+the sections below that mention `data/profiles/`, `config/descriptions/` or
+`datasets/schema.json` describe the previous shape.
 
 Contributors: `CLAUDE.md` maps the modules, `AGENTS.md` sets the working conventions,
 `DECISIONS.md` records why things are the way they are.
@@ -81,40 +82,54 @@ it (`panel/paths.py` anchors them on the package).
 
 | step | command or notebook | what it does |
 |---|---|---|
-| 1 | `python -m datasets.sod.prepare` | `.sav` -> `data/profiles/sod.csv`, then `data/prompts/sod/*.csv` |
-| 1 | `python -m datasets.grid.generate`, `datasets.regions.prepare`, `datasets.sod_en.prepare` | the other datasets' profiles and tables |
-| 2 | `simulate.ipynb` | subjects -> LLM -> `results/<topic>/` |
-| 3 | `analyze.ipynb` | evaluate one run: MAE by region, covariance, distributions, every run of the topic |
-| 4 | `panel_stats.ipynb` | statistical layer: MANOVA, PERMANOVA, distances by area, spread of options |
+| 1 | `python prepare.py sod` | `.sav` -> `data/sod/values.csv`, then `data/sod/prompts/*.csv` |
+| 2 | `python run.py <name>` | subjects -> LLM -> `results/<topic>/` |
+| 3 | `analyze.ipynb` | evaluate one run - not ported, fails |
+| 4 | `panel_stats.ipynb` | statistical layer - not ported, fails |
 
-Every notebook restarts and runs to the end offline: `simulate.ipynb` through the fake client,
-the other two over the saved legacy runs. Nothing is defined in a notebook; the code is in `panel/`.
+`simulate.ipynb` is superseded by `run.py` and no longer runs. Nothing is defined in a
+notebook; the code is in `panel/`.
 
 ### 2.1 Declaring a run
 
-The run-setup cell of `simulate.ipynb`, right after the imports, is the only place a run is
-declared: one `RunSpec` of names and numbers, a dict of named variants, and the one to run:
+Named runs are data, in `config/runs.json`: `base` says what is asked, of whom and in what form;
+every run states which model answers and how.
 
-```python
-BASE = RunSpec(dataset="sod", description="self_v1", topic="election_2021", framing="cs",
-               client="OpenRouter", model="gpt-4.1-nano", shape="VProb", temperature=0)
-SPECS = {"nano": BASE, "4o": BASE.variant(model="gpt-4o"), "nano-trial": BASE.variant(sample=200)}
-SPEC = SPECS["nano"]
-
-RUN = resolve(SPEC)                                  # loads the five artifacts, joins profile and prompt table
-STORE = ResultStore(paths.RESULTS_DIR, SPEC.topic)
-execute(RUN, STORE, client_class(SPEC.client)())     # batch, capped rerun of skipped calls, archived + plain save
+```json
+{
+    "base": {"dataset": "sod", "description": "default", "topic": "election_2021", "framing": "cs",
+             "question": "default", "shape": "Prob", "repeats": 1, "random_state": 42},
+    "runs": {
+        "nano":       {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": null},
+        "nano-trial": {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": 200},
+        "neutral":    {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": null, "question": "neutral"}
+    }
+}
 ```
+
+Every run states all five of client, model, temperature, effort and sample, and the base none
+of them, so changing the base never changes a model's settings. A run may also replace a base field.
+
+```bash
+python run.py                              # lists the named runs with their stems
+python run.py nano-trial                   # a named run
+python run.py nano --sample 50             # a named run with fields replaced; `none` is no value
+python run.py nano --show                  # the system prompt and one prompt; no call
+python run.py nano --one                   # one call, printed; nothing saved
+python run.py fake                         # the whole path offline
+```
+
+Every field of a run is an option, and without a name all of them come from the options. The
+script prints the stem and the number of calls, says when the stem already holds a run, and
+asks before sending to anything but the Fake client (`--yes` skips that).
 
 `resolve` loads what the names point at and lays out the calls; `execute` runs the batch, reruns
 skipped calls a capped number of times, and saves twice - an archived copy, then the plain files.
-The record beside them holds the spec, the template and framing text, the response schema and the
-exact subject ids, so a saved run says how it was produced.
+The record beside them holds the spec, the template, question and framing text, the response
+schema and the exact subject ids, so a saved run says how it was produced.
 
-**Cost warning.** A full run makes one API call per subject - 3880 for the survey. Use
-`SPECS["nano-trial"]`, which sets `sample=200`, for a cheap trial; its results land under a
-`_subset=200` stem and never overwrite a full run. `SPECS["fake"]` costs nothing and exercises
-the whole path.
+**Cost warning.** A full run makes one API call per subject - 3880 for the survey. Set `sample`
+for a cheap trial; its results land under a `_subset=<n>` stem and never overwrite a full run.
 
 ### 2.2 Tests
 
@@ -122,17 +137,19 @@ the whole path.
 python -m pytest
 ```
 
-128 tests in about eight seconds. They hold the code to what it produced before the overhaul
-(`tests/fixtures/`, see its README): the survey renders identically on every row, the legacy
-results reparse and aggregate to the same numbers, the frozen legacy schema is reproduced byte
-for byte, and an offline run writes every file it should. Tests that need gitignored inputs
-(`results/`, `data/profiles/sod.csv`) skip by name on a machine without them.
+Prepare, the topics and the run are covered: descriptions render, schemas match their
+snapshots (`tests/fixtures/`, see its README), an offline run writes every file it should and
+its record round-trips. In transition: `test_analysis.py` and `test_english.py` do not import,
+and eight legacy tests fail on the renamed response classes (`DECISIONS.md` §8). Tests that
+need gitignored inputs (`results/`, `data/sod/`) skip by name on a machine without them.
 
 ---
 
 ## 3. The axes
 
-A run is five names: a dataset, a description, a topic, a framing, and a model. Each is a file.
+A run is six names: a dataset, a description, a topic, a framing, a question, and a model. Each
+is a file. The question is `config/topics/<topic>/questions/<name>.json`, one file holding every
+language; its wording may depend on the subject (`by`), as the Czech one does on gender.
 
 ### 3.1 Datasets - `datasets/<name>/`
 
@@ -180,18 +197,26 @@ A run is five names: a dataset, a description, a topic, a framing, and a model. 
 - `topic.json` is the language-neutral half: option ids (ASCII, the result columns) with their
   native names and foreign aliases, the turnout roles, and the reference results with their key
   column and total row.
-- a framing (`cs.json`, `en.json`) is everything the model reads that is not the description:
-  system prompt, question, label overrides, and the wording of the response schema.
+- a framing (`cs.json`, `en.json`) is the system prompt, the label overrides and the wording
+  of the response schema. The system prompt says only what holds for every run of the topic;
+  the schema text says what the answer looks like.
+- a question (`questions/<name>.json`) is what follows the description, per language.
 - **the order of the options is the order the model sees them** - it becomes the `enum` order in
   the schema sent to the provider, so it is prompt content, not presentation.
 - to add a topic, copy the closest folder and change `name` and `options` in `topic.json`, then
-  `instructions` and `question` in `cs.json`. The loaders refuse unknown keys, a name that
+  `instructions` in `cs.json` and the text in `questions/default.json`. The loaders refuse unknown keys, a name that
   disagrees with the folder, a label for an unknown id, duplicate labels and reused aliases.
 
 ### 3.4 Models
 
-The client (`OpenAI`, `Anthropic`, `Gemini`, `OpenRouter`, `Fake`), the provider's model id, the
-temperature and the number of repeats. The `Fake` client answers offline and deterministically.
+The client (`OpenAI`, `Anthropic`, `AnthropicLegacy`, `Gemini`, `OpenRouter`, `Fake`), the
+provider's model id, the temperature, the effort and the number of repeats. The `Fake` client
+answers offline and deterministically.
+
+- `Anthropic` takes no temperature (`"temperature": null`); `AnthropicLegacy` pins the API
+  version that still accepts one, for Opus 4.6, Sonnet 4.6 and Haiku 4.5.
+- `effort` (`low` .. `max`) is sent by the two Anthropic clients only; any other client
+  refuses a run that sets it. Haiku 4.5 takes none.
 
 ---
 
@@ -211,18 +236,19 @@ One run is four files sharing a stem, plus two archived copies:
 
 ```
 results/election_2021/
-├── sod_v1_cs_OpenRouter_gpt-4.1-nano_VProb_t=0.0.csv             one row per call: id, [repeat], options, Prompt
-├── sod_v1_cs_OpenRouter_gpt-4.1-nano_VProb_t=0.0.json            the same, as returned
-├── sod_v1_cs_OpenRouter_gpt-4.1-nano_VProb_t=0.0_normalized.csv  turnout and options each rescaled to sum to 1
-├── sod_v1_cs_OpenRouter_gpt-4.1-nano_VProb_t=0.0_run.json        the record
+├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0.csv             one row per call: id, [repeat], options, Prompt
+├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0.json            the same, as returned
+├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_normalized.csv  turnout and options each rescaled to sum to 1
+├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_run.json        the record
 ├── analysis/   derived tables, named after the run they came from (regenerable)
 └── archive/    timestamped copies of the CSV and the record, one set per save
 ```
 
-The stem is `<dataset>_<description>_<framing>_<Client>_<model>_<Shape>_t=<t>`, plus
-`_x<repeats>` for a repeated run and `_subset=<n>` for a sampled one; every part is the
-artifact's `short`. A spec with `temperature=None` sends no temperature and reads `t=default`;
-Claude models require it. The topic is the folder. Legacy stems lack the description and framing parts;
+The stem is `<dataset>_<description>_<framing>_<question>_<Client>_<model>_<Shape>_t=<t>`, plus
+`_e=<effort>` when the run sets one, `_x<repeats>` for a repeated run and `_subset=<n>` for a
+sampled one; every part is the artifact's `short`. A spec with `temperature=None` sends no
+temperature and reads `t=default`; the `Anthropic` client requires it. The topic is the folder.
+Legacy stems lack the description, framing and question parts and say `VProb` / `VPick`;
 their records keep their older shape, and their CSV headers are native names that `Topic.rename`
 turns into ids in memory.
 
@@ -230,7 +256,9 @@ turns into ids in memory.
 
 ## 5. Status
 
-The architecture overhaul of 2026-09-09 is complete on this branch and awaits review; the
-decisions and their reasons are in `DECISIONS.md`. Nothing here has been sent to a provider since:
-the live smoke call per provider is still owed and belongs to the first real run. `election_2025`
-has no reference results yet, and the English framing's wording has not been reviewed.
+Prepare and the run are in their reshaped form (`DECISIONS.md` §7, §8); the analysis layer is
+not ported. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
+with a temperature, Haiku 5.5 with effort `low`); OpenAI, Gemini and OpenRouter have not been
+called since the overhaul. The legacy runs still load, but eight legacy tests fail on the
+renamed response classes (§8). `election_2025` has no reference results yet, and the English
+texts have not been reviewed.

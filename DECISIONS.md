@@ -210,6 +210,88 @@ transition:** prepare works in this shape; `panel.run`, the analysis notebooks, 
     typo "Vice než" reads "více než" in the prompt only.
   - `self_v1` / `self_v2` are `default` / `extended`.
 
+## 8. The run on the reshaped prepare (2026-11-11)
+
+Decided with Martin while prototyping in the sandbox, then ported. **Still in transition:**
+prepare and the run work in this shape; the analysis layer, the notebooks, the datasets
+`sod_en`, `grid` and `regions` and their tests still expect the old one and fail.
+
+- **A run reads the prompt table only.** The values table supplies the subjects that table must
+  cover, and the one column a question worded by a shared vocabulary asks for. A prompt table
+  rendered before the values were rebuilt is refused.
+  - the record carries sha256 of `values.csv`, the prompt table and `forms.json`, not their
+    text: the template text is copied as before, and every call's prompt is already in
+    `<stem>.json` and the CSV.
+  - `panel.run` no longer imports `panel.analysis`: `normalize_groups` lives in
+    `panel/topic/normalize.py`.
+- **The question is its own name**, the sixth of a run: `config/topics/<topic>/questions/<name>.json`,
+  one file per question holding every language. The framing has none.
+  - a wording may depend on the subject: `by` names a vocabulary (`gender`), `text` maps its
+    keys to wordings ("... jsem volil:" / "... jsem volila:"), `fallback` is the key for a
+    dataset that does not share the vocabulary. Without a fallback such a dataset cannot be asked.
+  - a question lacking the framing's language is refused; a `standalone` description takes no
+    question and any other needs one.
+  - rejected: one folder per language; the question as free text on the command line; several
+    named questions inside the framing file.
+- **A dataset may declare `shared` vocabularies** in `dataset.json`: a column and a map from its
+  answers to shared keys (`"Muž": "male"`). This is the one place a dataset meets a name from
+  outside itself, and it is opt-in per question - not the shared schema §7 removed.
+- **The system prompt says only what is fixed for every run of the topic**: the role, the
+  task, turnout. Nothing about the profile's attributes, nothing about the form of the answer;
+  the schema text carries that, per shape, in the topic's own words (parties and the election,
+  stances for `media_fees_2026`).
+  - why: the old prompts listed attributes the `default` description does not contain, and
+    asked for probabilities of every party, which does not fit a pick.
+  - the framings were edited in place, not as variants: no saved run had recorded any of them.
+  - nothing links a system prompt to what else a run names; a framing states what it assumes
+    in its `note`.
+  - rejected: `instructions` split into a common part and one per shape; a framing per shape;
+    whole prompts keyed by shape.
+  - seen live (Haiku 4.5 and 5.5, 200 subjects each): with only the schema text asking for it,
+    Haiku 5.5 kept every party distribution summing to 1; Haiku 4.5 missed in 7 of 200, by at
+    most 0.05.
+- **The response classes name no topic**: `Probabilities` / `Pick`, shapes `Prob` / `Pick`, the
+  list `options`. This reverses "never rename the classes, `SHORT_NAME` or the fields"; the rule
+  stands again from here, for the new names.
+  - why: class title and field name are sent in the schema, so a stance topic was asked for
+    `parties` by `VotingProbabilities`.
+  - `voted_or_not`, `voted`, `not_voted` stay: only a topic with turnout has them, and turnout
+    is about voting. Rejected: `attended` / `not_attended`.
+  - the legacy runs stay readable: `options` also reads a saved `parties`; their stems keep
+    `VProb` / `VPick`, which are file names and no longer shape names.
+- **What this breaks for legacy - known, to migrate later:**
+  - the legacy framing no longer regenerates the schema the legacy runs were sent (class
+    titles, `parties`): `test_legacy_schema_identical` and the legacy schema snapshot fail.
+  - legacy records name `VotingProbabilities`; `test_legacy_results_reparse` looks the model
+    up by that name and fails. `panel_stats.ipynb` picks runs by `("VotingProbabilities", "VProb")`.
+  - raw JSON differs by age: legacy files hold `parties`, new ones `options`.
+  - the note in `election_2021_legacy/topic.json` ("reproduces byte for byte") is stale.
+  - ways out, not chosen: rewrite the legacy files once and drop the alias; or keep them
+    frozen and hold the old names in one legacy reader.
+- **Effort is a field of the run**: `low` .. `max`, or None, which sends nothing. It is in the
+  recorded spec and in the stem (`..._t=default_e=low`). The client gets it at construction;
+  the `low` that was fixed in `AnthropicClient` is gone. A client that takes none refuses it.
+- **Named runs are data**: `config/runs.json`. `base` says what is asked, of whom, in what
+  form; every run states the model's settings - client, model, temperature, effort, sample -
+  and the base may hold none of them. A run may also replace a base field.
+  - why: the base can change, and a model's settings must not change with it.
+  - rejected: a base holding model settings with runs overriding freely - editing the base
+    silently changed every run that did not override; no base, every run in full - one
+    experiment spelled out per run.
+- **One entry point**: `python run.py [name] [--field value ...] [--show | --one] [--yes]`.
+  It replaces `simulate.ipynb`. Anything but the Fake client asks before sending.
+- **No fallback model**: a call the provider's safety classifier declines raises; a run
+  answers with the model it names or fails.
+- open
+  - how system prompt and user prompt fit: the system prompt speaks of a respondent in the
+    third person, the user prompt is the respondent speaking and ends in an unfinished
+    sentence; the question presupposes voting while the answer carries turnout.
+  - wording not reviewed: the `neutral` question, rule 3 of the system prompt, the
+    `media_fees_2026` text, the English texts, "strana" for coalitions.
+  - `Dataset.data_dir` is fixed to `paths.DATA_DIR`; a test cannot redirect the data folder.
+  - `run.py` without arguments resolves every named run, reading the tables once per run.
+  - no test covers a `standalone` description: no ported dataset has one.
+
 ## 6. Pending Martin's decision
 
 - income cut points for `to_levels` (§4) - left open on purpose (2026-11-10); only needed for
