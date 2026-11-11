@@ -32,6 +32,8 @@ class Check:
         same_calls: whether the saved answers are exactly those calls.
         model: the model id asked for.
         model_resolved: the one the provider reported, or None.
+        subjects: subjects the run covers.
+        identical_prompts: subjects whose prompt is word for word another subject's.
         missing: empty cells among the topic's columns of the results table.
         tolerance: how far a sum may be from 1.
         out_of_range: probabilities below 0 or above 1.
@@ -51,6 +53,8 @@ class Check:
     same_calls: bool
     model: str
     model_resolved: Union[str, None]
+    subjects: int
+    identical_prompts: int
     missing: int
     tolerance: float
     out_of_range: int
@@ -98,6 +102,8 @@ def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Ch
         same_calls=set(loaded) == expected,
         model=resolved.spec.model,
         model_resolved=record.get("model_resolved"),
+        subjects=len(resolved.rows),
+        identical_prompts=int(resolved.rows.apply(resolved.prompt, axis=1).duplicated(keep=False).sum()),
         missing=int(frame[topic.columns].isna().sum().sum()),
         tolerance=tolerance,
         out_of_range=sum(not 0 <= value <= 1 for value in values),
@@ -123,6 +129,7 @@ def report(result: Check, total: int) -> str:
     rows: Tuple[Tuple[str, str], ...] = (
         ("answers", f"{result.answers} of {result.calls} calls, {'the same' if result.same_calls else 'NOT the same'} subjects"),
         ("model", f"{result.model} -> {result.model_resolved}"),
+        ("identical prompts", f"{result.identical_prompts} of {result.subjects} subjects"),
         ("missing values", str(result.missing)),
         ("out of range", str(result.out_of_range)),
     )

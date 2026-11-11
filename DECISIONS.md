@@ -291,6 +291,16 @@ prepare and the run work in this shape; the analysis layer, the notebooks, the d
   - `Dataset.data_dir` is fixed to `paths.DATA_DIR`; a test cannot redirect the data folder.
   - `run.py` without arguments resolves every named run, reading the tables once per run.
   - no test covers a `standalone` description: no ported dataset has one.
+  - identical prompts are each sent: a prompt that is word for word another subject's costs
+    a call of its own. `prepare.py` and the run check both count them (50 of 3880 in SoD
+    `default`, 20 in `extended`). They could be sent once and the answer copied to every
+    subject sharing the prompt - not done:
+    - the saving is about 1% on SoD; it grows with coarser descriptions and is large for a
+      grid or regions.
+    - a copied answer hides that a call is a sample. Even at temperature 0 Haiku 4.5 did
+      not repeat itself: two runs of the same 200 prompts differed (2026-11-11). With
+      repeats, or a client that sends no temperature, copying would understate the spread.
+    - the results would have to say which answers are copies.
 
 ## 6. Pending Martin's decision
 

@@ -123,7 +123,8 @@ python run.py fake                         # the whole path offline
 Every field of a run is an option, and without a name all of them come from the options. The
 script prints the stem and the number of calls, says when the stem already holds a run, and
 asks before sending to anything but the Fake client (`--yes` skips that). After saving it
-prints a check of the run - whether every call was answered, whether turnout and the option
+prints a check of the run - whether every call was answered, how many prompts were identical
+to another subject's, whether turnout and the option
 probabilities sum to 1, the mean and the top-choice share per option - a sanity check and a
 first reading, not a comparison with any reference.
 

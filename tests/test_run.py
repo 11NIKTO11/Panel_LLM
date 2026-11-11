@@ -87,6 +87,8 @@ def test_check_of_a_saved_run(tmp_path):
     total = len(run.topic.options)
     assert result.answers == result.calls == 20 and result.same_calls and result.model_resolved == "fake-model-fake"
     assert result.missing == 0 and result.out_of_range == 0 and result.duplicates == 0
+    sent = run.rows.apply(run.prompt, axis=1)
+    assert result.subjects == 20 and result.identical_prompts == sent.duplicated(keep=False).sum()
     assert result.turnout.off == 0 and result.options.off == 0 and result.listed == {total: 20}
     assert list(result.means) == run.topic.columns and abs(sum(result.top.values()) - 1) < 1e-9
     assert run.stem in report(result, total)
