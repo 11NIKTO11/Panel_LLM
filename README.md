@@ -15,9 +15,9 @@ new language is a config change, never a code edit.
 
 **In transition (2026-11-11):** prepare and the run were reshaped - `python prepare.py sod`
 writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py <name>` sends a run; see
-`DECISIONS.md` §7 and §8. The analysis notebooks and the other datasets are not ported yet, so
-the sections below that mention `data/profiles/`, `config/descriptions/` or
-`datasets/schema.json` describe the previous shape.
+`DECISIONS.md` §7 and §8. `sod` and `regions` are ported; the analysis notebooks, `sod_en` and
+`grid` are not, so the sections below that mention `data/profiles/`, `config/descriptions/`
+or `datasets/schema.json` describe the previous shape.
 
 Contributors: `CLAUDE.md` maps the modules, `AGENTS.md` sets the working conventions,
 `DECISIONS.md` records why things are the way they are.
@@ -92,35 +92,46 @@ notebook; the code is in `panel/`.
 
 ### 2.1 Declaring a run
 
-Named runs are data, in `config/runs.json`: `base` says what is asked, of whom and in what form;
-every run states which model answers and how.
+A run is the base run with presets laid over it, all data in `config/presets.json`:
 
 ```json
 {
     "base": {"dataset": "sod", "description": "default", "topic": "election_2021", "framing": "cs",
-             "question": "default", "shape": "Prob", "repeats": 1, "random_state": 42},
-    "runs": {
-        "nano":       {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": null},
-        "nano-trial": {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": 200},
-        "neutral":    {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0, "effort": null, "sample": null, "question": "neutral"}
+             "question": "default", "shape": "Prob", "repeats": 1,
+             "client": "Fake", "model": "fake-model", "temperature": 0.0, "effort": null},
+    "data": {
+        "sod-extended": {"dataset": "sod", "description": "extended"},
+        "direct":       {"dataset": "regions", "description": "direct", "question": null, "repeats": 10}
+    },
+    "models": {
+        "nano":      {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0},
+        "haiku-5.5": {"client": "Anthropic", "model": "claude-haiku-5-5", "temperature": null, "effort": "low"}
     }
 }
 ```
 
-Every run states all five of client, model, temperature, effort and sample, and the base none
-of them, so changing the base never changes a model's settings. A run may also replace a base field.
+- the **base** is a complete run and states every field; its model is the Fake client, so a
+  run that names no model sends nothing.
+- a **data preset** (`-d`) says what is asked, of whom and in what form; a **model preset**
+  (`-m`) says which model answers and how. Each states only the fields of its own kind that
+  it sets, so the two never state the same field.
+- later replaces earlier: base, `-d`, `-m`, single fields (`--question neutral`).
+- how many subjects a run takes is in none of them: it is an option.
 
 ```bash
-python run.py                              # lists the named runs with their stems
-python run.py nano-trial                   # a named run
-python run.py nano --sample 50             # a named run with fields replaced; `none` is no value
-python run.py nano --show                  # the system prompt and one prompt; no call
-python run.py nano --one                   # one call, printed; nothing saved
-python run.py nano --check                 # look over the saved run; no call
-python run.py fake                         # the whole path offline
+python run.py                                    # lists the base and the presets, every field
+python run.py -d sod -m nano                     # a data preset and a model preset
+python run.py -m nano                            # the base's data, that model
+python run.py -d citizen                         # that data, the base's model: offline
+python run.py -d sod -m nano --sample 200        # a trial: 200 subjects; `none` is no value
+python run.py -d sod -m nano --question neutral  # with a field replaced
+python run.py -d sod -m nano --show              # the system prompt and one prompt; no call
+python run.py -d sod -m nano --one               # one call, printed; nothing saved
+python run.py -d sod -m nano --check             # look over the saved run; no call
+python run.py --sample 20                        # the whole path offline
 ```
 
-Every field of a run is an option, and without a name all of them come from the options. The
+Every field of a run is an option. The
 script prints the stem and the number of calls, says when the stem already holds a run, and
 asks before sending to anything but the Fake client (`--yes` skips that). After saving it
 prints a check of the run - whether every call was answered, how many prompts were identical
@@ -163,7 +174,7 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | `sod` | 3880 survey respondents, keyed by the survey's `id` | cs | `python -m datasets.sod.prepare` |
 | `sod_en` | the same respondents, the survey's English edition | en | `python -m datasets.sod_en.prepare` |
 | `grid` | 288 synthetic profiles, the full factorial of `grid_income3.json` | cs | `python -m datasets.grid.generate` |
-| `regions` | the country and its 14 regions, for place-level prompts | cs | `python -m datasets.regions.prepare` |
+| `regions` | the country and its 14 regions, for place-level prompts | cs | `python prepare.py regions` |
 
 - `dataset.json` declares the language of the values, the columns every row must carry, the
   descriptions rendered for it, and per topic a *claims map* (`claims/<topic>.json`) sorting the

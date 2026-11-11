@@ -214,7 +214,7 @@ transition:** prepare works in this shape; `panel.run`, the analysis notebooks, 
 
 Decided with Martin while prototyping in the sandbox, then ported. **Still in transition:**
 prepare and the run work in this shape; the analysis layer, the notebooks, the datasets
-`sod_en`, `grid` and `regions` and their tests still expect the old one and fail.
+`sod_en` and `grid` and their tests still expect the old one and fail.
 
 - **A run reads the prompt table only.** The values table supplies the subjects that table must
   cover, and the one column a question worded by a shared vocabulary asks for. A prompt table
@@ -271,17 +271,45 @@ prepare and the run work in this shape; the analysis layer, the notebooks, the d
 - **Effort is a field of the run**: `low` .. `max`, or None, which sends nothing. It is in the
   recorded spec and in the stem (`..._t=default_e=low`). The client gets it at construction;
   the `low` that was fixed in `AnthropicClient` is gone. A client that takes none refuses it.
-- **Named runs are data**: `config/runs.json`. `base` says what is asked, of whom, in what
-  form; every run states the model's settings - client, model, temperature, effort, sample -
-  and the base may hold none of them. A run may also replace a base field.
-  - why: the base can change, and a model's settings must not change with it.
-  - rejected: a base holding model settings with runs overriding freely - editing the base
-    silently changed every run that did not override; no base, every run in full - one
-    experiment spelled out per run.
-- **One entry point**: `python run.py [name] [--field value ...] [--show | --one] [--yes]`.
+- **Presets are data: a base run, and two kinds laid over it on the command line**:
+  `config/presets.json`. The base is a complete run. A data preset says what is asked, of
+  whom and in what form (dataset, description, topic, framing, question, shape, repeats); a
+  model preset says which model answers and how (client, model, temperature, effort). Each
+  states only the fields it sets: `run.py -d sod-extended -m haiku-5.5`.
+  - priority: base, `-d`, `-m`, single fields; later replaces earlier. A preset may state
+    only fields of its own kind, so `-d` and `-m` never state the same field and their
+    order decides nothing.
+  - the base states every field of both kinds, and its model is the Fake client: a run
+    that names no model sends nothing, so one preset alone is allowed.
+  - editing the base changes every preset that leans on the edited field. The stem and the
+    record come from the spec, so no saved run is confused; `run.py` alone lists every
+    preset with all its fields filled in.
+  - `sample` and `random_state` are in none of the three: a trial is the same run, only
+    smaller. They are options (`--sample 200`).
+  - a preset name is a handle; a saved run is identified by its stem and its record.
+  - rejected, each built first: a base holding model settings with whole runs overriding
+    freely (nothing limited what a run touched, and a run was one line per combination);
+    no base, every run in full (one experiment spelled out per run); a base for the data
+    with every run stating the model settings (the list grew as model x variant, and a
+    trial needed an entry of its own); two kinds with no base, each preset stating every
+    field of its kind and both names required (every data preset repeated topic, framing,
+    shape; one name alone was refused).
+  - rejected, not built: a plain name that merges a whole run while `-d` takes only its
+    data fields - one name would mean two things by how it is passed.
+  - not built: a third table naming pairs that belong together, for analysis; nothing
+    needs it yet.
+- **One entry point**: `python run.py [-d data] [-m model] [--field value ...] [--show | --one | --check] [--yes]`.
   It replaces `simulate.ipynb`. Anything but the Fake client asks before sending.
 - **No fallback model**: a call the provider's safety classifier declines raises; a run
   answers with the model it names or fails.
+- **`regions` is ported** (2026-11-11): `datasets/regions/` has `build.py`, `forms.json` and
+  the descriptions `citizen` and `direct`, formerly `latent_citizen_v1` / `latent_direct_v1`.
+  Both render word for word what the old tables held.
+  - `direct` is `standalone`: a run names no question (`"question": null`).
+  - `citizen` takes a question; `regions` shares no gender vocabulary, so a gendered
+    question reads its fallback ("... jsem volil:") after "Jsem obyvatel/ka ...". The
+    `neutral` question has one form and avoids that.
+  - the population column of `regions.csv` stays out of the values, as before.
 - open
   - how system prompt and user prompt fit: the system prompt speaks of a respondent in the
     third person, the user prompt is the respondent speaking and ends in an unfinished
@@ -289,8 +317,8 @@ prepare and the run work in this shape; the analysis layer, the notebooks, the d
   - wording not reviewed: the `neutral` question, rule 3 of the system prompt, the
     `media_fees_2026` text, the English texts, "strana" for coalitions.
   - `Dataset.data_dir` is fixed to `paths.DATA_DIR`; a test cannot redirect the data folder.
-  - `run.py` without arguments resolves every named run, reading the tables once per run.
-  - no test covers a `standalone` description: no ported dataset has one.
+  - the system prompt speaks of a respondent, and a `regions` run has none: the subject is
+    a place. Part of the fit question above.
   - identical prompts are each sent: a prompt that is word for word another subject's costs
     a call of its own. `prepare.py` and the run check both count them (50 of 3880 in SoD
     `default`, 20 in `extended`). They could be sent once and the answer copied to every
