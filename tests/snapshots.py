@@ -10,12 +10,29 @@ from typing import Dict, Sequence, Tuple, Type
 
 import pandas as pd
 
-from panel.analysis.aggregate import aggregate_results_from_df
 from panel.topic import make_response_models
 
 COMBINATIONS: Tuple[Tuple[bool, bool], ...] = tuple(
     (weighted, normalized) for weighted in (True, False) for normalized in (True, False)
 )
+
+
+def legacy_aggregate(frame: pd.DataFrame, topic, weighted: bool, normalized: bool) -> pd.Series:
+    """
+    The aggregation the phase 0 baselines were computed with, kept here as they froze it:
+    turnout means, then the options - each row rescaled first if `normalized`, weighted by
+    its probability of voting if `weighted` - rescaled to sum to 1. The analysis layer's
+    `predicted_distribution` takes a normalized frame and has no such switch.
+    """
+    options = list(topic.options)
+    turnout, weights = pd.Series(dtype=float), 1.0
+    if topic.turnout:
+        turnout = frame[list(topic.turnout)].mean().astype(float)
+        if weighted:
+            weights = frame[topic.turnout[0]]
+    sums = frame[options].sum(axis=1).replace(0, 1) if normalized else 1.0
+    shares = frame[options].div(sums, axis=0).fillna(0).multiply(weights, axis=0).mean(axis=0)
+    return pd.concat([turnout, shares / shares.sum() if shares.sum() > 0 else shares * 0])
 
 
 def combination_key(weighted: bool, normalized: bool) -> str:
@@ -47,7 +64,7 @@ def aggregate_all(frame: pd.DataFrame, topic) -> Dict[str, Dict[str, float]]:
     return {
         combination_key(weighted, normalized): {
             column: float(value)
-            for column, value in aggregate_results_from_df(frame, topic, weighted, normalized).items()
+            for column, value in legacy_aggregate(frame, topic, weighted, normalized).items()
         }
         for weighted, normalized in COMBINATIONS
     }
