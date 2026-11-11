@@ -48,5 +48,14 @@
             "map": "claims/election_2021.json"
         }
     },
+    "shared": {
+        "gender": {
+            "column": "gender",
+            "map": {
+                "Muž": "male",
+                "Žena": "female"
+            }
+        }
+    },
     "note": "3880 respondents, keyed by the survey's own id (60696-77113). Values are the survey's answers exactly as it writes them, non-answers included. employment_status holds every status a respondent ticked, joined by '; '; 9 respondents ticked none. The raw .sav is not in git."
 }

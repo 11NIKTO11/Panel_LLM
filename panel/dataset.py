@@ -27,6 +27,7 @@ Declaration shape:
         "groups": ["gender", "region"],   columns analysis may group subjects by
         "area": "region",                 the column whose values name a row of reference results
         "claims": {"election_2021": {"column": "voted_party", "map": "claims/election_2021.json"}},
+        "shared": {"gender": {"column": "gender", "map": {"Muž": "male", "Žena": "female"}}},
         "note": "free text, ignored by code"
     }
 """
@@ -43,8 +44,9 @@ CONFIG_NAME = "dataset.json"
 FORMS_NAME = "forms.json"
 DESCRIPTIONS_DIR = "descriptions"
 REQUIRED_KEYS = {"name", "short", "title", "language", "source", "columns", "claims"}
-OPTIONAL_KEYS = {"optional", "groups", "area", "note"}
+OPTIONAL_KEYS = {"optional", "groups", "area", "shared", "note"}
 CLAIM_KEYS = {"column", "map"}
+SHARED_KEYS = {"column", "map"}
 MAP_KEYS = {"options", "abstained", "excluded"}
 MAP_OPTIONAL_KEYS = {"note"}
 INDEX = "id"
@@ -55,6 +57,17 @@ class ClaimRef:
     """Where a dataset keeps its answer to one topic: the values column, and the map file."""
     column: str
     map: str
+
+
+@dataclass(frozen=True)
+class SharedRef:
+    """
+    One column read in a vocabulary shared beyond the dataset: the values column, and its
+    answers -> the shared keys. What the keys mean is between the dataset and whoever asks
+    for them by name, e.g. a question worded `by` gender.
+    """
+    column: str
+    map: Dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -71,6 +84,7 @@ class Dataset:
         groups: columns analysis may group by.
         area: the column naming a row of a topic's reference results, or None.
         claims: topic name -> where the dataset's answer to it lives.
+        shared: shared vocabulary name -> the column carrying it and its map; often empty.
         dir: the dataset's folder.
         note: free text; not used by code.
     """
@@ -84,6 +98,7 @@ class Dataset:
     groups: Tuple[str, ...]
     area: Union[str, None]
     claims: Dict[str, ClaimRef]
+    shared: Dict[str, SharedRef]
     dir: Path
     note: str = ""
 
@@ -160,8 +175,14 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
         if set(entry) != CLAIM_KEYS:
             raise ValueError(f"{path}: claims for '{topic}' need exactly the keys {sorted(CLAIM_KEYS)}")
         claims[topic] = ClaimRef(column=entry["column"], map=entry["map"])
+    shared = {}
+    for vocabulary, entry in config.get("shared", {}).items():
+        if set(entry) != SHARED_KEYS:
+            raise ValueError(f"{path}: shared '{vocabulary}' needs exactly the keys {sorted(SHARED_KEYS)}")
+        shared[vocabulary] = SharedRef(column=entry["column"], map=dict(entry["map"]))
     optional, groups, area = tuple(config.get("optional", ())), tuple(config.get("groups", ())), config.get("area")
-    named = set(optional) | set(groups) | {ref.column for ref in claims.values()} | ({area} if area else set())
+    named = set(optional) | set(groups) | ({area} if area else set())
+    named |= {ref.column for ref in claims.values()} | {ref.column for ref in shared.values()}
     stray = sorted(named - set(columns))
     if stray:
         raise ValueError(f"{path}: roles name columns the dataset does not have: {stray}")
@@ -169,7 +190,7 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
     return Dataset(
         name=config["name"], short=short, title=config["title"], language=config["language"],
         source=config["source"], columns=columns, optional=optional, groups=groups, area=area,
-        claims=claims, dir=directory, note=config.get("note", ""),
+        claims=claims, shared=shared, dir=directory, note=config.get("note", ""),
     )
 
 
@@ -197,6 +218,26 @@ def load_claims(dataset: Dataset, topic: str) -> Claims:
         dataset=dataset.name, topic=topic, column=ref.column, options=dict(config["options"]),
         abstained=tuple(config["abstained"]), excluded=tuple(config["excluded"]),
     )
+
+
+def shared_keys(dataset: Dataset, vocabulary: str, values: pd.DataFrame) -> pd.Series:
+    """
+    Each subject's key in a shared vocabulary; a subject without an answer has none.
+
+    Raises:
+        KeyError: if the dataset does not declare that vocabulary.
+        ValueError: if an answer in the column is not in the map.
+    """
+    if vocabulary not in dataset.shared:
+        raise KeyError(f"dataset '{dataset.name}' declares no shared '{vocabulary}'")
+    ref = dataset.shared[vocabulary]
+    answers = values[ref.column]
+    unmapped = sorted(set(answers.dropna()) - set(ref.map))
+    if unmapped:
+        raise ValueError(
+            f"'{dataset.name}' shared '{vocabulary}': answers of '{ref.column}' not in the map: {unmapped}"
+        )
+    return answers.map(ref.map)
 
 
 def validate_values(dataset: Dataset, frame: pd.DataFrame) -> None:
