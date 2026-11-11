@@ -26,7 +26,7 @@ def evaluate_result(respondent_id: int, res, tol: float = 1e-2):
         if not math.isclose(total, 1.0, rel_tol=0, abs_tol=tol):
             issues['bad_voted_sum'] = (respondent_id, voted, not_voted, total)
 
-    options = getattr(res, "parties", None)
+    options = getattr(res, "options", None)
     if options is None:
         return issues
 

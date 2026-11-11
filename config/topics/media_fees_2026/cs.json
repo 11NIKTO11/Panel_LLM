@@ -4,24 +4,23 @@
     "language": "cs",
     "short": "cs",
     "title": "Zrušení poplatků za ČT a ČRo a financování ze státního rozpočtu",
-    "instructions": "Jsi expertní AI asistent specializovaný na analýzu postojů české veřejnosti. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho postoj k otázce zrušení poplatků za Českou televizi a Český rozhlas a jejich financování ze státního rozpočtu.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, zájem o politiku).\n2.  Odhadni pravděpodobnost obou postojů: zrušit poplatky a financovat ze státního rozpočtu, nebo zachovat současné poplatky.\n3.  Dbej na to, aby součet pravděpodobností obou možností byl přesně 1.0.",
-    "question": " V otázce poplatků za Českou televizi a Český rozhlas zastávám postoj:",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu postojů české veřejnosti. Tvým úkolem je na základě profilu respondenta odhadnout jeho postoj k otázce zrušení poplatků za Českou televizi a Český rozhlas a jejich financování ze státního rozpočtu.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi.\n2.  Odhadni postoj respondenta: zrušit poplatky a financovat ze státního rozpočtu, nebo zachovat současné poplatky.",
     "labels": {},
     "schema": {
         "option": {
-            "title": "OptionProbability",
-            "description": "Pravděpodobnost jedné z nabízených možností.",
-            "name": "Identifikátor jedné z nabízených možností.",
-            "probability": "Pravděpodobnost této možnosti."
+            "title": "StanceProbability",
+            "description": "Pravděpodobnost, že respondent zastává jeden z nabízených postojů.",
+            "name": "Název jednoho z nabízených postojů.",
+            "probability": "Pravděpodobnost, že respondent zastává tento postoj."
         },
         "probabilities": {
-            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
-            "parties": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0."
+            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené postoje.",
+            "options": "Seznam nabízených postojů s pravděpodobností, že je respondent zastává. Součet pravděpodobností musí být 1.0."
         },
         "pick": {
-            "description": "Zjednodušený výstup: jedna vybraná možnost.",
-            "choice": "Nejpravděpodobnější možnost pro tento profil."
+            "description": "Zjednodušený výstup: jeden vybraný postoj.",
+            "choice": "Postoj, který respondent nejpravděpodobněji zastává."
         }
     },
-    "note": "The Czech text is ours: the colleague's prompt is not in their report, so check it against theirs before comparing runs. Until phase 4 of the overhaul the options were shown as the colleague's English ids inside this Czech prompt; they are Czech phrases now, the one deliberate change to prompt-facing text in that phase, on a topic that has never been run."
+    "note": "The Czech text is ours: the colleague's prompt is not in their report, so check it against theirs before comparing runs. Until phase 4 of the overhaul the options were shown as the colleague's English ids inside this Czech prompt; they are Czech phrases now, the one deliberate change to prompt-facing text in that phase, on a topic that has never been run. The system prompt says only what holds for every run of the topic: no attribute of the profile, and nothing about the form of the answer beyond what both shapes share; the schema text says the rest."
 }

@@ -4,31 +4,30 @@
     "language": "cs",
     "short": "cs",
     "title": "Volby do Poslanecké sněmovny ČR 2025",
-    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2025.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, postoje k EU/NATO atd.).\n2.  Na základě analýzy odhadni dvě klíčové věci:\n    a) Jaká je pravděpodobnost, že respondent vůbec šel k volbám.\n    b) Pokud volil, jaké jsou pravděpodobnosti pro jednotlivé politické strany.\n3.  Dbej na to, aby součet pravděpodobností účasti byl přesně 1.0.\n4.  Dbej na to, aby součet pravděpodobností VŠECH stran byl přesně 1.0.",
-    "question": " Ve volbách do poslanecké sněmovny v roce 2025 jsem volil:",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2025.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi.\n2.  Odhadni, jaká je pravděpodobnost, že respondent vůbec šel k volbám. Dbej na to, aby součet pravděpodobností účasti a neúčasti byl přesně 1.0.\n3.  Odhadni, jak respondent volil, pokud k volbám šel.",
     "labels": {},
     "schema": {
         "turnout": {
             "title": "TurnoutProbability",
-            "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
-            "voted": "Pravděpodobnost, že se respondent zúčastnil.",
-            "not_voted": "Pravděpodobnost, že se respondent nezúčastnil.",
-            "field": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
+            "voted": "Pravděpodobnost, že se respondent voleb zúčastnil.",
+            "not_voted": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
+            "field": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
         },
         "option": {
-            "title": "OptionProbability",
-            "description": "Pravděpodobnost jedné z nabízených možností.",
-            "name": "Identifikátor jedné z nabízených možností.",
-            "probability": "Pravděpodobnost této možnosti."
+            "title": "PartyProbability",
+            "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran.",
+            "name": "Název jedné z nabízených stran.",
+            "probability": "Pravděpodobnost, že respondent volil tuto stranu."
         },
         "probabilities": {
-            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
-            "parties": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0."
+            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
+            "options": "Seznam nabízených stran s pravděpodobností, že je respondent volil. Součet pravděpodobností musí být 1.0."
         },
         "pick": {
-            "description": "Zjednodušený výstup: jedna vybraná možnost.",
-            "choice": "Nejpravděpodobnější možnost pro tento profil."
+            "description": "Zjednodušený výstup: jedna vybraná strana.",
+            "choice": "Strana, kterou respondent nejpravděpodobněji volil."
         }
     },
-    "note": "The 2021 wording with the year changed; not reviewed."
+    "note": "The 2021 framing with the year changed; not reviewed."
 }

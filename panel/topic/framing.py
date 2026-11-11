@@ -1,8 +1,7 @@
 """
 A framing: everything the model reads that is not the description, in one language.
 
-`config/topics/<topic>/<framing>.json` carries the system prompt, the question appended to
-every description, the labels the options are shown under, and the wording of the response
+`config/topics/<topic>/<framing>.json` carries the system prompt, the labels the options are shown under, and the wording of the response
 schema - class titles and field descriptions - which the provider sees in the JSON schema and
 which therefore are prompt content. A topic has one framing per language (`cs`, `en`) and may
 have more (`cs-terse`); the framing's `short` goes into the results stem.
@@ -16,17 +15,21 @@ Config shape:
         "short": "cs",                         stem part: ASCII, no underscore
         "title": "...",                        human label, for figures and reports
         "instructions": "<system prompt>",     null for a framing whose runs send none
-        "question": " ...",                    appended to every description
         "labels": {"SPOLU": "SPOLU coalition"},   option id -> label; the native name by default
         "schema": {
             "turnout": {"title": "TurnoutProbability", "description": "...",      only for a topic
                         "voted": "...", "not_voted": "...", "field": "..."},     with turnout
             "option": {"title": "OptionProbability", "description": "...", "name": "...", "probability": "..."},
-            "probabilities": {"description": "...", "parties": "..."},
+            "probabilities": {"description": "...", "options": "..."},
             "pick": {"description": "...", "choice": "..."}
         },
         "note": "free text, ignored by code"
     }
+
+The system prompt can depend on what else a run names, and nothing links them: a prompt that
+lists the profile's attributes fits one description, one that speaks of probabilities fits
+one response shape. Nothing checks this; a framing that makes such an assumption says so in
+its `note`.
 
 The loader raises on a label for an id the topic lacks, on labels that are not unique after
 defaults, and on schema text that disagrees with the topic about turnout.
@@ -40,12 +43,12 @@ from panel import paths
 
 from .vocabulary import CONFIG_NAME as TOPIC_CONFIG_NAME, Topic
 
-REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "question", "labels", "schema"}
+REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "labels", "schema"}
 OPTIONAL_KEYS = {"note"}
 TEXT_KEYS = {
     "turnout": {"title", "description", "voted", "not_voted", "field"},
     "option": {"title", "description", "name", "probability"},
-    "probabilities": {"description", "parties"},
+    "probabilities": {"description", "options"},
     "pick": {"description", "choice"},
 }
 
@@ -71,14 +74,14 @@ class OptionText:
 
 @dataclass(frozen=True)
 class ProbabilitiesText:
-    """`VotingProbabilities`: its description and that of `parties`."""
+    """`Probabilities`: its description and that of `options`."""
     description: str
-    parties: str
+    options: str
 
 
 @dataclass(frozen=True)
 class PickText:
-    """`VotingPick`: its description and that of `choice`."""
+    """`Pick`: its description and that of `choice`."""
     description: str
     choice: str
 
@@ -102,7 +105,6 @@ class Framing:
         short: the framing's part of a results stem.
         title: human label, for figures and reports.
         instructions: system prompt; None for a framing whose runs send none.
-        question: appended to every description.
         labels: option id -> the label the model sees, complete over the topic's options.
         schema: the response schema wording.
         note: free text; not used by code.
@@ -113,7 +115,6 @@ class Framing:
     short: str
     title: str
     instructions: Union[str, None]
-    question: str
     labels: Dict[str, str]
     schema: SchemaText
     note: str = ""
@@ -178,6 +179,6 @@ def load_framing(topic: Topic, name: str, topics_dir: Union[str, Path] = paths.T
     )
     return Framing(
         name=name, topic=topic.name, language=config["language"], short=short, title=config["title"],
-        instructions=config["instructions"], question=config["question"], labels=labels, schema=text,
+        instructions=config["instructions"], labels=labels, schema=text,
         note=config.get("note", ""),
     )

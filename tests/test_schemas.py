@@ -55,7 +55,7 @@ def test_to_series_is_keyed_by_id():
     framing = load_framing(topic, "cs", TOPICS_DIR)
     probabilities, pick = make_response_models(topic, framing)
     first = topic.options[0]
-    row = probabilities(voted_or_not={"voted": 0.7, "not_voted": 0.3}, parties=[{"name": topic.names[first], "probability": 1.0}]).to_series()
+    row = probabilities(voted_or_not={"voted": 0.7, "not_voted": 0.3}, options=[{"name": topic.names[first], "probability": 1.0}]).to_series()
     assert list(row.index) == topic.columns and row[first] == 1.0 and row[topic.options[1]] == 0.0
     chosen = pick(voted_or_not={"voted": 0.7, "not_voted": 0.3}, choice=topic.names[first]).to_series()
     assert chosen[first] == 1 and chosen[topic.options[-1]] == 0

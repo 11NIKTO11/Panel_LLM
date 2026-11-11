@@ -57,10 +57,10 @@ class FakeClient(BaseLLMClient):
         if "voted_or_not" in fields:
             voted = 0.5 + (digest[0] % 50) / 100
             payload["voted_or_not"] = {"voted": voted, "not_voted": round(1 - voted, 10)}
-        if "parties" in fields:
+        if "options" in fields:
             weights = [1 + digest[1 + i % 30] for i in range(len(labels))]
             total = sum(weights)
-            payload["parties"] = [
+            payload["options"] = [
                 {"name": label, "probability": weight / total} for label, weight in zip(labels, weights)
             ]
         if "choice" in fields:

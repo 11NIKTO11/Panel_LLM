@@ -1,11 +1,11 @@
 {
-  "VotingProbabilities": {
+  "Probabilities": {
     "$defs": {
-      "OptionProbability": {
-        "description": "Pravděpodobnost jedné z nabízených možností.",
+      "StanceProbability": {
+        "description": "Pravděpodobnost, že respondent zastává jeden z nabízených postojů.",
         "properties": {
           "name": {
-            "description": "Identifikátor jedné z nabízených možností.",
+            "description": "Název jednoho z nabízených postojů.",
             "enum": [
               "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
               "Zachovat současné poplatky"
@@ -14,7 +14,7 @@
             "type": "string"
           },
           "probability": {
-            "description": "Pravděpodobnost této možnosti.",
+            "description": "Pravděpodobnost, že respondent zastává tento postoj.",
             "maximum": 1,
             "minimum": 0,
             "title": "Probability",
@@ -25,32 +25,32 @@
           "name",
           "probability"
         ],
-        "title": "OptionProbability",
+        "title": "StanceProbability",
         "type": "object"
       }
     },
-    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené postoje.",
     "properties": {
-      "parties": {
-        "description": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0.",
+      "options": {
+        "description": "Seznam nabízených postojů s pravděpodobností, že je respondent zastává. Součet pravděpodobností musí být 1.0.",
         "items": {
-          "$ref": "#/$defs/OptionProbability"
+          "$ref": "#/$defs/StanceProbability"
         },
-        "title": "Parties",
+        "title": "Options",
         "type": "array"
       }
     },
     "required": [
-      "parties"
+      "options"
     ],
-    "title": "VotingProbabilities",
+    "title": "Probabilities",
     "type": "object"
   },
-  "VotingPick": {
-    "description": "Zjednodušený výstup: jedna vybraná možnost.",
+  "Pick": {
+    "description": "Zjednodušený výstup: jeden vybraný postoj.",
     "properties": {
       "choice": {
-        "description": "Nejpravděpodobnější možnost pro tento profil.",
+        "description": "Postoj, který respondent nejpravděpodobněji zastává.",
         "enum": [
           "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
           "Zachovat současné poplatky"
@@ -62,7 +62,7 @@
     "required": [
       "choice"
     ],
-    "title": "VotingPick",
+    "title": "Pick",
     "type": "object"
   }
 }

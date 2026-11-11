@@ -1,11 +1,11 @@
 {
-  "VotingProbabilities": {
+  "Probabilities": {
     "$defs": {
-      "OptionProbability": {
-        "description": "Pravděpodobnost jedné z nabízených možností.",
+      "PartyProbability": {
+        "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran.",
         "properties": {
           "name": {
-            "description": "Identifikátor jedné z nabízených možností.",
+            "description": "Název jedné z nabízených stran.",
             "enum": [
               "ANO 2011",
               "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
@@ -20,7 +20,7 @@
             "type": "string"
           },
           "probability": {
-            "description": "Pravděpodobnost této možnosti.",
+            "description": "Pravděpodobnost, že respondent volil tuto stranu.",
             "maximum": 1,
             "minimum": 0,
             "title": "Probability",
@@ -31,21 +31,21 @@
           "name",
           "probability"
         ],
-        "title": "OptionProbability",
+        "title": "PartyProbability",
         "type": "object"
       },
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
         "properties": {
           "voted": {
-            "description": "Pravděpodobnost, že se respondent zúčastnil.",
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
             "maximum": 1,
             "minimum": 0,
             "title": "Voted",
             "type": "number"
           },
           "not_voted": {
-            "description": "Pravděpodobnost, že se respondent nezúčastnil.",
+            "description": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
             "maximum": 1,
             "minimum": 0,
             "title": "Not Voted",
@@ -60,42 +60,42 @@
         "type": "object"
       }
     },
-    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
     "properties": {
       "voted_or_not": {
         "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+        "description": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
       },
-      "parties": {
-        "description": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0.",
+      "options": {
+        "description": "Seznam nabízených stran s pravděpodobností, že je respondent volil. Součet pravděpodobností musí být 1.0.",
         "items": {
-          "$ref": "#/$defs/OptionProbability"
+          "$ref": "#/$defs/PartyProbability"
         },
-        "title": "Parties",
+        "title": "Options",
         "type": "array"
       }
     },
     "required": [
       "voted_or_not",
-      "parties"
+      "options"
     ],
-    "title": "VotingProbabilities",
+    "title": "Probabilities",
     "type": "object"
   },
-  "VotingPick": {
+  "Pick": {
     "$defs": {
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
         "properties": {
           "voted": {
-            "description": "Pravděpodobnost, že se respondent zúčastnil.",
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
             "maximum": 1,
             "minimum": 0,
             "title": "Voted",
             "type": "number"
           },
           "not_voted": {
-            "description": "Pravděpodobnost, že se respondent nezúčastnil.",
+            "description": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
             "maximum": 1,
             "minimum": 0,
             "title": "Not Voted",
@@ -110,14 +110,14 @@
         "type": "object"
       }
     },
-    "description": "Zjednodušený výstup: jedna vybraná možnost.",
+    "description": "Zjednodušený výstup: jedna vybraná strana.",
     "properties": {
       "voted_or_not": {
         "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+        "description": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
       },
       "choice": {
-        "description": "Nejpravděpodobnější možnost pro tento profil.",
+        "description": "Strana, kterou respondent nejpravděpodobněji volil.",
         "enum": [
           "ANO 2011",
           "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
@@ -136,7 +136,7 @@
       "voted_or_not",
       "choice"
     ],
-    "title": "VotingPick",
+    "title": "Pick",
     "type": "object"
   }
 }

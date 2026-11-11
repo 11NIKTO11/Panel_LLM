@@ -5,7 +5,6 @@
     "short": "cs",
     "title": "Volby do Poslanecke snemovny CR 2021 (legacy runs)",
     "instructions": null,
-    "question": " Ve volbách do poslanecké sněmovny v roce 2021 jsem volil:",
     "labels": {},
     "schema": {
         "turnout": {
@@ -23,7 +22,7 @@
         },
         "probabilities": {
             "description": "Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.",
-            "parties": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
+            "options": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0."
         },
         "pick": {
             "description": "Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby.",

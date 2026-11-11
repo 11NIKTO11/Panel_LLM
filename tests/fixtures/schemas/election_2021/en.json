@@ -1,11 +1,11 @@
 {
-  "VotingProbabilities": {
+  "Probabilities": {
     "$defs": {
-      "OptionProbability": {
-        "description": "The probability of one of the offered options.",
+      "PartyProbability": {
+        "description": "The probability that the respondent voted for one of the offered parties.",
         "properties": {
           "name": {
-            "description": "The identifier of one of the offered options.",
+            "description": "The name of one of the offered parties.",
             "enum": [
               "ANO 2011",
               "Spolu Alliance (ODS, TOP 09, KDU-ČSL)",
@@ -21,7 +21,7 @@
             "type": "string"
           },
           "probability": {
-            "description": "The probability of this option.",
+            "description": "The probability that the respondent voted for this party.",
             "maximum": 1,
             "minimum": 0,
             "title": "Probability",
@@ -32,21 +32,21 @@
           "name",
           "probability"
         ],
-        "title": "OptionProbability",
+        "title": "PartyProbability",
         "type": "object"
       },
       "TurnoutProbability": {
-        "description": "The probability that the respondent took part, and that they did not.",
+        "description": "The probability that the respondent voted, and that they did not.",
         "properties": {
           "voted": {
-            "description": "The probability that the respondent took part.",
+            "description": "The probability that the respondent voted.",
             "maximum": 1,
             "minimum": 0,
             "title": "Voted",
             "type": "number"
           },
           "not_voted": {
-            "description": "The probability that the respondent did not take part.",
+            "description": "The probability that the respondent did not vote.",
             "maximum": 1,
             "minimum": 0,
             "title": "Not Voted",
@@ -61,42 +61,42 @@
         "type": "object"
       }
     },
-    "description": "Structured output: a probability distribution over the offered options.",
+    "description": "Structured output: a probability distribution over the offered parties.",
     "properties": {
       "voted_or_not": {
         "$ref": "#/$defs/TurnoutProbability",
-        "description": "The probabilities of taking part and of not taking part. They must sum to 1.0."
+        "description": "The probabilities of voting and of not voting. They must sum to 1.0."
       },
-      "parties": {
-        "description": "The offered options with their probabilities. They must sum to 1.0.",
+      "options": {
+        "description": "The offered parties, each with the probability that the respondent voted for it. The probabilities must sum to 1.0.",
         "items": {
-          "$ref": "#/$defs/OptionProbability"
+          "$ref": "#/$defs/PartyProbability"
         },
-        "title": "Parties",
+        "title": "Options",
         "type": "array"
       }
     },
     "required": [
       "voted_or_not",
-      "parties"
+      "options"
     ],
-    "title": "VotingProbabilities",
+    "title": "Probabilities",
     "type": "object"
   },
-  "VotingPick": {
+  "Pick": {
     "$defs": {
       "TurnoutProbability": {
-        "description": "The probability that the respondent took part, and that they did not.",
+        "description": "The probability that the respondent voted, and that they did not.",
         "properties": {
           "voted": {
-            "description": "The probability that the respondent took part.",
+            "description": "The probability that the respondent voted.",
             "maximum": 1,
             "minimum": 0,
             "title": "Voted",
             "type": "number"
           },
           "not_voted": {
-            "description": "The probability that the respondent did not take part.",
+            "description": "The probability that the respondent did not vote.",
             "maximum": 1,
             "minimum": 0,
             "title": "Not Voted",
@@ -111,14 +111,14 @@
         "type": "object"
       }
     },
-    "description": "Simplified output: one chosen option.",
+    "description": "Simplified output: one chosen party.",
     "properties": {
       "voted_or_not": {
         "$ref": "#/$defs/TurnoutProbability",
-        "description": "The probabilities of taking part and of not taking part. They must sum to 1.0."
+        "description": "The probabilities of voting and of not voting. They must sum to 1.0."
       },
       "choice": {
-        "description": "The most likely option for this profile.",
+        "description": "The party the respondent most likely voted for.",
         "enum": [
           "ANO 2011",
           "Spolu Alliance (ODS, TOP 09, KDU-ČSL)",
@@ -138,7 +138,7 @@
       "voted_or_not",
       "choice"
     ],
-    "title": "VotingPick",
+    "title": "Pick",
     "type": "object"
   }
 }

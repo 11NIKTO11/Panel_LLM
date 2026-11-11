@@ -7,18 +7,26 @@ and whether there is a turnout dimension; the framing supplies the labels the op
 shown under and every piece of schema text - class titles and field descriptions - because the
 provider sees them in the JSON schema, so they are prompt content and are recorded with the run.
 
-Fixed, because saved files are keyed by them: the class names `VotingProbabilities` and
-`VotingPick` and their `SHORT_NAME`s (the results stem), and the field names `voted_or_not`,
-`voted`, `not_voted`, `parties`, `name`, `probability` and `choice` (every saved result JSON).
+Saved files are keyed by the class names `Probabilities` and `Pick`, their `SHORT_NAME`s
+`Prob` and `Pick` (the results stem), and the field names `voted_or_not`, `voted`,
+`not_voted`, `options`, `name`, `probability` and `choice` (every saved result JSON); a
+rename orphans what is saved. None of them names a topic: the classes are general, and what
+the options are is the framing's text.
+
+Until 2026-11-10 the classes were `VotingProbabilities` / `VotingPick`, the shorts `VProb` /
+`VPick` and the list `parties`. The legacy runs are saved that way: their stems keep `VProb`
+and `VPick`, and `options` still reads a saved `parties`.
 `to_series()` writes a results row keyed by option id, whatever label the model saw.
 """
 from typing import ClassVar, Dict, List, Literal, Tuple, Type, Union
 
 import pandas as pd
-from pydantic import BaseModel, Field, create_model
+from pydantic import AliasChoices, BaseModel, Field, create_model
 
 from .framing import Framing
 from .vocabulary import Topic
+
+LEGACY_OPTIONS = "parties"
 
 
 class TopicResponse(BaseModel):
@@ -42,12 +50,12 @@ class TopicResponse(BaseModel):
 
 class ProbabilityResponse(TopicResponse):
     """Base of the per-option probability model."""
-    SHORT_NAME: ClassVar[str] = "VProb"
+    SHORT_NAME: ClassVar[str] = "Prob"
 
     def to_series(self) -> pd.Series:
         """One results row in the topic's column order: attendance if any, then every option id, missing ones as 0."""
         row = self.turnout_row()
-        for option in (self.parties or []):
+        for option in (self.options or []):
             row[self.LABELS[option.name]] = option.probability
         for option in self.OPTIONS:
             row.setdefault(option, 0.0)
@@ -56,7 +64,7 @@ class ProbabilityResponse(TopicResponse):
 
 class PickResponse(TopicResponse):
     """Base of the single-choice model."""
-    SHORT_NAME: ClassVar[str] = "VPick"
+    SHORT_NAME: ClassVar[str] = "Pick"
 
     def to_series(self) -> pd.Series:
         """One results row: attendance if any, then 1 for the chosen option id, 0 elsewhere."""
@@ -100,12 +108,14 @@ def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[Probabili
         turnout_field["voted_or_not"] = (turnout_model, Field(description=text.turnout.field))
 
     probabilities = create_model(
-        "VotingProbabilities", __base__=ProbabilityResponse, **turnout_field,
-        parties=(List[option_model], Field(description=text.probabilities.parties)),
+        "Probabilities", __base__=ProbabilityResponse, **turnout_field,
+        options=(List[option_model], Field(
+            description=text.probabilities.options, validation_alias=AliasChoices("options", LEGACY_OPTIONS),
+        )),
         __doc__=text.probabilities.description,
     )
     pick = create_model(
-        "VotingPick", __base__=PickResponse, **turnout_field,
+        "Pick", __base__=PickResponse, **turnout_field,
         choice=(Literal[labels], Field(description=text.pick.choice)),
         __doc__=text.pick.description,
     )

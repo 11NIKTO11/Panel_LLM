@@ -1,0 +1,10 @@
+{
+    "name": "default",
+    "short": "default",
+    "languages": {
+        "cs": {
+            "text": "Ve volbách do poslanecké sněmovny v roce 2021 jsem volil:",
+            "note": "The text the legacy runs sent; one form, as sent."
+        }
+    }
+}
