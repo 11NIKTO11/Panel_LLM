@@ -1,80 +1,81 @@
-"""Two distributions side by side, and one number per source."""
+"""Several sources' distributions over the same rows, side by side."""
 from typing import Mapping, Sequence, Union
 
-import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
+from matplotlib.patches import Patch
 
-from .style import wrap
+from .style import INK, MUTED, NEUTRAL, SURFACE, clean, tint, wrap
 
 
-def distribution_bars(
-    predicted: pd.Series,
-    reference: pd.Series,
-    options: Sequence[str],
-    turnout: Union[Sequence[str], None] = None,
-    predicted_label: str = "Predicted",
-    reference_label: str = "Reference",
+def source_bars(
+    table: pd.DataFrame,
+    sources: Sequence[str],
+    rows: Sequence[str],
+    colors: Mapping[str, str],
+    head: Sequence[str] = (),
+    row_colors: Union[Mapping[str, str], None] = None,
     labels: Union[Mapping[str, str], None] = None,
+    names: Union[Mapping[str, str], None] = None,
     title: Union[str, None] = None,
-) -> plt.Figure:
+    note: Union[str, None] = None,
+) -> Figure:
     """
-    A predicted distribution against a reference: an attendance panel above, one horizontal bar per option below.
+    One group of horizontal bars per row, one bar per source, shares as percentages.
 
     Args:
-        predicted, reference: series indexed by the turnout and option columns.
-        options: option columns, in display order.
-        turnout: the (yes, no) attendance columns; None hides the attendance panel.
-        predicted_label, reference_label: legend entries.
-        labels: option column -> display name; the column itself by default.
+        table: indexed by row; a column per source, and optionally `<source>_low` and
+            `<source>_high`, drawn as a whisker on that source's bar.
+        sources: the columns drawn, in order from the top of each group.
+        rows: the rows of the main panel, in display order.
+        colors: source -> colour.
+        head: rows drawn in a panel of their own above the main one (e.g. turnout).
+        row_colors: row -> colour. When given, a bar wears its row's colour (grey for a row
+            without one) and the sources differ by strength, the first the strongest;
+            `colors` is then not used.
+        labels: row -> display name; the row itself by default.
+        names: source -> legend entry; the source itself by default.
         title: figure title.
+        note: a line under the title.
     """
-    turnout = list(turnout or ())
-    labels = labels or {}
-    fig, (top, bottom) = plt.subplots(2, 1, figsize=(9, 12), gridspec_kw={"height_ratios": [1, 5]})
+    labels, names = labels or {}, names or {}
+    panels = [list(part) for part in (head, rows) if len(part)]
+    shown = [row for part in panels for row in part]
+    thickness = 0.8 / len(sources)
+    strength = dict(zip(sources, np.linspace(1.0, 0.3, len(sources))))
+    height = 1.5 + 0.21 * len(sources) * len(shown) + 0.4 * len(panels)
+    fig = Figure(figsize=(9, height), facecolor=SURFACE)
+    axes = fig.subplots(len(panels), 1, squeeze=False, gridspec_kw={"height_ratios": [len(part) for part in panels]})[:, 0]
+
+    for ax, part in zip(axes, panels):
+        clean(ax)
+        top = float(table.loc[part].max().max())
+        positions = np.arange(len(part))
+        for i, source in enumerate(sources):
+            values = table.loc[part, source].to_numpy(dtype=float)
+            y = positions + (i - (len(sources) - 1) / 2) * thickness
+            if row_colors:
+                ax.barh(y, values, thickness * 0.88, color=[tint(row_colors.get(row, NEUTRAL), strength[source]) for row in part])
+            else:
+                ax.barh(y, values, thickness * 0.88, color=colors[source])
+            ends = values
+            if f"{source}_low" in table.columns:
+                ends = table.loc[part, f"{source}_high"].to_numpy(dtype=float)
+                ax.hlines(y, table.loc[part, f"{source}_low"].to_numpy(dtype=float), ends, color=INK, linewidth=1)
+            for at, end, value in zip(y, ends, values):
+                ax.text(end + top * 0.012, at, f"{value:.1%}", va="center", ha="left", fontsize=8, color=MUTED)
+        ax.set_yticks(positions, wrap(labels.get(row, row) for row in part))
+        ax.set_ylim(len(part) - 0.5, -0.5)
+        ax.set_xlim(0, top * 1.1)
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
+
+    handles = [Patch(color=tint(NEUTRAL, strength[source])) if row_colors else Patch(color=colors[source]) for source in sources]
+    fig.legend(handles, [names.get(source, source) for source in sources], loc="lower center", ncols=len(sources), frameon=False, fontsize=10, bbox_to_anchor=(0.5, 0))
     if title:
-        fig.suptitle(title, fontsize=20, y=0.96)
-
-    y = np.arange(len(turnout))
-    height = 0.35
-    bars = top.barh(y + height / 2, [float(predicted.get(column, 0)) for column in turnout], height, label=predicted_label, color="lightgreen")
-    reference_bars = top.barh(y - height / 2, [float(reference.get(column, 0)) for column in turnout], height, label=reference_label, color="darkgreen")
-    top.set_yticks(y, turnout)
-    top.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
-    top.set_xlim(0, 1)
-    if turnout:
-        top.legend(fontsize=12)
-        top.bar_label(bars, padding=3, fmt="{:.1%}", fontsize=10)
-        top.bar_label(reference_bars, padding=3, fmt="{:.1%}", fontsize=10)
-    else:
-        top.axis("off")
-
-    y = np.arange(len(options))
-    height = 0.4
-    bars = bottom.barh(y - height / 2, [float(predicted.get(column, 0)) for column in options], height, label=predicted_label, color="skyblue")
-    reference_bars = bottom.barh(y + height / 2, [float(reference.get(column, 0)) for column in options], height, label=reference_label, color="steelblue")
-    bottom.set_yticks(y, wrap(labels.get(column, column) for column in options))
-    bottom.invert_yaxis()
-    bottom.legend(loc="lower right", fontsize=12)
-    bottom.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
-    bottom.set_xlabel("Probability / share", fontsize=12)
-    bottom.bar_label(bars, padding=3, fmt="{:.1%}", fontsize=10)
-    bottom.bar_label(reference_bars, padding=3, fmt="{:.1%}", fontsize=10)
-    bottom.grid(axis="x", linestyle="--", alpha=0.7)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    return fig
-
-
-def bars_by_source(values: pd.Series, ylabel: str, scale: float = 1.0, fmt: str = "%.1f", title: Union[str, None] = None) -> plt.Figure:
-    """One bar per source (the index), values multiplied by `scale`, labelled on top."""
-    fig, ax = plt.subplots(figsize=(max(6, 0.8 * len(values)), 5))
-    bars = ax.bar(values.index.astype(str), values.to_numpy(dtype=float) * scale, color="#4C72B0")
-    ax.bar_label(bars, fmt=fmt, padding=3)
-    ax.set_xticks(range(len(values)))
-    ax.set_xticklabels(values.index.astype(str), rotation=45, ha="right")
-    ax.set_ylabel(ylabel)
-    if title:
-        ax.set_title(title)
-    fig.tight_layout()
+        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
+    fig.tight_layout(rect=(0, 0.4 / height, 1, 1 - (0.5 if note else 0.3) / height))
     return fig

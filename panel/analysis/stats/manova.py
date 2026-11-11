@@ -1,79 +1,74 @@
 """
-MANOVA of per-subject distributions on profile columns, via statsmodels.
+MANOVA of per-subject compositions on the subjects' own columns, via statsmodels.
 
-One results frame at a time: the caller joins several runs into a dict of reports and
-`effects` tabulates them. Dependent columns are the option probabilities, ILR-transformed by
-default so the compositional constraint does not enter the model.
+The dependent side is the ILR coordinates of the shares, so the sum-to-1 constraint stays out
+of the model. All predictors enter together, each as its block of design columns
+(`design.block`), and each is tested given the others: the hypothesis is that its whole block
+has no effect.
+
+Pillai's trace grows with the number of columns a predictor has, so two predictors' traces do
+not compare. What does is the trace divided by its largest possible value, `s = min(k-1,
+hypothesis df)`: the multivariate partial eta squared, the share of the variation left over
+by the other predictors that this one accounts for, between 0 and 1.
 """
-import re
-from typing import Dict, Sequence
+from typing import Mapping, Sequence, Union
 
+import numpy as np
 import pandas as pd
 from statsmodels.multivariate.manova import MANOVA
 
-from .compositional import ilr_frame
+from .compositional import DELTA, ilr
+from .design import block
+
+PILLAI, ETA, F, P, DF = "Pillai", "partial eta2", "F", "p", "df"
+STATISTIC = "Pillai's trace"
 
 
-def _formula_name(name: str) -> str:
-    """A column name statsmodels' formula parser accepts: anything not alphanumeric or `_` becomes `_`."""
-    return re.sub(r"\W+", "_", name.strip())
-
-
-def manova(profile: pd.DataFrame, results: pd.DataFrame, predictors: Sequence[str], columns: Sequence[str], ilr: bool = True):
+def manova(
+    subjects: pd.DataFrame, shares: pd.DataFrame, predictors: Sequence[str],
+    several: Union[Mapping[str, str], None] = None, delta: float = DELTA,
+) -> pd.DataFrame:
     """
-    Fit `columns ~ predictors` over the profile joined with the results and return the multivariate tests.
+    Each predictor's multivariate test, given the other predictors.
 
     Args:
-        profile: subjects with the predictor columns, indexed by id.
-        results: one row per subject with the dependent columns, indexed by id.
-        predictors: profile columns; object-typed ones become categorical.
-        columns: dependent columns of `results`.
-        ilr: model the ILR coordinates of `columns` instead of the raw probabilities.
+        subjects: one row per subject with the predictor columns, no missing values.
+        shares: the same subjects' compositions, a column per part.
+        predictors: columns of `subjects`.
+        several: predictor -> the separator of its cells holding several answers.
+        delta: what a zero share is replaced by before the log-ratio transform.
 
     Returns:
-        statsmodels `MultivariateTestResults`.
+        One row per predictor: `df` (hypothesis degrees of freedom), `Pillai`, `partial
+        eta2`, `F` and `p`.
 
     Raises:
-        ValueError: if no rows are left after dropping incomplete ones.
+        ValueError: if the two frames are not the same subjects, a predictor does not vary,
+            or there are too few subjects for the design.
     """
-    merged = profile.join(results, how="inner").copy()
-    dependent = list(columns)
-    safe = {column: _formula_name(column) for column in dependent}
-    for original, alias in safe.items():
-        merged[alias] = pd.to_numeric(merged[original], errors="coerce")
-    for predictor in predictors:
-        if merged[predictor].dtype == "object":
-            merged[predictor] = merged[predictor].astype("category")
-    merged = merged.dropna(subset=list(safe.values()) + list(predictors))
-    if merged.empty:
-        raise ValueError("no complete rows to fit")
+    if not subjects.index.equals(shares.index):
+        raise ValueError("subjects and shares are not the same rows")
+    several = several or {}
+    coordinates = ilr(shares.to_numpy(dtype=float), delta)
+    blocks = {column: block(subjects[column], several.get(column)) for column in predictors}
+    design = np.column_stack([np.ones(len(subjects)), *blocks.values()])
+    if len(subjects) <= design.shape[1] + coordinates.shape[1]:
+        raise ValueError(f"{len(subjects)} subjects are too few for {design.shape[1]} design columns and {coordinates.shape[1]} coordinates")
 
-    left = list(safe.values())
-    if ilr:
-        merged = ilr_frame(merged, left)
-        left = [f"ilr_{i}" for i in range(1, len(left))]
-    formula = f"{' + '.join(left)} ~ {' + '.join(predictors)}"
-    return MANOVA.from_formula(formula, data=merged).mv_test()
+    hypotheses, start = [], 1
+    for column, columns in blocks.items():
+        contrast = np.zeros((columns.shape[1], design.shape[1]))
+        contrast[np.arange(columns.shape[1]), start + np.arange(columns.shape[1])] = 1.0
+        hypotheses.append((column, contrast, None))
+        start += columns.shape[1]
+    tests = MANOVA(coordinates, design).mv_test(hypotheses)
 
-
-def effects(reports: Dict[str, object], stats: Sequence[str] = ("Wilks' lambda", "Pillai's trace")) -> pd.DataFrame:
-    """
-    One row per (report, predictor) with the chosen multivariate statistics, the intercept skipped.
-
-    Args:
-        reports: name -> `MultivariateTestResults`, as `manova` returns.
-        stats: which test statistics to extract.
-    """
-    records = []
-    for name, tests in reports.items():
-        for term, result in tests.results.items():
-            if term == "Intercept":
-                continue
-            table = result["stat"]
-            row = {"model": name, "predictor": term}
-            for stat in stats:
-                if stat in table.index:
-                    row[stat] = table.loc[stat, "Value"]
-            records.append(row)
-    summary = pd.DataFrame.from_records(records)
-    return summary.set_index(["model", "predictor"]).sort_index() if not summary.empty else summary
+    rows = {}
+    for column, columns in blocks.items():
+        found = tests.results[column]["stat"]
+        value = float(found.loc[STATISTIC, "Value"])
+        rows[column] = {
+            DF: columns.shape[1], PILLAI: value, ETA: value / min(coordinates.shape[1], columns.shape[1]),
+            F: float(found.loc[STATISTIC, "F Value"]), P: float(found.loc[STATISTIC, "Pr > F"]),
+        }
+    return pd.DataFrame(rows).T.astype({DF: int})

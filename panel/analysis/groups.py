@@ -1,112 +1,74 @@
 """
-How subjects are grouped: by a profile column within one dataset, or by a common level across datasets.
+The run group by group: what the model predicts for the subjects at each level of every
+grouping column the dataset names, what those subjects claimed, and how much they differ
+among themselves.
 
-`by` is the one group-by. Results join the profile on subject id, so any profile column is a
-grouping key; region is the first caller. Across datasets raw columns cannot be grouped
-together (a CZK band is not a `low`), so the schema declares a common scale per concept and
-`to_levels` maps whichever representation a profile holds onto it.
+The levels of a column, their order, the bands of a numeric one and whether a subject may be
+at several are the dataset's to declare (`levels.members`). A level is only as good as its
+subjects are many, so their count comes with every row.
 """
-from typing import Callable, Dict, Union
+from typing import List, Tuple
 
-import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
 
-from panel.schema import Schema
+from .aggregate import subject_answers
+from .levels import members
+from .output import Output
+from .plots.stacked import stacked_bars
+from .saved import NotApplicable, SavedRun
+from .sources import CLAIMED, PREDICTED, estimated, frame
 
-from .aggregate import aggregate_results_from_df, claimed_distribution
+NAME = "groups"
+CLAIMS, SPREAD = "groups_claimed", "groups_spread"
+GROUP, LEVEL, SUBJECTS = "group", "level", "subjects"
 
 
-def by(
-    frame: pd.DataFrame,
-    key: str,
-    aggregate: Callable[[pd.DataFrame], pd.Series],
-    total: Union[str, None] = None,
-) -> pd.DataFrame:
+def groups(run: SavedRun, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    One aggregated row per value of `frame[key]`, in sorted order, plus a `total` row over everything.
+    The predicted distribution at each level of each grouping column.
 
     Args:
-        frame: rows to aggregate, already carrying the grouping column.
-        key: the grouping column.
-        aggregate: turns a group of rows into one distribution.
-        total: label of the row aggregating every row; omitted when None.
+        run: the saved run.
+        out: takes the table, named `groups`; `groups_claimed`, the same rows for what the
+            subjects claimed, if the dataset has claims; `groups_spread`, the standard
+            deviation of each column over the level's subjects; and a figure per grouping
+            column, named `groups_<column>`.
+
+    Returns:
+        The table - indexed by grouping column and level, levels in the order `levels.members` gives:
+        `subjects`, then the topic's columns as `predicted_distribution` gives them - and
+        the figures, the option shares stacked per level.
 
     Raises:
-        KeyError: if the frame lacks the grouping column.
+        NotApplicable: if the dataset names no grouping columns.
     """
-    groups = {value: aggregate(part) for value, part in frame.groupby(key, sort=True, observed=True)}
-    table = pd.DataFrame(groups).T
-    if total is not None:
-        table.loc[total] = aggregate(frame)
-    table.index.name = key
-    return table
+    topic, options = run.topic, run.options
+    if not run.dataset.groups:
+        raise NotApplicable(f"'{run.stem}': the dataset names no grouping columns")
+    rows, answers = frame(run), subject_answers(run.normalized, topic)
+    predicted, claimed, spread, figures = {}, {}, {}, []
+    for column in run.dataset.groups:
+        declared = run.dataset.levels.get(column)
+        for name, at in members(run.subjects[column], declared).items():
+            count = len(at)
+            found = estimated(run, rows.loc[rows.index.isin(at)])
+            predicted[(column, name)] = pd.concat([pd.Series({SUBJECTS: count}), found[PREDICTED]])
+            if CLAIMED in found:
+                claimed[(column, name)] = pd.concat([pd.Series({SUBJECTS: count}), found[CLAIMED]])
+            spread[(column, name)] = pd.concat([pd.Series({SUBJECTS: count}), answers.loc[answers.index.isin(at)].std()])
+        shown = pd.DataFrame({name: row[options] for (group, name), row in predicted.items() if group == column}).T
+        shown.index = [f"{name}  (n={int(predicted[(column, name)][SUBJECTS])})" for name in shown.index]
+        figures.append(out.figure(f"{NAME}_{column}", stacked_bars(
+            shown, run.style.colors, run.labels,
+            title=f"{run.spec.model} on {topic.name}: predicted by {column}",
+            note=f"{len(run.subjects)} subjects of '{run.dataset.name}'; shares of those predicted to vote" + ("; a subject counts at each level it holds" if declared and declared.several else ""),
+        )))
 
+    def table(found: dict) -> pd.DataFrame:
+        return pd.DataFrame(found).T.rename_axis([GROUP, LEVEL]).astype({SUBJECTS: int})
 
-def predicted_by(
-    results: pd.DataFrame,
-    profile: pd.DataFrame,
-    key: str,
-    topic,
-    total: Union[str, None] = None,
-    weighted: bool = True,
-    normalized: bool = True,
-) -> pd.DataFrame:
-    """
-    Predicted distributions per group: results joined with the profile's grouping column on id.
-
-    Raises:
-        ValueError: if a results row has no profile row.
-    """
-    joined = results.join(profile[[key]], how="inner")
-    if len(joined) != len(results):
-        raise ValueError(f"{len(results) - len(joined)} results rows have no profile row")
-    return by(joined, key, lambda part: aggregate_results_from_df(part, topic, weighted, normalized), total)
-
-
-def claimed_by(
-    profile: pd.DataFrame,
-    key: str,
-    claims,
-    topic,
-    total: Union[str, None] = None,
-    count_excluded_as_abstained: bool = False,
-) -> pd.DataFrame:
-    """Claimed distributions per group of the profile."""
-    return by(profile, key, lambda part: claimed_distribution(part, claims, topic, count_excluded_as_abstained), total)
-
-
-def spread_by(frame: pd.DataFrame, key: str, columns, ddof: int = 1) -> pd.DataFrame:
-    """Standard deviation of each column within each group: rows are columns, groups are columns."""
-    return frame.groupby(key, sort=True, observed=True)[list(columns)].std(ddof=ddof).T
-
-
-def to_levels(profile: pd.DataFrame, concept: str, schema: Schema) -> pd.Series:
-    """
-    The profile's rows on the concept's common scale, from whichever representation it holds.
-
-    The first column of the concept that the profile carries and the schema knows how to map
-    decides: numeric `bins` for an exact value, a `map` for a band or phrase.
-
-    Raises:
-        ValueError: if the concept has no common scale, the profile carries no mappable column
-            of it, or a value falls outside the map.
-    """
-    declared = schema.concepts[concept]
-    if not declared.levels:
-        raise ValueError(f"concept '{concept}' declares no common levels")
-    for column in declared.columns:
-        if column.name not in profile.columns or (column.bins is None and column.map is None):
-            continue
-        values = profile[column.name]
-        if values.isna().any():
-            raise ValueError(f"column '{column.name}' has {int(values.isna().sum())} missing values")
-        if column.bins is not None:
-            edges = [-np.inf, *column.bins, np.inf]
-            cut = pd.cut(values.astype(float), bins=edges, right=False, labels=list(declared.levels))
-            return pd.Series(cut.astype(str), index=profile.index, name=concept)
-        mapped = values.map(column.map)
-        unknown = sorted(set(values[mapped.isna()].astype(str)))
-        if unknown:
-            raise ValueError(f"column '{column.name}' has values outside its map onto {concept} levels: {unknown}")
-        return mapped.rename(concept)
-    raise ValueError(f"profile carries no column of concept '{concept}' that maps onto its levels")
+    out.table(SPREAD, table(spread))
+    if claimed:
+        out.table(CLAIMS, table(claimed))
+    return out.table(NAME, table(predicted)), figures

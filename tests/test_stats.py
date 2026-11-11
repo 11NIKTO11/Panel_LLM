@@ -1,26 +1,24 @@
-"""The statistical layer on small synthetic data: invariants of the transforms and the direction of the tests."""
+"""The statistical layer on small synthetic data: invariants of the transforms, and the tests against direct formulas."""
 import numpy as np
 import pandas as pd
 import pytest
 
-from panel.analysis.stats.compositional import helmert_basis, ilr, ilr_frame
-from panel.analysis.stats.manova import effects, manova
-from panel.analysis.stats.permanova import DISTANCES, pairwise_distances, panel_permanova, permanova
+from panel.analysis.stats import mapping, permanova
+from panel.analysis.stats.compositional import helmert_basis, ilr, replace_zeros
+from panel.analysis.stats.design import block
+from panel.analysis.stats.manova import DF, ETA, P, PILLAI, manova
 
 RNG = np.random.default_rng(0)
 
 
-def synthetic(n: int = 60, separated: bool = True):
-    """A profile with one binary predictor and distributions over three options that do (or do not) depend on it."""
-    group = np.array(["a", "b"] * (n // 2))
-    base = RNG.dirichlet([2, 2, 2], size=n)
-    shift = np.where((group == "b")[:, None], np.array([0.4, -0.2, -0.2]), 0.0) if separated else 0.0
-    values = np.clip(base + shift, 0.01, None)
-    values = values / values.sum(axis=1, keepdims=True)
-    index = pd.Index(range(1, n + 1), name="id")
-    profile = pd.DataFrame({"group": group, "noise": RNG.normal(size=n)}, index=index)
-    results = pd.DataFrame(values, columns=["x", "y", "z"], index=index)
-    return profile, results
+def synthetic(n: int = 120, separated: bool = True):
+    """Subjects with a four-level group, a number and a multi-answer column, and shares over four parts that do (or do not) follow the group."""
+    group = pd.Series(RNG.choice(list("abcd"), n), name="group")
+    shares = RNG.dirichlet(np.ones(4), n)
+    if separated:
+        shares[group == "a"] = RNG.dirichlet([6, 1, 1, 1], int((group == "a").sum()))
+    subjects = pd.DataFrame({"group": group, "number": RNG.normal(size=n), "held": RNG.choice(["x", "y", "x; y", "z"], n)})
+    return subjects, pd.DataFrame(shares, columns=list("wxyz"))
 
 
 def test_helmert_basis_is_orthonormal_and_orthogonal_to_ones():
@@ -32,55 +30,83 @@ def test_helmert_basis_is_orthonormal_and_orthogonal_to_ones():
         helmert_basis(1)
 
 
-def test_ilr_shapes_and_frame():
-    compositions = np.array([[0.5, 0.3, 0.2], [0.2, 0.2, 0.6]])
-    coordinates = ilr(compositions)
-    assert coordinates.shape == (2, 2)
-    frame = pd.DataFrame(compositions, columns=["x", "y", "z"])
-    out = ilr_frame(frame, ["x", "y", "z"])
-    assert list(out.columns) == ["x", "y", "z", "ilr_1", "ilr_2"]
-    np.testing.assert_allclose(out[["ilr_1", "ilr_2"]].to_numpy(), coordinates)
-    with pytest.raises(KeyError):
-        ilr_frame(frame, ["x", "missing"])
-
-
-@pytest.mark.parametrize("metric", DISTANCES)
-def test_pairwise_distances_are_metrics(metric):
-    points = RNG.dirichlet([1, 1, 1], size=6)
-    space = ilr(points) if metric == "euclidean_ilr" else points
-    distance = pairwise_distances(space, metric)
-    assert distance.shape == (6, 6)
-    np.testing.assert_allclose(distance, distance.T, atol=1e-12)
-    np.testing.assert_allclose(np.diag(distance), 0, atol=1e-6)
-    assert (distance >= -1e-12).all()
+def test_zero_replacement_keeps_the_sum_and_the_other_ratios():
+    replaced = replace_zeros(np.array([[0.5, 0.5, 0.0, 0.0], [0.2, 0.3, 0.5, 0.0]]), delta=0.005)
+    np.testing.assert_allclose(replaced.sum(axis=1), 1)
+    np.testing.assert_allclose(replaced[0], [0.495, 0.495, 0.005, 0.005])
+    assert replaced[1, 0] / replaced[1, 1] == pytest.approx(0.2 / 0.3)
     with pytest.raises(ValueError):
-        pairwise_distances(points, "nonsense")
+        replace_zeros(np.array([[0.0, 0.0]]))
+    assert ilr(np.array([[0.25, 0.25, 0.25, 0.25]])).shape == (1, 3)
+    np.testing.assert_allclose(ilr(np.array([[0.25, 0.25, 0.25, 0.25]])), 0, atol=1e-12)
 
 
-def test_permanova_detects_separation():
-    profile, results = synthetic(separated=True)
-    result, report = panel_permanova(profile, results, ["group"], ["x", "y", "z"], n_perm=199, seed=1)
-    assert result.p_value < 0.05 and result.df == 1 and report["n_obs"] == 60 and report["n_predictors"] == 1
-    profile, results = synthetic(separated=False)
-    result, _ = panel_permanova(profile, results, ["group"], ["x", "y", "z"], distance="hellinger", n_perm=199, seed=1)
-    assert result.p_value > 0.05
+def test_design_blocks():
+    subjects, _ = synthetic()
+    assert block(subjects["number"]).shape == (120, 1)
+    assert block(subjects["group"]).shape == (120, 3)
+    assert block(subjects["held"], "; ").shape == (120, 2)
     with pytest.raises(ValueError):
-        panel_permanova(profile, results, ["missing"], ["x", "y", "z"])
+        block(pd.Series(["a"] * 5, name="constant"))
 
 
-def test_permanova_p_value_bounds():
-    distance = pairwise_distances(RNG.normal(size=(12, 3)), "euclidean_ilr")
-    design = RNG.normal(size=(12, 2))
-    result = permanova(distance, design, n_perm=50, seed=3)
-    assert 0 < result.p_value <= 1 and result.n_perm == 50 and result.ss >= 0
-
-
-def test_manova_and_effects():
-    profile, results = synthetic(separated=True)
-    tests = manova(profile, results, ["group"], ["x", "y", "z"])
-    summary = effects({"synthetic": tests})
-    assert list(summary.index) == [("synthetic", "group")]
-    assert 0 < summary.loc[("synthetic", "group"), "Pillai's trace"] <= 1
-    assert 0 < summary.loc[("synthetic", "group"), "Wilks' lambda"] < 1
+def test_manova_finds_the_predictor_that_matters():
+    subjects, shares = synthetic()
+    table = manova(subjects, shares, ["group", "number"])
+    assert list(table.index) == ["group", "number"] and table.loc["group", DF] == 3 and table.loc["number", DF] == 1
+    assert table.loc["group", P] < 0.001 < table.loc["number", P]
+    assert table.loc["number", ETA] == pytest.approx(table.loc["number", PILLAI])
+    assert table.loc["group", ETA] == pytest.approx(table.loc["group", PILLAI] / 3)
     with pytest.raises(ValueError):
-        manova(profile.iloc[:0], results, ["group"], ["x", "y", "z"])
+        manova(subjects.head(6), shares.head(6), ["group", "number"])
+
+
+def test_permanova_matches_the_between_group_sums_of_squares():
+    subjects, shares = synthetic()
+    points = np.sqrt(shares.to_numpy()) / np.sqrt(2)
+    total = ((points - points.mean(axis=0)) ** 2).sum()
+    between = sum(len(rows) * ((points[rows].mean(axis=0) - points.mean(axis=0)) ** 2).sum() for rows in subjects.groupby("group").indices.values())
+    centred = permanova.gower(permanova.pairwise(shares.to_numpy(), "hellinger"))
+    degrees, share, ratio, chance = permanova.permanova(centred, block(subjects["group"]), permutations=199)
+    assert degrees == 3 and share == pytest.approx(between / total) and chance == pytest.approx(1 / 200)
+    assert ratio == pytest.approx((between / 3) / ((total - between) / (len(points) - 4)))
+    assert permanova.permanova(centred, block(subjects["number"]), permutations=199)[3] > 0.01
+
+
+@pytest.mark.parametrize("distance", permanova.DISTANCES)
+def test_pairwise_distances_are_distances(distance):
+    _, shares = synthetic(n=12)
+    found = permanova.pairwise(shares.to_numpy(), distance)
+    np.testing.assert_allclose(found, found.T, atol=1e-12)
+    np.testing.assert_allclose(np.diag(found), 0, atol=1e-7)
+    assert (found >= 0).all()
+
+
+def test_correlation_distance_is_between_two_rows():
+    _, shares = synthetic(n=6)
+    values = shares.to_numpy()
+    found = permanova.pairwise(values, "correlation")
+    assert found[0, 1] == pytest.approx(np.sqrt(2 * (1 - np.corrcoef(values[0], values[1])[0, 1])))
+    with pytest.raises(ValueError):
+        permanova.pairwise(values, "nope")
+
+
+def test_a_turned_map_fits_its_original():
+    target = RNG.normal(size=(6, 2))
+    turn = np.array([[0.0, -1.0], [1.0, 0.0]])
+    fitted, r = mapping.procrustes(target, 3 * target @ turn + 5)
+    np.testing.assert_allclose(fitted, target, atol=1e-9)
+    assert r == pytest.approx(1)
+    observed, chance = mapping.procrustes_test(target, 3 * target @ turn + 5)
+    assert observed == pytest.approx(1) and chance == pytest.approx(1 / 720)
+
+
+def test_mds_and_mantel_on_points_of_a_plane():
+    points = RNG.normal(size=(6, 2))
+    distances = np.linalg.norm(points[:, None] - points[None], axis=-1)
+    placed, stress = mapping.mds(distances)
+    assert placed.shape == (6, 2) and stress < 0.01
+    observed, chance = mapping.mantel(distances, np.linalg.norm(placed[:, None] - placed[None], axis=-1))
+    assert observed > 0.99 and chance == pytest.approx(1 / 720)
+    with pytest.raises(ValueError):
+        mapping.mantel(np.zeros((9, 9)), np.zeros((9, 9)))

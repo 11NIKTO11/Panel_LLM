@@ -1,141 +1,114 @@
-"""Heatmaps of matrices: covariance and correlation, per-group error grids, spread by group."""
-from math import ceil
-from typing import Dict, Mapping, Sequence, Tuple, Union
+"""Matrices as heatmaps: a signed square one between the same things, and a grid of shares, rows by columns."""
+from typing import Mapping, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+from matplotlib.colors import TwoSlopeNorm
+from matplotlib.figure import Figure
 
-from .style import wrap
+from .style import INK, MUTED, SURFACE, legible, wrap
 
 
 def heatmap(
     matrix: pd.DataFrame,
-    title: Union[str, None] = None,
-    vmin: Union[float, None] = None,
-    vmax: Union[float, None] = None,
-    fmt: str = ".4f",
-    cmap: str = "coolwarm_r",
+    bound: Union[float, None] = None,
+    diagonal: bool = False,
+    decimals: int = 2,
     labels: Union[Mapping[str, str], None] = None,
-    wrap_width: int = 21,
-) -> plt.Figure:
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
     """
-    A square matrix as an annotated heatmap, symmetric colour range around zero unless given.
+    A signed square matrix, blue above zero and red below, every cell with its number.
 
     Args:
-        matrix: indexed and columned by the same keys, e.g. a covariance or correlation matrix.
-        labels: key -> display name for the ticks.
+        matrix: indexed and columned by the same keys.
+        bound: the value at full colour, symmetric around zero; the largest drawn magnitude
+            by default.
+        diagonal: draw the diagonal too. Off by default: a thing against itself says
+            nothing and, in a covariance matrix, takes the whole colour range.
+        decimals: of the numbers in the cells.
+        labels: key -> display name; the key itself by default.
+        title: figure title.
+        note: a line under the title.
     """
     labels = labels or {}
-    if vmin is None and vmax is None:
-        bound = float(matrix.abs().max().max())
-        vmin, vmax = -bound, bound
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(matrix, ax=ax, annot=True, cmap=cmap, fmt=fmt, linewidths=0.5, vmin=vmin, vmax=vmax)
-    names = wrap((labels.get(key, key) for key in matrix.index), wrap_width)
-    ax.set_yticklabels(names, rotation=0, ha="right", va="center")
-    ax.set_xticklabels(names, rotation=90, ha="right", va="center", rotation_mode="anchor")
+    values = matrix.to_numpy(dtype=float).copy()
+    if not diagonal:
+        np.fill_diagonal(values, np.nan)
+    bound = bound or float(np.nanmax(np.abs(values))) or 1.0
+    size = 0.62 * len(matrix)
+    height = size + 2.4
+    fig = Figure(figsize=(size + 3.2, height), facecolor=SURFACE)
+    ax = fig.subplots()
+    ax.set_facecolor(SURFACE)
+    image = ax.imshow(values, cmap="RdBu", norm=TwoSlopeNorm(0, -bound, bound))
+    for (row, column), value in np.ndenumerate(values):
+        if not np.isnan(value):
+            ax.text(column, row, f"{round(value, decimals) + 0.0:.{decimals}f}", ha="center", va="center", fontsize=8 + 4.5 / decimals, color=SURFACE if abs(value) > 0.6 * bound else INK)
+    names = wrap((labels.get(key, key) for key in matrix.index), 18)
+    ax.set_xticks(range(len(matrix)), [str(labels.get(key, key)) for key in matrix.index], rotation=45, ha="right", rotation_mode="anchor")
+    ax.set_yticks(range(len(matrix)), names)
+    ax.set_xticks(np.arange(len(matrix) + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(len(matrix) + 1) - 0.5, minor=True)
+    ax.grid(which="minor", color=SURFACE, linewidth=2)
+    ax.tick_params(which="both", length=0, colors=INK, labelsize=11)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    bar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.03)
+    bar.outline.set_visible(False)
+    bar.ax.tick_params(length=0, colors=MUTED, labelsize=10)
     if title:
-        ax.set_title(title, fontsize=18)
-    fig.tight_layout()
+        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
+    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
     return fig
 
 
-def error_grid(
+def grid(
     table: pd.DataFrame,
-    sources: Sequence[str],
-    metric: str = "MAE",
-    ncols: int = 4,
-    vmin: float = 0,
-    vmax: float = 5,
-    figsize_per_plot: Tuple[float, float] = (4, 3.5),
+    below: Union[pd.DataFrame, None] = None,
+    decimals: int = 2,
+    scale: float = 1.0,
+    cmap: str = "Blues",
     title: Union[str, None] = None,
-) -> plt.Figure:
+    note: Union[str, None] = None,
+) -> Figure:
     """
-    One small symmetric heatmap per group of pairwise errors between sources.
+    A rows-by-columns table of non-negative numbers, coloured by size, every cell with its number.
 
     Args:
-        table: indexed by group, one column `A vs B` per pair of `sources`, as `compare.pairwise` writes.
-        sources: the sources, in the order they appear on both axes of each small matrix.
-        metric: name for the colour bar; values at most 1 are shown as percentages.
+        table: indexed by row, a column per group.
+        below: the same shape, a text per cell written under its number (e.g. a p-value).
+        decimals: of the numbers in the cells.
+        scale: what the numbers are multiplied by before they are written (100 for shares in percent).
+        cmap: the matplotlib colour range, from zero to the largest number.
+        title: figure title.
+        note: a line under the title.
     """
-    nrows = ceil(len(table) / ncols)
-    fig, axes = plt.subplots(nrows, ncols, figsize=(figsize_per_plot[0] * ncols, figsize_per_plot[1] * nrows), squeeze=False)
-    axes = axes.flatten()
-    scale = 100 if table.select_dtypes("number").max().max() <= 1.0 else 1
-    for ax, (group, row) in zip(axes, table.iterrows()):
-        errors = np.zeros((len(sources), len(sources)))
-        for i, first in enumerate(sources):
-            for j, second in enumerate(sources):
-                if i != j:
-                    column = f"{first} vs {second}" if f"{first} vs {second}" in row.index else f"{second} vs {first}"
-                    errors[i, j] = row[column] * scale
-        sns.heatmap(errors, ax=ax, annot=True, fmt=".1f", cmap="plasma", vmin=vmin, vmax=vmax,
-                    xticklabels=list(sources), yticklabels=list(sources), cbar_kws={"label": f"{metric}" + (" (%)" if scale == 100 else "")})
-        ax.set_title(str(group), fontsize=10, fontweight="bold")
-    for ax in axes[len(table):]:
-        ax.axis("off")
-    fig.suptitle(title or f"{metric} between sources, by group", fontsize=14, fontweight="bold", y=0.98)
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
-    return fig
-
-
-def spread_heatmap(
-    matrix: pd.DataFrame,
-    title: Union[str, None] = None,
-    cmap: str = "viridis",
-    fmt: str = ".3f",
-    labels: Union[Mapping[str, str], None] = None,
-    width_per_column: float = 1.2,
-    height_per_row: float = 0.6,
-) -> plt.Figure:
-    """A rows x groups matrix (e.g. standard deviation of each option per region) as one heatmap."""
-    labels = labels or {}
-    fig, ax = plt.subplots(figsize=(max(6, matrix.shape[1] * width_per_column), max(2, matrix.shape[0] * height_per_row)))
-    sns.heatmap(matrix, ax=ax, mask=matrix.isna(), cmap=cmap, annot=True, fmt=fmt, linewidths=0.5, linecolor="white", cbar_kws={"label": "Std. dev."})
-    ax.set_yticklabels([labels.get(key, key) for key in matrix.index], rotation=0)
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    values = table.to_numpy(dtype=float) * scale
+    top = float(np.nanmax(values)) or 1.0
+    widest = max(len(str(column)) for column in table.columns)
+    height = (0.6 if below is not None else 0.42) * len(table) + 1.9 + 0.07 * widest
+    fig = Figure(figsize=(1.5 * table.shape[1] + 3.2, height), facecolor=SURFACE)
+    ax = fig.subplots()
+    ax.set_facecolor(SURFACE)
+    image = ax.imshow(values, cmap=cmap, vmin=0, vmax=top, aspect="auto")
+    for (row, column), value in np.ndenumerate(values):
+        if not np.isnan(value):
+            ax.text(column, row, f"{value:.{decimals}f}" + (f"\n{below.iat[row, column]}" if below is not None else ""), ha="center", va="center", fontsize=10, color=legible(image.cmap(image.norm(value))))
+    ax.set_xticks(range(table.shape[1]), [str(column) for column in table.columns], rotation=30, ha="right", rotation_mode="anchor")
+    ax.set_yticks(range(len(table)), [str(row) for row in table.index])
+    ax.set_xticks(np.arange(table.shape[1] + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(len(table) + 1) - 0.5, minor=True)
+    ax.grid(which="minor", color=SURFACE, linewidth=2)
+    ax.tick_params(which="both", length=0, colors=INK, labelsize=10)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
     if title:
-        fig.suptitle(title, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
-    return fig
-
-
-def spread_heatmap_grid(
-    matrices: Dict[str, pd.DataFrame],
-    ncols: int = 4,
-    per_subplot_size: Tuple[float, float] = (4.0, 3.0),
-    cmap: str = "viridis",
-    annot: bool = False,
-    fmt: str = ".3f",
-    title: Union[str, None] = None,
-) -> plt.Figure:
-    """Several spread matrices, one small heatmap each on a shared colour scale."""
-    names = list(matrices)
-    cols = min(ncols, len(names))
-    rows = max(1, ceil(len(names) / cols))
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * per_subplot_size[0], rows * per_subplot_size[1]), squeeze=False)
-    stacked = pd.concat([matrix.stack() for matrix in matrices.values() if not matrix.isna().all().all()], axis=0)
-    vmin, vmax = (float(stacked.min()), float(stacked.max())) if not stacked.empty else (0.0, 1.0)
-    for index, name in enumerate(names):
-        ax = axes[index // cols][index % cols]
-        matrix = matrices[name]
-        sns.heatmap(matrix, ax=ax, mask=matrix.isna(), cmap=cmap, annot=annot, fmt=fmt, cbar=False, vmin=vmin, vmax=vmax,
-                    linewidths=0.3, linecolor="white", xticklabels=True, yticklabels=True)
-        ax.set_title(str(name))
-        ax.set_xlabel("")
-        ax.set_ylabel("")
-        if index % cols:
-            ax.set_yticklabels([])
-        if index // cols != rows - 1:
-            ax.set_xticklabels([])
-    for index in range(len(names), rows * cols):
-        axes[index // cols][index % cols].axis("off")
-    scalar = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
-    scalar.set_array([])
-    fig.subplots_adjust(left=0.08, right=0.88, bottom=0.15, top=0.9, wspace=0.15, hspace=0.3)
-    fig.colorbar(scalar, cax=fig.add_axes([0.92, 0.15, 0.02, 0.7]), label="Std. dev.")
-    if title:
-        fig.suptitle(title, fontsize=14)
+        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
+    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
     return fig
