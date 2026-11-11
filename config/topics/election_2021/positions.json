@@ -1,0 +1,249 @@
+{
+    "axes": {
+        "x": {
+            "item": "lrecon",
+            "label": "economic left (0) - right (10)"
+        },
+        "y": {
+            "item": "galtan",
+            "label": "GAL (0) - TAN (10)"
+        }
+    },
+    "positions": {
+        "ANO": {
+            "eu_position": 4.4815,
+            "lrgen": 4.6923,
+            "lrecon": 4.5,
+            "galtan": 5.7308,
+            "immigrate_policy": 8.5,
+            "multiculturalism": 8.16,
+            "redistribution": 3.8462,
+            "environment": 7.3462,
+            "spendvtax": 4.1923,
+            "deregulation": 5.0,
+            "econ_interven": 3.8889,
+            "civlib_laworder": 6.1923,
+            "sociallifestyle": 4.88,
+            "religious_principles": 2.84,
+            "ethnic_minorities": 6.3462,
+            "nationalism": 6.5926,
+            "urban_rural": 5.28,
+            "protectionism": 5.92,
+            "regions": 6.7083,
+            "russian_interference": 3.24,
+            "anti_islam_rhetoric": 5.4615,
+            "people_vs_elite": 3.8
+        },
+        "SPOLU": {
+            "eu_position": 5.0938,
+            "lrgen": 7.2017,
+            "lrecon": 7.0561,
+            "galtan": 6.7113,
+            "immigrate_policy": 7.1092,
+            "multiculturalism": 7.1246,
+            "redistribution": 6.8879,
+            "environment": 6.8121,
+            "spendvtax": 6.9156,
+            "deregulation": 7.2697,
+            "econ_interven": 7.0811,
+            "civlib_laworder": 4.9827,
+            "sociallifestyle": 6.234,
+            "religious_principles": 5.7777,
+            "ethnic_minorities": 5.7291,
+            "nationalism": 6.0269,
+            "urban_rural": 4.2006,
+            "protectionism": 3.7807,
+            "regions": 5.2207,
+            "russian_interference": 6.0307,
+            "anti_islam_rhetoric": 4.8077,
+            "people_vs_elite": 2.0772
+        },
+        "PirSTAN": {
+            "eu_position": 6.2461,
+            "lrgen": 4.9252,
+            "lrecon": 5.0697,
+            "galtan": 1.998,
+            "immigrate_policy": 4.0699,
+            "multiculturalism": 3.9927,
+            "redistribution": 4.8632,
+            "environment": 3.2709,
+            "spendvtax": 4.3504,
+            "deregulation": 4.9866,
+            "econ_interven": 5.0268,
+            "civlib_laworder": 2.3357,
+            "sociallifestyle": 1.7265,
+            "religious_principles": 2.6026,
+            "ethnic_minorities": 2.9035,
+            "nationalism": 2.6924,
+            "urban_rural": 3.4921,
+            "protectionism": 3.6456,
+            "regions": 2.9967,
+            "russian_interference": 6.4437,
+            "anti_islam_rhetoric": 1.8314,
+            "people_vs_elite": 6.1161
+        },
+        "SPD": {
+            "eu_position": 1.4815,
+            "lrgen": 8.8462,
+            "lrecon": 4.6667,
+            "galtan": 9.3704,
+            "immigrate_policy": 9.8519,
+            "multiculturalism": 9.8889,
+            "redistribution": 4.1364,
+            "environment": 8.8636,
+            "spendvtax": 4.25,
+            "deregulation": 3.6111,
+            "econ_interven": 3.3636,
+            "civlib_laworder": 9.3077,
+            "sociallifestyle": 9.2308,
+            "religious_principles": 3.7895,
+            "ethnic_minorities": 9.7407,
+            "nationalism": 9.7407,
+            "urban_rural": 6.3478,
+            "protectionism": 8.6957,
+            "regions": 7.1667,
+            "russian_interference": 3.9167,
+            "anti_islam_rhetoric": 9.5385,
+            "people_vs_elite": 8.3333
+        },
+        "CSSD": {
+            "eu_position": 5.7407,
+            "lrgen": 2.7407,
+            "lrecon": 2.5926,
+            "galtan": 4.9231,
+            "immigrate_policy": 7.1923,
+            "multiculturalism": 6.3846,
+            "redistribution": 2.44,
+            "environment": 5.88,
+            "spendvtax": 2.2222,
+            "deregulation": 2.6538,
+            "econ_interven": 2.3704,
+            "civlib_laworder": 5.44,
+            "sociallifestyle": 3.8077,
+            "religious_principles": 2.4583,
+            "ethnic_minorities": 4.4231,
+            "nationalism": 5.2963,
+            "urban_rural": 5.28,
+            "protectionism": 6.0833,
+            "regions": 5.375,
+            "russian_interference": 4.0769,
+            "anti_islam_rhetoric": 5.0,
+            "people_vs_elite": 4.2
+        },
+        "KSCM": {
+            "eu_position": 2.3704,
+            "lrgen": 1.1481,
+            "lrecon": 1.0385,
+            "galtan": 8.0741,
+            "immigrate_policy": 8.96,
+            "multiculturalism": 8.8462,
+            "redistribution": 1.3846,
+            "environment": 7.7083,
+            "spendvtax": 1.3704,
+            "deregulation": 0.9615,
+            "econ_interven": 1.037,
+            "civlib_laworder": 8.625,
+            "sociallifestyle": 7.1538,
+            "religious_principles": 1.1538,
+            "ethnic_minorities": 7.1538,
+            "nationalism": 7.963,
+            "urban_rural": 6.0385,
+            "protectionism": 8.5385,
+            "regions": 6.6522,
+            "russian_interference": 3.52,
+            "anti_islam_rhetoric": 6.64,
+            "people_vs_elite": 5.2692
+        }
+    },
+    "spread": {
+        "eu_position": {
+            "mean": 4.8194,
+            "std": 1.9083
+        },
+        "lrgen": {
+            "mean": 5.4501,
+            "std": 2.4859
+        },
+        "lrecon": {
+            "mean": 4.9218,
+            "std": 2.1724
+        },
+        "galtan": {
+            "mean": 5.8713,
+            "std": 2.5248
+        },
+        "immigrate_policy": {
+            "mean": 7.0032,
+            "std": 2.1457
+        },
+        "multiculturalism": {
+            "mean": 6.8831,
+            "std": 2.0775
+        },
+        "redistribution": {
+            "mean": 4.6658,
+            "std": 2.1571
+        },
+        "environment": {
+            "mean": 6.2233,
+            "std": 1.9683
+        },
+        "spendvtax": {
+            "mean": 4.6073,
+            "std": 2.1659
+        },
+        "deregulation": {
+            "mean": 4.8705,
+            "std": 2.3832
+        },
+        "econ_interven": {
+            "mean": 4.6403,
+            "std": 2.3475
+        },
+        "civlib_laworder": {
+            "mean": 5.5051,
+            "std": 2.4281
+        },
+        "sociallifestyle": {
+            "mean": 5.2672,
+            "std": 2.6016
+        },
+        "religious_principles": {
+            "mean": 3.865,
+            "std": 2.2133
+        },
+        "ethnic_minorities": {
+            "mean": 5.5604,
+            "std": 2.2178
+        },
+        "nationalism": {
+            "mean": 5.812,
+            "std": 2.3733
+        },
+        "urban_rural": {
+            "mean": 4.987,
+            "std": 1.8008
+        },
+        "protectionism": {
+            "mean": 5.3586,
+            "std": 2.1883
+        },
+        "regions": {
+            "mean": 5.193,
+            "std": 1.5842
+        },
+        "russian_interference": {
+            "mean": 5.0989,
+            "std": 1.478
+        },
+        "anti_islam_rhetoric": {
+            "mean": 4.9022,
+            "std": 2.4128
+        },
+        "people_vs_elite": {
+            "mean": 4.4038,
+            "std": 2.2083
+        }
+    },
+    "note": "Chapel Hill Expert Survey 2019, Czech parties, 22 position items on 0-10 scales. A coalition is the mean of its members weighted by their 2017 vote shares (ODS 11.32, TOP 09 5.31, KDU-CSL 5.80; Pirates 10.79, STAN 5.18). `spread` is each item's mean and standard deviation over the nine Czech parties CHES rates, for standardising. Prisaha, TSS and Other have no rating. CHES 2019 predates the 2021 coalitions. Computed 2026-11-11 from llm_pushforward/data/ches2019.csv, as its pushforward.ches_positions does."
+}

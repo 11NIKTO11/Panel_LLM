@@ -13,6 +13,7 @@ what makes a run a run: `runs()` lists records.
     |-- <stem>_run.json             the run record (panel.run.record)
     |-- <name>_claimed_votes.csv    topic-level reference series
     |-- analysis/                   tables derived from runs: <statistic>_<stem>.csv
+    |-- plots/                      figures derived from runs: <name>_<stem>.png
     |-- archive/                    <stem>_<timestamp>.csv + _run.json, one per save
     `-- preferences/                pre-RunSpec tables that map to no single run
 
@@ -55,6 +56,7 @@ class ResultStore:
     RECORD_SUFFIX = "_run.json"
     NORMALIZED_SUFFIX = "_normalized"
     ANALYSIS_DIR = "analysis"
+    PLOTS_DIR = "plots"
     ARCHIVE_DIR = "archive"
 
     def __init__(self, results_dir: Union[str, Path], topic: str):
@@ -72,6 +74,12 @@ class ResultStore:
     def analysis(self, name: str) -> Path:
         """A path in `analysis/`, for tables derived from runs. Creates the folder."""
         directory = self.topic_dir / self.ANALYSIS_DIR
+        directory.mkdir(parents=True, exist_ok=True)
+        return directory / name
+
+    def plot(self, name: str) -> Path:
+        """A path in `plots/`, for figures derived from runs. Creates the folder."""
+        directory = self.topic_dir / self.PLOTS_DIR
         directory.mkdir(parents=True, exist_ok=True)
         return directory / name
 
@@ -106,7 +114,8 @@ class ResultStore:
 
     def frame(self, stem: str, normalized: bool = False) -> pd.DataFrame:
         """
-        A run's CSV as stored: ids for a run saved here, native names for a legacy one.
+        A run's CSV as stored: the ids of its day for a run saved here, native names for a legacy
+        one. `Topic.rename` turns either into today's ids.
 
         Raises:
             FileNotFoundError: if that run has no such CSV.

@@ -1,0 +1,47 @@
+{
+    "polls": {
+        "STEM": {
+            "shares": {
+                "ANO": 0.324,
+                "SPOLU": 0.2,
+                "PirSTAN": 0.18,
+                "SPD": 0.118,
+                "KSCM": 0.054,
+                "Prisaha": 0.022,
+                "Other": 0.024,
+                "CSSD": 0.044,
+                "TSS": 0.033
+            },
+            "url": "https://www.stem.cz/volebni-preference-stem-zari-2021/"
+        },
+        "Median": {
+            "shares": {
+                "ANO": 0.27,
+                "SPOLU": 0.21,
+                "PirSTAN": 0.205,
+                "SPD": 0.09,
+                "KSCM": 0.06,
+                "Prisaha": 0.04,
+                "Other": 0.05,
+                "CSSD": 0.045,
+                "TSS": 0.03
+            },
+            "url": "https://www.median.eu/cs/wp-content/uploads/2021/09/Volby_2021_08_v02.pdf"
+        },
+        "Kantar CZ": {
+            "shares": {
+                "ANO": 0.275,
+                "SPOLU": 0.21,
+                "PirSTAN": 0.21,
+                "SPD": 0.1,
+                "KSCM": 0.05,
+                "Prisaha": 0.06,
+                "Other": 0.04,
+                "CSSD": 0.035,
+                "TSS": 0.02
+            },
+            "url": "https://www.irozhlas.cz/zpravy-domov/volebni-model-kantar-srpen-volby-do-poslanecke-snemovny-2021_2108221515_ern"
+        }
+    },
+    "note": "The agencies' last election models before the 2021 vote, shares of those who would vote; copied from data/agentury.csv on 2026-11-11, native names turned into option ids."
+}

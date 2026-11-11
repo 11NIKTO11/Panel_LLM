@@ -41,6 +41,9 @@ from typing import Dict, List, Union
 
 from panel import paths
 
+from .plot import CONFIG_NAME as PLOT_CONFIG_NAME
+from .polls import CONFIG_NAME as POLLS_CONFIG_NAME
+from .positions import CONFIG_NAME as POSITIONS_CONFIG_NAME
 from .vocabulary import CONFIG_NAME as TOPIC_CONFIG_NAME, Topic
 
 REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "labels", "schema"}
@@ -123,7 +126,7 @@ class Framing:
 def framing_names(topic: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
     """Every framing file beside a topic's `topic.json`, sorted."""
     folder = Path(topics_dir) / topic
-    return sorted(path.stem for path in folder.glob("*.json") if path.name != TOPIC_CONFIG_NAME)
+    return sorted(path.stem for path in folder.glob("*.json") if path.name not in (TOPIC_CONFIG_NAME, PLOT_CONFIG_NAME, POLLS_CONFIG_NAME, POSITIONS_CONFIG_NAME))
 
 
 def _text(config: dict, block: str, path: Path) -> dict:

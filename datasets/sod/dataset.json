@@ -38,6 +38,94 @@
         "covid_vaccinated"
     ],
     "area": "region",
+    "levels": {
+        "age": {
+            "bands": {
+                "18–24 let": 24,
+                "25–34 let": 34,
+                "35–44 let": 44,
+                "45–54 let": 54,
+                "55–65 let": 65
+            }
+        },
+        "education_level": {
+            "order": [
+                "Základní + středoškolské vzdělání bez maturity",
+                "Středoškolské vzdělání s maturitou",
+                "Vysokoškolské vzdělání"
+            ]
+        },
+        "town_size": {
+            "order": [
+                "Méně než 1.000",
+                "1.000 - 5.000 obyvatel",
+                "5.001 - 20.000 obyvatel",
+                "20.001 - 100.000 obyvatel",
+                "Více než 100.000 obyvatel"
+            ]
+        },
+        "employment_status": {
+            "several": "; "
+        },
+        "income_range": {
+            "order": [
+                "Do 15.000 Kč",
+                "15.001 - 20.000 Kč",
+                "20.001 - 25.000 Kč",
+                "25.001 - 30.000 Kč",
+                "30.001 - 40.000 Kč",
+                "40.001 - 60.000 Kč",
+                "60.001 - 80.000 Kč",
+                "Vice než 80.000 Kč",
+                "Nevím, nechci odpovědět"
+            ]
+        },
+        "living_standard": {
+            "order": [
+                "Velmi špatnou",
+                "Spíše špatnou",
+                "Ani dobrou, ani špatnou",
+                "Spíše dobrou",
+                "Velmi dobrou",
+                "Nevím"
+            ]
+        },
+        "interest_in_politics": {
+            "order": [
+                "Vůbec se nezajímám",
+                "Spíše se nezajímám",
+                "Spíše se zajímám",
+                "Velmi se zajímám",
+                "Nevím"
+            ]
+        },
+        "opinion_on_eu": {
+            "order": [
+                "Rozhodně nespokojený/á",
+                "Spíše nespokojený/á",
+                "Spíše spokojený/á",
+                "Rozhodně spokojený/á",
+                "Nevím"
+            ]
+        },
+        "opinion_on_nato": {
+            "order": [
+                "Rozhodně nespokojený/á",
+                "Spíše nespokojený/á",
+                "Spíše spokojený/á",
+                "Rozhodně spokojený/á",
+                "Nevím"
+            ]
+        },
+        "covid_vaccinated": {
+            "order": [
+                "Ne",
+                "Ano",
+                "Nechci uvést",
+                "Nevím"
+            ]
+        }
+    },
     "claims": {
         "election_2021": {
             "column": "voted_party",

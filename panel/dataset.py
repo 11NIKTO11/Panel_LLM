@@ -26,6 +26,11 @@ Declaration shape:
         "optional": ["employment"],       columns a subject may lack; the rest must be filled
         "groups": ["gender", "region"],   columns analysis may group subjects by
         "area": "region",                 the column whose values name a row of reference results
+        "levels": {                       how analysis reads a grouping column; a column with no entry
+            "age": {"bands": {"18-24": 24, "25-34": 34}},        is its values, largest group first
+            "town_size": {"order": ["small", "large"]},
+            "employment": {"several": "; "}
+        },
         "claims": {"election_2021": {"column": "voted_party", "map": "claims/election_2021.json"}},
         "shared": {"gender": {"column": "gender", "map": {"Muž": "male", "Žena": "female"}}},
         "note": "free text, ignored by code"
@@ -44,7 +49,8 @@ CONFIG_NAME = "dataset.json"
 FORMS_NAME = "forms.json"
 DESCRIPTIONS_DIR = "descriptions"
 REQUIRED_KEYS = {"name", "short", "title", "language", "source", "columns", "claims"}
-OPTIONAL_KEYS = {"optional", "groups", "area", "shared", "note"}
+OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "note"}
+LEVEL_KEYS = {"bands", "order", "several"}
 CLAIM_KEYS = {"column", "map"}
 SHARED_KEYS = {"column", "map"}
 MAP_KEYS = {"options", "abstained", "excluded"}
@@ -71,6 +77,22 @@ class SharedRef:
 
 
 @dataclass(frozen=True)
+class Levels:
+    """
+    How analysis reads one grouping column as levels; exactly one of the three is set.
+
+    Attributes:
+        bands: label -> the highest value it holds, for a numeric column, lowest band first.
+        order: the column's values along their scale, low to high, non-answers last.
+        several: the separator of a cell that holds several answers; a subject then belongs
+            to each of them.
+    """
+    bands: Dict[str, float]
+    order: Tuple[str, ...]
+    several: Union[str, None]
+
+
+@dataclass(frozen=True)
 class Dataset:
     """
     Attributes:
@@ -83,6 +105,7 @@ class Dataset:
         optional: columns a subject may lack.
         groups: columns analysis may group by.
         area: the column naming a row of a topic's reference results, or None.
+        levels: column -> how analysis reads it as levels (`Levels`), for the columns that say.
         claims: topic name -> where the dataset's answer to it lives.
         shared: shared vocabulary name -> the column carrying it and its map; often empty.
         dir: the dataset's folder.
@@ -97,6 +120,7 @@ class Dataset:
     optional: Tuple[str, ...]
     groups: Tuple[str, ...]
     area: Union[str, None]
+    levels: Dict[str, "Levels"]
     claims: Dict[str, ClaimRef]
     shared: Dict[str, SharedRef]
     dir: Path
@@ -183,13 +207,19 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
     optional, groups, area = tuple(config.get("optional", ())), tuple(config.get("groups", ())), config.get("area")
     named = set(optional) | set(groups) | ({area} if area else set())
     named |= {ref.column for ref in claims.values()} | {ref.column for ref in shared.values()}
+    levels = {}
+    for column, entry in config.get("levels", {}).items():
+        if len(entry) != 1 or not set(entry) <= LEVEL_KEYS:
+            raise ValueError(f"{path}: levels of '{column}' need exactly one of {sorted(LEVEL_KEYS)}")
+        levels[column] = Levels(bands=dict(entry.get("bands", {})), order=tuple(entry.get("order", ())), several=entry.get("several"))
+    named |= set(levels)
     stray = sorted(named - set(columns))
     if stray:
         raise ValueError(f"{path}: roles name columns the dataset does not have: {stray}")
 
     return Dataset(
         name=config["name"], short=short, title=config["title"], language=config["language"],
-        source=config["source"], columns=columns, optional=optional, groups=groups, area=area,
+        source=config["source"], columns=columns, optional=optional, groups=groups, area=area, levels=levels,
         claims=claims, shared=shared, dir=directory, note=config.get("note", ""),
     )
 
