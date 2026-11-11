@@ -13,13 +13,13 @@ numpy>=2.5.4
 
 # --- Plotting ---
 matplotlib>=3.11.2
-seaborn>=0.13.2
-plotly>=7.1.0                 # interactive distance figures in panel_analysis.ipynb
+seaborn>=0.13.2               # only the superseded panel/analysis/plots/distances.py
+plotly>=7.1.0                 # only the superseded panel/analysis/plots/distances.py
 
 # --- Statistics ---
-scipy>=1.18.1                 # JSD / Wasserstein / entropy distances
-scikit-learn>=1.9.1           # cosine + euclidean distances, MAE
-statsmodels>=0.15.0           # MANOVA in panel_analysis.ipynb
+scipy>=1.18.1                 # JS / KL distances, pairwise distances, Spearman
+scikit-learn>=1.9.1           # MDS in panel/analysis/stats/mapping.py
+statsmodels>=0.15.0           # MANOVA in panel/analysis/stats/manova.py
 
 # --- Dataset ---
 pyreadstat>=1.3.7             # backs pandas.read_spss for the SoD .sav file

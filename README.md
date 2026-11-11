@@ -13,11 +13,12 @@ Everything the model is shown is data: the subjects (`datasets/`), the descripti
 names one of each plus a model, so a new election, a new issue question, a new description or a
 new language is a config change, never a code edit.
 
-**In transition (2026-11-11):** prepare and the run were reshaped - `python prepare.py sod`
-writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py <name>` sends a run; see
-`DECISIONS.md` §7 and §8. `sod` and `regions` are ported; the analysis notebooks, `sod_en` and
-`grid` are not, so the sections below that mention `data/profiles/`, `config/descriptions/`
-or `datasets/schema.json` describe the previous shape.
+**In transition (2026-11-11):** prepare, the run and the analysis were reshaped - `python
+prepare.py sod` writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py` sends a
+run, `python analyze.py` and `python compare.py` read runs back; see `DECISIONS.md` §7, §8
+and §9. `sod` and `regions` are ported; `sod_en` and `grid` are not, so the sections below
+that mention `data/profiles/`, `config/descriptions/` or `datasets/schema.json` describe the
+previous shape.
 
 Contributors: `CLAUDE.md` maps the modules, `AGENTS.md` sets the working conventions,
 `DECISIONS.md` records why things are the way they are.
@@ -84,10 +85,11 @@ it (`panel/paths.py` anchors them on the package).
 |---|---|---|
 | 1 | `python prepare.py sod` | `.sav` -> `data/sod/values.csv`, then `data/sod/prompts/*.csv` |
 | 2 | `python run.py <name>` | subjects -> LLM -> `results/<topic>/` |
-| 3 | `analyze.ipynb` | evaluate one run - not ported, fails |
-| 4 | `panel_stats.ipynb` | statistical layer - not ported, fails |
+| 3 | `python analyze.py <topic> <run>` | one saved run -> tables and figures |
+| 4 | `python compare.py <topic> <run> <run> ...` | several runs of a topic side by side |
 
-`simulate.ipynb` is superseded by `run.py` and no longer runs. Nothing is defined in a
+`analyze.ipynb` and `compare.ipynb` are steps 3 and 4 one block at a time. `simulate.ipynb`
+is superseded by `run.py` and `panel_stats.ipynb` by `analyze.py`; neither runs. Nothing is defined in a
 notebook; the code is in `panel/`.
 
 ### 2.1 Declaring a run
@@ -147,15 +149,45 @@ schema and the exact subject ids, so a saved run says how it was produced.
 **Cost warning.** A full run makes one API call per subject - 3880 for the survey. Set `sample`
 for a cheap trial; its results land under a `_subset=<n>` stem and never overwrite a full run.
 
-### 2.2 Tests
+### 2.2 Analyzing
+
+```bash
+python analyze.py                                    # every topic's saved runs
+python analyze.py election_2021 <run>                # all analyses of one run
+python analyze.py election_2021 <run> --only effects --predictors gender,age,region
+python compare.py election_2021 <run> <run> --name haiku
+```
+
+A run is named by its stem or by any text only one stem contains. Tables go to
+`results/<topic>/analysis/`, figures to `results/<topic>/plots/`; `--no-save` writes nothing,
+`--plain` ignores the topic's `plot.json`.
+
+| analysis | what it gives |
+|---|---|
+| `answers` | the mean of every column and how often each option is an answer's highest |
+| `country` | predicted, claimed and actual over all the run's subjects, with intervals |
+| `distance` | MAE, RMSE, turnout difference, JS, KL and correlation between the three |
+| `area` | MAE and RMSE per area, with subject counts |
+| `spread` | each column's distribution over subjects; distance from the mean answer |
+| `correlation` | correlation and covariance between options |
+| `groups` | the prediction at each level of every grouping column |
+| `effects` | which columns the answers follow: MANOVA and PERMANOVA |
+| `compass` | the model's map of the options against expert positions (CHES 2019) |
+
+`compare.py` has `shares`, `distances` (polls included), `areas`, `effects` and `compass`
+across the named runs. Claimed is counted from the run's own subjects; intervals are bootstrap
+over subjects. What was decided and what changed from the earlier statistics is `DECISIONS.md` §9.
+
+### 2.3 Tests
 
 ```bash
 python -m pytest
 ```
 
-Prepare, the topics and the run are covered: descriptions render, schemas match their
-snapshots (`tests/fixtures/`, see its README), an offline run writes every file it should and
-its record round-trips. In transition: `test_analysis.py` and `test_english.py` do not import,
+Prepare, the topics, the run and the analysis are covered: descriptions render, schemas match
+their snapshots (`tests/fixtures/`, see its README), an offline run writes every file it
+should and its record round-trips, and every analysis and comparison runs on fake runs. In
+transition: `test_analysis.py` (superseded by `test_analyze.py`) and `test_english.py` do not import,
 and eight legacy tests fail on the renamed response classes (`DECISIONS.md` §8). Tests that
 need gitignored inputs (`results/`, `data/sod/`) skip by name on a machine without them.
 
@@ -245,8 +277,8 @@ answers offline and deterministically.
 | `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
 | `data/legacy_clean_data.csv` | the frozen table the legacy runs were built from, keyed by row position | no |
 | `data/prompts.csv` | the descriptions the ten legacy runs were sent | yes |
-| `results/<topic>/` | model predictions, run records, derived tables | no |
-| `graphs/` | generated figures | no |
+| `results/<topic>/` | model predictions, run records, derived tables and figures | no |
+| `graphs/` | figures of the previous analysis layer | no |
 
 One run is four files sharing a stem, plus two archived copies:
 
@@ -257,6 +289,7 @@ results/election_2021/
 ├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_normalized.csv  turnout and options each rescaled to sum to 1
 ├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_run.json        the record
 ├── analysis/   derived tables, named after the run they came from (regenerable)
+├── plots/      figures, named the same way (regenerable)
 └── archive/    timestamped copies of the CSV and the record, one set per save
 ```
 
@@ -272,8 +305,9 @@ turns into ids in memory.
 
 ## 5. Status
 
-Prepare and the run are in their reshaped form (`DECISIONS.md` §7, §8); the analysis layer is
-not ported. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
+Prepare, the run and the analysis are in their reshaped form (`DECISIONS.md` §7, §8, §9).
+The analysis has only seen the two 200-subject trials, and its numbers are not yet compared
+with the earlier statistics; legacy runs are not read by it. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
 with a temperature, Haiku 5.5 with effort `low`); OpenAI, Gemini and OpenRouter have not been
 called since the overhaul. The legacy runs still load, but eight legacy tests fail on the
 renamed response classes (§8). `election_2025` has no reference results yet, and the English

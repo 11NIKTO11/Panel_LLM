@@ -330,6 +330,197 @@ prepare and the run work in this shape; the analysis layer, the notebooks, the d
       repeats, or a client that sends no temperature, copying would understate the spread.
     - the results would have to say which answers are copies.
 
+## 9. The analysis layer on the reshaped data (2026-11-11)
+
+Rewritten on the reshaped prepare and run, prototyped in a sandbox and ported in one go. One
+run: `answers`, `country`, `distance`, `area`, `spread`, `correlation`, `groups`, `effects`,
+`compass`. Several runs: `shares`, `distances`, `areas`, `effects`, `compass`.
+
+```
+analyze.py                      the entry point: lists saved runs, or analyzes one; no logic
+analyze.ipynb                   the same, one block per analysis; one setup cell with SAVE, STYLED
+compare.py                      the entry point for several runs of one topic; no logic
+compare.ipynb                   the same, one block per comparison
+config/topics/<topic>/          optional, read by analysis only: plot.json (colours, labels),
+                                polls.json (published polls), positions.json (expert positions)
+panel/topic/                    plot.py, polls.py, positions.py load them
+panel/analysis/
+├── saved.py                      SavedRun: a run read back with its subjects, claims, reference
+├── output.py                     Output: where tables and figures go; `save` off writes nothing
+├── aggregate.py                  predicted_distribution, claimed_distribution
+├── bootstrap.py                  interval: percentile bootstrap over subjects
+├── sources.py                    predicted / claimed / actual: one frame, the three distributions
+├── metrics.py                    distances: MAE, RMSE, correlation, JS, KL (one shared floor)
+├── answers.py                    analysis: mean and top per column; a table, no figure
+├── country.py                    analysis: predicted, claimed and actual over the whole run
+├── distance.py                   analysis: every metric for each pair of sources
+├── area.py                       analysis: MAE and RMSE between the sources per area, with subject counts
+├── spread.py                     analysis: each column over subjects; distance from the mean answer
+├── correlation.py                analysis: correlation and covariance between options, over subjects
+├── groups.py                     analysis: predicted, claimed and spread per level of each grouping column
+├── effects.py                    analysis: MANOVA and PERMANOVA of the shares on the grouping columns
+├── compass.py                    analysis: the model's map of the options against the experts' positions
+├── levels.py                     a grouping column as levels, as the dataset declares
+├── stats/                        compositional.py (zero replacement, ILR), design.py, manova.py,
+│                                 permanova.py, mapping.py (MDS, Procrustes, Mantel)
+├── comparison/                   several runs: loaded.py (RunSet, load_runs), shares.py, distances.py,
+│                                 areas.py, effects.py, compass.py
+└── plots/                        style.py, comparison.py (source_bars), intervals.py (interval_panels),
+                                  distributions.py (violins, histograms), matrices.py (heatmap, grid),
+                                  stacked.py (stacked_bars), maps.py (maps)
+```
+
+- an analysis is a function `(run, out) -> (table, figures)`, listed in `ANALYSES`; the script
+  runs them all (`--only` for one), the notebook has one block each
+  - `figures` is a list: `answers` has none, `area` one per metric (`area_mae`, `area_rmse`)
+  - `subjects` is the run's own subjects, not the whole values table: a run over a sample is
+    compared with what that sample claimed
+  - grouping columns and the area column come from `dataset.json` (`groups`, `area`)
+- a run is named by any text only one stem contains; a text two stems contain raises and lists them
+- refused, loudly
+  - legacy runs (keyed by row position)
+  - a values table rebuilt since the run was sent (sha256 against the record)
+  - saved rows that are not the subjects the record lists; an area with no reference row
+- tables go to `results/<topic>/analysis/<name>_<stem>.csv`, figures to
+  `results/<topic>/plots/<name>_<stem>.png`; `ResultStore.plot` owns that path
+  - rejected: a `graphs/` folder beside `results/` - a run's figures belong with its tables
+- a topic's `plot.json` is applied by default: bars wear the option's colour and sources
+  differ by strength; `--plain` / `STYLED = False` gives the default palette (a colour per
+  source). Figures name an option by its id, the topic's short name and the result column;
+  `labels` in `plot.json` overrides one, and the long native names are not drawn. Nothing
+  a model sees reads this file
+  - `last` names options a ranking puts at the end (`Other`); figures that rank the options
+    (`country`, `spread`, the shares comparison) go by the actual result, largest first
+    (`sources.ranked`), by the prediction on a topic without a reference
+  - colours cover all the options or none, and both turnout columns or neither; the turnout
+    pair is drawn green and red in `country`
+  - `framing_names` skips `plot.json`, `polls.json` and `positions.json`, the one change
+    this made to the run layer
+- claimed is counted from scratch: the run's own subjects' answers in the claims column,
+  sorted by the dataset's claims map; nothing reads `<name>_claimed_votes.csv`
+- intervals are bootstrap over subjects (a subject's repeats are drawn together); they say how
+  much the sample moves the number, not how much the model would differ on another call
+- figures are matplotlib `Figure` objects made without pyplot, in one palette; predicted,
+  claimed and actual keep their colour in every figure
+- one resampling of subjects serves predicted and claimed together, in `country` and in
+  `distance`: both are about the same subjects, so a distance between them is resampled as a pair
+- an analysis raises `NotApplicable` for a run it has nothing to work on (no claims and no
+  reference: no distance); the script prints that and goes on
+- changed from the colleague's `calculate_distances`, to compare at the end
+  - Wasserstein is gone: it read the options as ordered positions, and reordering them
+    changed the value
+  - KL adds one floor, 1e-6, to both distributions for every source; before, `distances`
+    clipped at 1e-12 and the notebook smoothed only the claimed series with 1e-6. KL still
+    moves a lot with an empty option - JS does not need a floor and is the safer read
+  - the turnout difference (source minus reference) is reported beside the option metrics
+- the check of what a run saved (`panel/run/check.py`, also `run.py --check`) is printed by
+  `analyze.py` after the run's description and has its own notebook block; it is not an
+  analysis: it writes nothing and compares with nothing
+  - it is two parts: `check` / `report` say whether the run is complete and consistent;
+    `means` is what the answers say (mean and top per column), which the `answers` analysis
+    writes as a table and `run.py` prints
+  - the report counts answers with P(voted) = 0, answers whose options sum to 0 (no
+    preference; they are NaN once normalized) and their overlap
+  - `top` is taken over answers that have a preference; before, an all-zero answer counted
+    for the first option
+- `area` resamples subjects within each area, 300 draws by default: fifteen areas at 1000
+  each made the pass slow
+  - its three panels share one scale; `interval_panels(same_scale=True)`. `distance` keeps a
+    scale per panel, its metrics having different units, three panels to a row
+- `spread` and `correlation` read one row per subject (`aggregate.subject_answers`): repeats
+  are averaged first, so they show the spread between subjects, not the model's noise on one
+  - on the normalized answers; a subject with no preference is left out and counted in the
+    figure's note. Before, such rows made the cosine histogram all-NaN
+  - heatmaps leave the diagonal blank: in a covariance matrix it took the whole colour range
+  - the correlation figure says what no relation looks like, -1/(k-1): shares sum to 1, so
+    the options are negatively correlated by construction
+  - no seaborn: violins and histograms are plain matplotlib, without a density curve
+- several runs are compared by their own entry points, `compare.py` and `compare.ipynb`, on
+  `panel/analysis/comparison/`: the input is a topic and a list of runs, and the output has
+  no single stem, so files are `runs_<comparison>_<name>`, the name being the topic unless given
+  - rejected: a list of runs to `analyze.py` - "analyze each" and "compare these" would
+    share one argument
+  - runs are named one by one; "every run of the topic" would sweep in trial and Fake runs
+  - a comparison builds on the single-run analyses (`country`, `distance`), so a run's
+    numbers and intervals are the same in both places
+  - a run's label is its model, plus the spec fields that differ where two runs share a model
+  - claimed is one source when every run asked the same subjects, else one per set of subjects
+  - polls are topic data, `polls.json` with option ids, copied from `data/agentury.csv`; they enter the tables and the distance figure, not the bar figure
+  - `panel/analysis/compare.py` became `metrics.py`: `compare` now names the entry point
+  - in the distance figures the polls come first, then the claimed, then the runs; polls are
+    also held against the claimed distribution when every run asked the same subjects
+  - heatmap colours go by meaning, named in `plots/style.py`: errors run yellow to red,
+    effect sizes in cividis as the legacy figure did; the number's ink follows the cell
+  - by area and the effects are heatmaps with the number in every cell and the interval or
+    p-value underneath, columns by runs; a dot per run in every row was tried and read worse
+  - in the shares figure the actual result is near-black and the claimed grey
+    (`style.REFERENCE`, `style.SECONDARY`), so the runs alone carry colour: at most eight,
+    more raises. The single-run `country` figure does the same when drawn `--plain`
+- a dataset declares how a grouping column reads as levels, `levels` in `dataset.json`
+  (`panel.dataset.Levels`, `panel/analysis/levels.py`): `order` along a scale, non-answers
+  last; `bands` of a numeric column; `several` for a cell holding several answers. A column
+  with no entry (gender, region) goes largest group first
+  - age bands are the survey's own `AGE2` bands, declared, not a column of `values.csv`:
+    rebuilding the values table changes its sha256 and every saved run then refuses to load
+  - an employment cell holds several statuses; a subject counts at each, so the figure has
+    the ten statuses and their counts add up to more than the subjects. In `effects` the
+    column is an indicator per status (`stats/design.py`), not a level per combination
+  - the separator is now stated three times (`clean.SEVERAL`, `forms.json` `split`,
+    `levels.several`); open
+- the old "spread of options by region" is the `groups_spread` table, for every grouping
+  column, without a heatmap
+- `effects`, changed from the colleague's MANOVA and PERMANOVA, to compare at the end
+  - zeros are replaced multiplicatively by 0.005 before the log-ratio transform, not clipped
+    at 1e-12: a clipped zero sat some 25 log-units away and decided the test
+  - MANOVA reports partial eta squared (Pillai over its largest possible value) with F and
+    p, so predictors with different numbers of levels compare; raw Wilks and Pillai did not
+  - PERMANOVA tests each column alone and reports R squared; before, all columns went in as
+    one design and gave a single F
+  - age is numeric in both; before, PERMANOVA dummy-encoded it into about 46 columns
+  - the `correlation` distance is between two subjects' rows; before, it centred across
+    subjects. `mae` is gone (it is `l1` over the number of parts); `aitchison` is the old
+    `euclidean_ilr`
+  - a predictor that leaves no residual raises; before, a NaN F gave the smallest p
+  - PERMANOVA samples 1000 subjects above that size; MANOVA uses all
+  - which columns are tested is an argument, `effects(run, out, predictors)`: `--predictors`
+    on both scripts, `PREDICTORS` in both notebooks. The default is the dataset's `groups`
+    plus the claims column. Rejected: named predictor sets in `dataset.json` - which columns
+    one analysis tests is not a fact about the dataset
+  - the claims column (`voted_party`) is tested with the grouping columns, as the legacy
+    figure had it: a sanity check, the model never saw it
+  - the figure shows raw Pillai with its p-value beside partial eta squared, and the
+    comparison a runs-by-columns heatmap of Pillai with p-values, laid out like the legacy one
+  - open: PERMANOVA alone and MANOVA given-the-others answer different questions; a
+    partial PERMANOVA would need a permutation scheme under the other columns
+- `compass` is the colleague's CHES comparison from `llm_pushforward` (`ches_comparison`,
+  `pushforward.py`), its correlation distance: MDS of the options' distances, Procrustes
+  onto the experts' plane, exact permutation tests
+  - the positions are topic data, `positions.json` with option ids, computed from that
+    project's `ches2019.csv` the way its `ches_positions` does; six of the nine options
+    are rated
+  - not ported: its second distance (how alike two options' electorates are over the
+    subjects' columns) and the comparison against a model trained on real votes
+  - needs scikit-learn
+- tests: `test_stats.py` and `test_plots.py` were rewritten for the new functions,
+  `test_analyze.py` runs every analysis and comparison on fake runs; the snapshot helper
+  keeps the aggregation the legacy baselines were frozen with
+- decided 2026-11-11
+  - the option id `Trikolora` became `TSS` in `election_2021` and `election_2021_legacy`
+    (topic, claims map, `en.json`, `plot.json`); `Trikolora` stays as an alias, and every
+    reader of a saved results table passes it through `Topic.rename`, so runs saved under
+    the old id still load. No saved file was rewritten
+  - the colleague's statistics may be corrected during the port (drop Wasserstein, one zero
+    floor for KL, zero replacement before ILR, the PERMANOVA faults); at the end old and new
+    numbers are compared and the results re-read
+  - legacy runs are refused for now; they are to work again once migrated to the new names
+  - the plotly figures were redrawn in matplotlib; plotly and seaborn are no longer used
+- open
+  - old and new numbers of the colleague's statistics are not yet compared: that needs the
+    legacy runs, which are still refused
+  - superseded and left in the tree: `panel_stats.ipynb`, `simulate.ipynb`,
+    `tests/test_analysis.py`, `panel/analysis/plots/distances.py`; `sod_en` and `grid` are
+    not ported
+
 ## 6. Pending Martin's decision
 
 - income cut points for `to_levels` (§4) - left open on purpose (2026-11-10); only needed for
