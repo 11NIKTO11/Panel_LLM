@@ -8,7 +8,7 @@ from panel.dataset import INDEX, load_claims, load_dataset, read_values, validat
 from panel.describe.forms import ColumnForms, Forms, load_forms
 from panel.describe.render import read_prompts, render
 from panel.describe.template import PromptTemplate, load_template
-from panel.prepare import prepare
+from panel.prepare import count_prompts, prepare
 
 from tests.conftest import require
 
@@ -143,6 +143,14 @@ def test_read_prompts_refuses_other_subjects(sod):
     require(sod.prompts_path("default"))
     with pytest.raises(ValueError):
         read_prompts(sod, "default", pd.Index([1, 2, 3], name=INDEX))
+
+
+def test_count_prompts(sod):
+    require(sod.prompts_path("default"))
+    stored = read_prompts(sod, "default")["default"]
+    count = count_prompts("sod", "default")
+    assert count.prompts == len(stored) and count.distinct == stored.nunique()
+    assert count.identical == stored.duplicated(keep=False).sum() and count.distinct + count.identical >= count.prompts
 
 
 def test_prepare_unknown_description(sod):

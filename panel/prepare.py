@@ -6,13 +6,29 @@ folder, `datasets/<name>/build.py::build(dataset) -> DataFrame`, which turns the
 into values; everything after that - checking, storing, rendering - is the same for all.
 """
 import importlib
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Sequence, Union
 
 from panel.dataset import load_dataset, read_values, write_values
-from panel.describe.render import render_all
+from panel.describe.render import read_prompts, render_all
 
 VALUES = "values"
+
+
+@dataclass(frozen=True)
+class PromptCount:
+    """
+    How far a prompt table tells its subjects apart.
+
+    Attributes:
+        prompts: one per subject.
+        identical: prompts that are word for word another subject's.
+        distinct: different texts among them.
+    """
+    prompts: int
+    identical: int
+    distinct: int
 
 
 def prepare(
@@ -42,3 +58,14 @@ def prepare(
         written[VALUES] = write_values(dataset, builder.build(dataset))
     written.update(render_all(dataset, read_values(dataset), descriptions))
     return written
+
+
+def count_prompts(name: str, description: str) -> PromptCount:
+    """
+    Count the identical prompts of a stored prompt table.
+
+    Raises:
+        FileNotFoundError: if the dataset or that prompt table is missing.
+    """
+    prompts = read_prompts(load_dataset(name), description)[description]
+    return PromptCount(len(prompts), int(prompts.duplicated(keep=False).sum()), int(prompts.nunique()))

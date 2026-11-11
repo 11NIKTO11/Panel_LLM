@@ -6,12 +6,13 @@ Prepare a dataset from the command line.
     python prepare.py sod -d default                values and one description
     python prepare.py sod -d default --prompts-only keep the stored values, render again
 
-Naming the dataset on the command line asks nothing. Writes under `data/<dataset>/`.
+Naming the dataset on the command line asks nothing. Writes under `data/<dataset>/`, and says
+for each prompt table how many prompts are identical to another subject's.
 """
 import argparse
 
 from panel.dataset import dataset_names, load_dataset
-from panel.prepare import prepare
+from panel.prepare import VALUES, count_prompts, prepare
 
 
 def pick(question: str, options: list, several: bool = False) -> list:
@@ -43,6 +44,9 @@ def main() -> None:
 
     for what, path in prepare(name, descriptions, rebuild).items():
         print(f"{what} -> {path}")
+        if what != VALUES:
+            count = count_prompts(name, what)
+            print(f"  {count.prompts} prompts, {count.identical} identical to another subject's, {count.distinct} distinct")
 
 
 if __name__ == "__main__":
