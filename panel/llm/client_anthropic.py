@@ -16,8 +16,7 @@ class AnthropicClient(BaseLLMClient):
     SHORT_NAME = "Anthropic"
     API_VERSION: Union[str, None] = None
 
-    # NOTE: effort is fixed here until it becomes a RunSpec field; a run's record does not show it.
-    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = "low"):
+    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None):
         """
         Args:
             api_key: Anthropic key; falls back to ANTHROPIC_API_KEY.
@@ -71,9 +70,6 @@ class AnthropicLegacyClient(AnthropicClient):
     """
     SHORT_NAME = "AnthropicLegacy"
     API_VERSION = "2023-06-01"
-
-    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None):
-        super().__init__(api_key, effort)
 
     def _sampling(self, temperature: Union[float, None]) -> dict:
         return {} if temperature is None else {"extra_body": {"temperature": temperature}}
