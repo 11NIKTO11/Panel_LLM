@@ -4,6 +4,7 @@ import pytest
 from matplotlib.figure import Figure
 
 from panel.analysis import ANALYSES, NotApplicable, Output, describe, find_stem, load_run
+from panel.analysis.comparison import COMPARISONS, load_runs
 from panel.analysis.levels import members
 from panel.analysis.sources import ranked
 from panel.dataset import Levels
@@ -45,6 +46,23 @@ def test_every_analysis_gives_a_table_and_figures(saved, text):
         assert all(isinstance(figure, Figure) for figure in figures), name
     assert out.written and all(path.exists() for path in out.written)
     assert Output(saved, run.stem, save=False).table("nothing", table) is table and not saved.analysis("nothing_" + run.stem + ".csv").exists()
+
+
+def test_runs_side_by_side(saved):
+    with pytest.raises(ValueError):
+        load_runs(saved, ["x3", "x3"])
+    runs = load_runs(saved, ["subset=20", "x3"])
+    assert len(set(runs.runs)) == 2 and len(runs.claimed) == 2 and list(runs.polls.columns) == list(runs.topic.options)
+    out = Output(saved, "pair")
+    for name, comparison in COMPARISONS.items():
+        try:
+            table, figures = comparison(runs, out)
+        except NotApplicable:
+            assert name == "effects"
+            continue
+        assert isinstance(table, pd.DataFrame) and not table.empty, name
+        assert figures and all(isinstance(figure, Figure) for figure in figures), name
+    assert all(path.exists() and "_pair." in path.name for path in out.written)
 
 
 def test_levels_of_a_grouping_column():
