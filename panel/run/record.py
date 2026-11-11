@@ -50,6 +50,8 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         client: the client that made the calls, for the model id the provider reported.
     """
     spec, dataset, description, framing = resolved.spec, resolved.dataset, resolved.description, resolved.framing
+    question = resolved.question
+    shared = dataset.shared.get(question.by) if question else None
     return {
         "stem": resolved.stem,
         "n": n,
@@ -58,16 +60,21 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         "dataset": {
             "name": dataset.name, "short": dataset.short, "language": dataset.language,
             "rows": [int(subject) for subject in resolved.rows.index],
-            "profile_sha256": resolved.profile_sha256,
+            **{f"{name}_sha256": digest for name, digest in resolved.digests.items()},
         },
         "description": {
-            "name": description.name, "short": description.short, "language": description.language,
+            "name": description.name, "short": description.short,
             "standalone": description.standalone, "text": [list(block) for block in description.sentences],
         },
         "framing": {
             "name": framing.name, "short": framing.short, "language": framing.language, "title": framing.title,
-            "instructions": framing.instructions, "question": resolved.question, "labels": framing.labels,
+            "instructions": framing.instructions, "labels": framing.labels,
             "schema_text": asdict(framing.schema),
+        },
+        "question": question and {
+            "name": question.name, "short": question.short, "language": question.language,
+            "text": question.text, "by": question.by, "forms": question.forms, "fallback": question.fallback,
+            "shared": shared and {"column": shared.column, "map": shared.map},
         },
         "response_schema": resolved.response_model.model_json_schema(),
         "model_resolved": getattr(client, "last_model", None) if client else None,

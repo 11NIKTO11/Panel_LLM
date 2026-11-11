@@ -30,8 +30,8 @@ from typing import Any, Dict, List, Tuple, Type, Union
 import pandas as pd
 from pydantic import BaseModel
 
-from panel.analysis.aggregate import normalize_groups
 from panel.llm import BaseLLMClient
+from panel.topic.normalize import normalize_groups
 
 from .record import build_record
 from .resolve import REPEAT, SUBJECT, Resolved

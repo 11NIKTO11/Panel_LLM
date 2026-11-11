@@ -1,10 +1,10 @@
 """
 Aggregate per-subject rows into one distribution - predicted from a results frame, claimed from
-a profile's answers - and rescale column groups to sum to 1.
+a profile's answers.
 """
-from typing import Sequence
-
 import pandas as pd
+
+from panel.topic.normalize import normalize_groups
 
 
 def aggregate_results_from_df(df: pd.DataFrame, topic, weighted: bool = True, normalized: bool = True) -> pd.Series:
@@ -53,20 +53,6 @@ def aggregate_results_from_df(df: pd.DataFrame, topic, weighted: bool = True, no
     result_series = pd.concat([attendance_agg, normalized_parties])
 
     return result_series
-
-def normalize_groups(df: pd.DataFrame, groups: Sequence[Sequence[str]]) -> pd.DataFrame:
-    """
-    Rescale each group of columns to sum to 1 per row.
-
-    Args:
-        df: wide results, one row per respondent.
-        groups: column groups, e.g. `topic.normalize_groups`.
-    """
-    out = df.copy()
-    for columns in groups:
-        columns = list(columns)
-        out[columns] = out[columns].div(out[columns].sum(axis=1), axis=0)
-    return out
 
 
 def claimed_distribution(frame: pd.DataFrame, claims, topic, count_excluded_as_abstained: bool = False) -> pd.Series:
