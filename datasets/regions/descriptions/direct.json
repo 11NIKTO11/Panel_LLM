@@ -1,0 +1,11 @@
+{
+    "name": "direct",
+    "short": "direct",
+    "standalone": true,
+    "note": "The direct forecast: the description is the whole prompt, so it is standalone and a run names no question. It names the 2021 election, so it is tied to that topic. The text of the former latent_direct_v1, itself from the direct_forecast function of the former election_preferences.ipynb.",
+    "sentences": [
+        [
+            "Účast a výsledek voleb do poslanecké sněmovny {region|in} v roce 2021 budou:"
+        ]
+    ]
+}

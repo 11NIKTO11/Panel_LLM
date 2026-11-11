@@ -4,13 +4,13 @@
     "title": "The fourteen regions and the country",
     "language": "cs",
     "source": "regions.csv",
-    "required": [
+    "columns": [
         "region"
     ],
-    "descriptions": [
-        "latent_citizen_v1",
-        "latent_direct_v1"
+    "groups": [
+        "region"
     ],
+    "area": "region",
     "claims": {},
-    "note": "Subjects for the latent runs, which ask about a place rather than a person. The country is a subject like the regions; which row of a reference table is the whole is the topic's business (its reference.total). regions.csv also carries an approximate population per area (the former notebook's numbers; the ranking is right, the figures are not exact), which analysis uses only to order groups in figures; it is not a profile column."
+    "note": "Subjects for the latent runs, which ask about a place rather than a person: fifteen areas, numbered 1..15 in the order of regions.csv. The country is a subject like the regions; which row of a reference table is the whole is the topic's business (its reference.total). regions.csv also carries an approximate population per area (the former notebook's numbers; the ranking is right, the figures are not exact), which analysis uses only to order groups in figures; it is not a values column."
 }

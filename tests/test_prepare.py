@@ -1,4 +1,5 @@
 """Prepare: a dataset's declaration, its values table, its forms, and the descriptions rendered from them."""
+import importlib
 import json
 
 import pandas as pd
@@ -151,6 +152,22 @@ def test_count_prompts(sod):
     count = count_prompts("sod", "default")
     assert count.prompts == len(stored) and count.distinct == stored.nunique()
     assert count.identical == stored.duplicated(keep=False).sum() and count.distinct + count.identical >= count.prompts
+
+
+def test_regions_render_from_the_source():
+    regions = load_dataset("regions")
+    values = importlib.import_module("datasets.regions.build").build(regions)
+    validate_values(regions, values)
+    assert list(values.index) == list(range(1, 16)) and values["region"].iloc[0] == "Česko"
+    forms = load_forms(regions.forms_path)
+    citizen = render(regions, load_template(regions.description_path("citizen")), values, forms)
+    direct = render(regions, load_template(regions.description_path("direct")), values, forms)
+    assert citizen[1] == "Jsem obyvatel/ka Česka." and citizen[2] == "Jsem obyvatel/ka Prahy."
+    assert direct[3] == "Účast a výsledek voleb do poslanecké sněmovny ve Středočeském kraji v roce 2021 budou:"
+    assert citizen.nunique() == direct.nunique() == 15
+    for name, fresh in (("citizen", citizen), ("direct", direct)):
+        stored = read_prompts(regions, name, values.index)[name]
+        assert (stored == fresh).all(), name
 
 
 def test_prepare_unknown_description(sod):
