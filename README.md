@@ -116,12 +116,16 @@ python run.py nano-trial                   # a named run
 python run.py nano --sample 50             # a named run with fields replaced; `none` is no value
 python run.py nano --show                  # the system prompt and one prompt; no call
 python run.py nano --one                   # one call, printed; nothing saved
+python run.py nano --check                 # look over the saved run; no call
 python run.py fake                         # the whole path offline
 ```
 
 Every field of a run is an option, and without a name all of them come from the options. The
 script prints the stem and the number of calls, says when the stem already holds a run, and
-asks before sending to anything but the Fake client (`--yes` skips that).
+asks before sending to anything but the Fake client (`--yes` skips that). After saving it
+prints a check of the run - whether every call was answered, whether turnout and the option
+probabilities sum to 1, the mean and the top-choice share per option - a sanity check and a
+first reading, not a comparison with any reference.
 
 `resolve` loads what the names point at and lays out the calls; `execute` runs the batch, reruns
 skipped calls a capped number of times, and saves twice - an archived copy, then the plain files.

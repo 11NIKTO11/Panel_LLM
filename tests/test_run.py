@@ -8,6 +8,7 @@ from panel import paths
 from panel.analysis import validate
 from panel.dataset import load_dataset
 from panel.run import ResultStore, RunSpec, execute, resolve
+from panel.run.check import check, report
 from panel.run.fake import FakeClient
 from panel.run.named import FIELDS, OWN, build_spec, load_runs, parse
 from panel.run.registry import client_class
@@ -74,6 +75,28 @@ def test_execute_offline(tmp_path):
     bad_turnout, bad_options, duplicates = validate.evaluate_voting_results(loaded)
     assert not bad_turnout and not bad_options and not duplicates
     assert store.runs() == [run.stem] and written.results_csv.exists()
+
+
+def test_check_of_a_saved_run(tmp_path):
+    run = prepared(SOD)
+    store = ResultStore(tmp_path, SOD.topic)
+    with pytest.raises(FileNotFoundError):
+        check(run, store)
+    execute(run, store, FakeClient(), max_workers=4)
+    result = check(run, store)
+    total = len(run.topic.options)
+    assert result.answers == result.calls == 20 and result.same_calls and result.model_resolved == "fake-model-fake"
+    assert result.missing == 0 and result.out_of_range == 0 and result.duplicates == 0
+    assert result.turnout.off == 0 and result.options.off == 0 and result.listed == {total: 20}
+    assert list(result.means) == run.topic.columns and abs(sum(result.top.values()) - 1) < 1e-9
+    assert run.stem in report(result, total)
+
+    pick = prepared(SOD.variant(shape="Pick"))
+    execute(pick, store, FakeClient(), max_workers=4)
+    picked = check(pick, store)
+    assert picked.options is None and picked.top is None and picked.turnout.off == 0
+    assert abs(sum(picked.means[option] for option in pick.topic.options) - 1) < 1e-9
+    assert pick.stem in report(picked, total)
 
 
 def test_execute_repeats(tmp_path):
