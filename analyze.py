@@ -6,6 +6,8 @@ Analyze a saved run from the command line.
     python analyze.py election_2021 haiku-5-5       the run whose stem contains that text
     python analyze.py election_2021 haiku-5-5 --only country
     python analyze.py election_2021 haiku-5-5 --only effects --predictors gender,age,region
+    python analyze.py election_2021 haiku-5-5 --only effects --delta 0.001
+    python analyze.py election_2021 haiku-5-5 --unweighted   option shares not weighted by turnout
     python analyze.py election_2021 haiku-5-5 --no-save
     python analyze.py election_2021 haiku-5-5 --plain      ignore the topic's plot.json
 
@@ -27,8 +29,10 @@ def main() -> None:
     parser.add_argument("run", nargs="?", help="a stem, or any text only one stem contains")
     parser.add_argument("--only", choices=list(ANALYSES), help="one analysis instead of all")
     parser.add_argument("--predictors", help="for effects: the columns to test, comma-separated; the dataset's grouping columns and claims by default")
+    parser.add_argument("--delta", type=float, help="for effects: what a zero share is replaced by before the log-ratio transform; 0.005 by default")
     parser.add_argument("--no-save", action="store_true", help="write no table and no figure")
     parser.add_argument("--plain", action="store_true", help="default colours instead of the topic's plot.json")
+    parser.add_argument("--unweighted", action="store_true", help="do not weight option shares by the probability of voting; files get the suffix _unweighted")
     args = parser.parse_args()
 
     if args.run is None:
@@ -38,9 +42,9 @@ def main() -> None:
         return
 
     store = ResultStore(paths.RESULTS_DIR, args.topic)
-    run = load_run(store, find_stem(store, args.run), styled=not args.plain)
-    out = Output(store, run.stem, save=not args.no_save)
-    settings = {"effects": {"predictors": args.predictors.split(",")}} if args.predictors else {}
+    run = load_run(store, find_stem(store, args.run), styled=not args.plain, weighted=not args.unweighted)
+    out = Output(store, run.stem + ("_unweighted" if args.unweighted else ""), save=not args.no_save)
+    settings = {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
     print(describe(run))
     print(f"\n{report(check(resolve(run.spec), store), len(run.options))}")
     for name, analysis in ANALYSES.items():

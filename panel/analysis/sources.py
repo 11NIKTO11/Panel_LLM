@@ -25,7 +25,7 @@ def frame(run: SavedRun) -> pd.DataFrame:
 
 def estimated(run: SavedRun, rows: pd.DataFrame) -> Dict[str, pd.Series]:
     """Predicted and, if the dataset has claims, claimed, for the given rows of `frame(run)`: what a resampling moves."""
-    found = {PREDICTED: predicted_distribution(rows, run.topic)}
+    found = {PREDICTED: predicted_distribution(rows, run.topic, run.weighted)}
     if run.claims:
         found[CLAIMED] = claimed_distribution(rows, run.claims, run.topic)
     return found
@@ -52,6 +52,6 @@ def ranked(run: SavedRun) -> List[str]:
     first - by the run's own prediction on a topic without a reference - with the options
     the topic's style names as last at the end.
     """
-    shares = actual(run)[ACTUAL] if run.reference is not None else predicted_distribution(frame(run), run.topic)
+    shares = actual(run)[ACTUAL] if run.reference is not None else predicted_distribution(frame(run), run.topic, run.weighted)
     order = list(shares[run.options].sort_values(ascending=False, kind="stable").index)
     return [option for option in order if option not in run.style.last] + [option for option in order if option in run.style.last]

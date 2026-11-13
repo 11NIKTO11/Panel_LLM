@@ -1,0 +1,9 @@
+{
+    "haiku": {
+        "topic": "election_2021",
+        "runs": {
+            "Haiku 4.5": "sod_default_cs_default_AnthropicLegacy_claude-haiku-4-5",
+            "Haiku 5.5": "sod_default_cs_default_Anthropic_claude-haiku-5-5"
+        }
+    }
+}

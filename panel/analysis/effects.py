@@ -100,6 +100,6 @@ def effects(
         names={PILLAI: "MANOVA Pillai's trace", ETA: "MANOVA partial eta squared", R2: "PERMANOVA R squared"},
         marks={PILLAI: table[MANOVA_P].map(chance), R2: table[PERMANOVA_P].map(chance)},
         title=f"{run.spec.model} on {run.topic.name}: what the answers follow",
-        note=f"{len(subjects)} subjects of '{run.dataset.name}'" + (f", PERMANOVA on a sample of {most}" if len(subjects) > most else "") + f"; MANOVA: given the other columns, PERMANOVA ({distance}): alone",
+        note=f"{len(subjects)} subjects of '{run.dataset.name}'" + (f", PERMANOVA on a sample of {most}" if len(subjects) > most else "") + f"; MANOVA: given the other columns, zero shares replaced by {delta:g}; PERMANOVA ({distance}): alone",
     )
     return table, [out.figure(NAME, figure)]

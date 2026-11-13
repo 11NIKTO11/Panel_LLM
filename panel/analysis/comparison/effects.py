@@ -12,19 +12,21 @@ from ..effects import ETA, MANOVA_P, PERMANOVA_P, PILLAI, R2, chance, effects as
 from ..output import Output
 from ..plots.matrices import grid
 from ..plots.style import EFFECTS
+from ..stats.compositional import DELTA
 from .loaded import RunSet
 
 NAME = "runs_effects"
 RUN, COLUMN = "run", "column"
 
 
-def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = None) -> Tuple[pd.DataFrame, List[Figure]]:
+def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = None, delta: float = DELTA) -> Tuple[pd.DataFrame, List[Figure]]:
     """
     Each grouping column's MANOVA and PERMANOVA effect, per run.
 
     Args:
         runs: the runs to compare.
         predictors: the columns to test, as the single-run `effects` takes them.
+        delta: what a zero share is replaced by before a log-ratio transform.
         out: takes the table, named `runs_effects`, and three heatmaps, columns by runs:
             `runs_effects_pillai` and `runs_effects_r2` with p-values, `runs_effects_eta2`.
 
@@ -36,7 +38,7 @@ def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = 
         NotApplicable: if a run has nothing to test.
     """
     quiet = Output(out.store, out.stem, save=False)
-    own = {label: single(run, quiet, predictors)[0] for label, run in runs.runs.items()}
+    own = {label: single(run, quiet, predictors, delta=delta)[0] for label, run in runs.runs.items()}
     table = pd.concat(own, names=[RUN, COLUMN])
     out.table(NAME, table)
 

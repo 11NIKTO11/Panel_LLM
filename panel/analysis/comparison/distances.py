@@ -85,7 +85,7 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     figures = []
     for reference in table.index.get_level_values(AGAINST).unique():
         figure = interval_panels(
-            table.loc[reference], metrics, per_row=3,
+            table.loc[reference], metrics, per_row=3, bars=True,
             percent=[metric for metric in (MAE, RMSE, TURNOUT) if metric in metrics], zero=[TURNOUT] if topic.turnout else [],
             title=f"{topic.name}: distance from the {reference}",
             note=f"over the {len(options)} options; polls, then the claimed, then the runs; whiskers are 95% bootstrap intervals over a run's subjects",

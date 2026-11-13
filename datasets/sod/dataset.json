@@ -124,6 +124,24 @@
                 "Nechci uvést",
                 "Nevím"
             ]
+        },
+        "region": {
+            "order": [
+                "Středočeský kraj",
+                "Hlavní město Praha",
+                "Jihomoravský kraj",
+                "Moravskoslezský kraj",
+                "Ústecký kraj",
+                "Jihočeský kraj",
+                "Olomoucký kraj",
+                "Plzeňský kraj",
+                "Zlínský kraj",
+                "Královéhradecký kraj",
+                "Pardubický kraj",
+                "Kraj Vysočina",
+                "Liberecký kraj",
+                "Karlovarský kraj"
+            ]
         }
     },
     "claims": {

@@ -6,7 +6,7 @@ model, the spec fields they differ in. Runs are named one by one - a topic's fol
 holds trial and offline runs, and a comparison should say what it compares.
 """
 from dataclasses import dataclass
-from typing import Dict, Sequence
+from typing import Dict, Mapping, Sequence, Union
 
 import pandas as pd
 
@@ -62,24 +62,27 @@ def labels(runs: Sequence[SavedRun]) -> Dict[str, SavedRun]:
     }
 
 
-def load_runs(store: ResultStore, texts: Sequence[str], styled: bool = True) -> RunSet:
+def load_runs(store: ResultStore, texts: Union[Sequence[str], Mapping[str, str]], styled: bool = True, weighted: bool = True) -> RunSet:
     """
     Read the named runs of a store's topic.
 
     Args:
         store: the topic's results.
-        texts: per run, its stem or any text only one stem contains.
+        texts: per run, its stem or any text only one stem contains; or label -> such a
+            text, and the runs are called by those labels instead of by their models.
         styled: draw with the topic's `plot.json`.
+        weighted: as `load_run` takes it.
 
     Raises:
         ValueError: on no run named, a run named twice, or whatever `find_stem` and
             `load_run` refuse.
     """
-    stems = [find_stem(store, text) for text in texts]
+    given = list(texts) if isinstance(texts, Mapping) else None
+    stems = [find_stem(store, text) for text in (texts.values() if given else texts)]
     if not stems or len(set(stems)) != len(stems):
         raise ValueError(f"name each run to compare once; got {stems}")
-    runs = [load_run(store, stem, styled) for stem in stems]
-    return RunSet(topic=runs[0].topic, runs=labels(runs), polls=load_polls(runs[0].topic), style=runs[0].style)
+    runs = [load_run(store, stem, styled, weighted) for stem in stems]
+    return RunSet(topic=runs[0].topic, runs=dict(zip(given, runs)) if given else labels(runs), polls=load_polls(runs[0].topic), style=runs[0].style)
 
 
 def describe(runs: RunSet) -> str:

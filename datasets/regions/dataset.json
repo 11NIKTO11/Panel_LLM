@@ -12,5 +12,26 @@
     ],
     "area": "region",
     "claims": {},
+    "levels": {
+        "region": {
+            "order": [
+                "Česko",
+                "Středočeský kraj",
+                "Hlavní město Praha",
+                "Jihomoravský kraj",
+                "Moravskoslezský kraj",
+                "Ústecký kraj",
+                "Jihočeský kraj",
+                "Olomoucký kraj",
+                "Plzeňský kraj",
+                "Zlínský kraj",
+                "Královéhradecký kraj",
+                "Pardubický kraj",
+                "Kraj Vysočina",
+                "Liberecký kraj",
+                "Karlovarský kraj"
+            ]
+        }
+    },
     "note": "Subjects for the latent runs, which ask about a place rather than a person: fifteen areas, numbered 1..15 in the order of regions.csv. The country is a subject like the regions; which row of a reference table is the whole is the topic's business (its reference.total). regions.csv also carries an approximate population per area (the former notebook's numbers; the ranking is right, the figures are not exact), which analysis uses only to order groups in figures; it is not a values column."
 }

@@ -19,6 +19,7 @@ def interval_panels(
     per_row: Union[int, None] = None,
     unit: str = "pp",
     marks: Union[Mapping[str, Sequence[str]], None] = None,
+    bars: bool = False,
     title: Union[str, None] = None,
     note: Union[str, None] = None,
 ) -> Figure:
@@ -37,6 +38,7 @@ def interval_panels(
         per_row: panels in a row of the grid; all in one row by default.
         unit: what a `percent` column is in: percentage points, or `%` for a share of a whole.
         marks: column -> a text per row, written under the row's value (e.g. a p-value).
+        bars: a bar from zero per row instead of a dot, for measures read by their length.
         title: figure title.
         note: a line under the title.
     """
@@ -58,19 +60,25 @@ def interval_panels(
             spine.set_color(EDGE)
         scale = 100 if column in percent else 1
         values = table[column].to_numpy(dtype=float) * scale
+        if bars:
+            ax.barh(y, np.nan_to_num(values), height=0.62, color=SERIES[0], alpha=0.85, zorder=2)
         if f"{column}_low" in table.columns:
-            ax.hlines(y, table[f"{column}_low"] * scale, table[f"{column}_high"] * scale, color=SERIES[0], linewidth=2, alpha=0.45)
-        ax.scatter(values, y, s=42, color=SERIES[0], zorder=3)
+            ax.hlines(y, table[f"{column}_low"] * scale, table[f"{column}_high"] * scale, color=INK if bars else SERIES[0], linewidth=1.4 if bars else 2, alpha=0.8 if bars else 0.45, zorder=3)
+        if not bars:
+            ax.scatter(values, y, s=42, color=SERIES[0], zorder=3)
         if column in zero:
             ax.axvline(0, color=MUTED, linewidth=0.8)
         for at, value, mark in zip(y, values, marks.get(column, [""] * len(y))):
             if np.isnan(value):
                 continue
             text = f"{value:+.1f}" if column in zero else f"{value:.1f}" if column in percent else f"{value:.3f}"
-            ax.annotate("\n".join(part for part in (text, mark) if part), (value, at), linespacing=1.1, xytext=(0, 8), textcoords="offset points", ha="center", fontsize=8, color=MUTED)
+            high = table[f"{column}_high"].iloc[at] * scale if bars and f"{column}_high" in table.columns else np.nan
+            end = max(value, high) if value >= 0 and not np.isnan(high) else value
+            placed = dict(xytext=(5 if value >= 0 else -5, 0), ha="left" if value >= 0 else "right", va="center") if bars else dict(xytext=(0, 8), ha="center")
+            ax.annotate("\n".join(part for part in (text, mark) if part), (end if bars else value, at), linespacing=1.1, textcoords="offset points", fontsize=8, color=MUTED, **placed)
         ax.set_title(names.get(column, column) + (f" ({unit})" if column in percent else ""), fontsize=10, color=INK, loc="left", fontweight="bold")
         ax.xaxis.set_major_locator(mtick.MaxNLocator(4))
-        ax.margins(x=0.15)
+        ax.margins(x=0.28 if bars else 0.15)
     for ax in grid[:, 0]:
         ax.set_yticks(y, [str(row) for row in table.index])
     axes[0].set_ylim(len(table) - 0.5, -0.6)

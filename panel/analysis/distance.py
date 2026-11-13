@@ -73,7 +73,7 @@ def distance(run: SavedRun, out: Output, draws: int = 1000, seed: int = 0, level
     out.table(NAME, table)
 
     figure = interval_panels(
-        table, metrics, per_row=3, percent=[metric for metric in (MAE, RMSE, TURNOUT) if metric in metrics], zero=[TURNOUT] if turnout else [],
+        table, metrics, per_row=3, percent=[metric for metric in (MAE, RMSE, TURNOUT) if metric in metrics], zero=[TURNOUT] if turnout else [], bars=True,
         title=f"{run.spec.model} on {run.topic.name}: distances between sources",
         note=f"{len(run.subjects)} subjects of '{run.dataset.name}', over the {len(options)} options; whiskers are {level:.0%} bootstrap intervals over subjects",
     )

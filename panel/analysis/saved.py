@@ -49,6 +49,8 @@ class SavedRun:
         style: the topic's colours and short labels for figures; empty when it has none or
             none was asked for.
         positions: where experts place the topic's options, or None if it has none.
+        weighted: a predicted distribution weights each answer's option shares by its
+            probability of voting; off, every answer with a preference counts the same.
     """
     stem: str
     spec: RunSpec
@@ -63,6 +65,7 @@ class SavedRun:
     reference: Union[pd.DataFrame, None]
     style: PlotStyle
     positions: Union[Positions, None] = None
+    weighted: bool = True
 
     @property
     def options(self) -> List[str]:
@@ -95,7 +98,7 @@ def find_stem(store: ResultStore, text: str) -> str:
     return found[0]
 
 
-def load_run(store: ResultStore, stem: str, styled: bool = True) -> SavedRun:
+def load_run(store: ResultStore, stem: str, styled: bool = True, weighted: bool = True) -> SavedRun:
     """
     Read one saved run and what it is compared against.
 
@@ -104,6 +107,8 @@ def load_run(store: ResultStore, stem: str, styled: bool = True) -> SavedRun:
         stem: the run.
         styled: draw with the topic's `plot.json`; off, figures use their own palette and the
             native names.
+        weighted: weight each answer's option shares by its probability of voting when
+            they are summed into a predicted distribution.
 
     Raises:
         FileNotFoundError: if the run, its normalized table or the dataset's values are missing.
@@ -138,7 +143,7 @@ def load_run(store: ResultStore, stem: str, styled: bool = True) -> SavedRun:
         stem=stem, spec=spec, record=record, topic=topic, dataset=dataset, results=results,
         normalized=normalized, subjects=subjects, values=values,
         claims=load_claims(dataset, topic.name) if topic.name in dataset.claims else None,
-        reference=reference, style=load_plot_style(topic) if styled else PlotStyle(), positions=load_positions(topic),
+        reference=reference, style=load_plot_style(topic) if styled else PlotStyle(), positions=load_positions(topic), weighted=weighted,
     )
 
 
@@ -154,5 +159,6 @@ def describe(run: SavedRun) -> str:
         f"  actual     {f'{len(run.reference) - 1} areas and {run.total!r}' if run.reference is not None else 'none'}",
         f"  area       {run.dataset.area or 'none'}",
         f"  groups     {', '.join(run.dataset.groups) or 'none'}",
+        f"  predicted  {'option shares weighted by the probability of voting' if run.weighted else 'option shares not weighted by turnout'}",
     ]
     return "\n".join(lines)
