@@ -1,0 +1,127 @@
+{
+    "name": "sod_legacy",
+    "short": "sodlegacy",
+    "title": "Society of Distrust, Czech survey (2021), as cleaned for the runs of 2025",
+    "language": "cs",
+    "source": null,
+    "columns": [
+        "gender",
+        "age",
+        "education_level",
+        "region",
+        "district",
+        "town_size",
+        "employment_status",
+        "income_range",
+        "living_standard",
+        "interest_in_politics",
+        "voted_party"
+    ],
+    "optional": [
+        "employment_status",
+        "income_range"
+    ],
+    "groups": [
+        "gender",
+        "age",
+        "education_level",
+        "region",
+        "town_size",
+        "income_range",
+        "living_standard",
+        "interest_in_politics"
+    ],
+    "area": "region",
+    "levels": {
+        "age": {
+            "bands": {
+                "18–24 let": 24,
+                "25–34 let": 34,
+                "35–44 let": 44,
+                "45–54 let": 54,
+                "55–65 let": 65
+            }
+        },
+        "education_level": {
+            "order": [
+                "základní + středoškolské vzdělání bez maturity",
+                "středoškolské vzdělání s maturitou",
+                "vysokoškolské vzdělání"
+            ]
+        },
+        "town_size": {
+            "order": [
+                "Méně než 1.000 obyvatel",
+                "1.000 - 5.000 obyvatel",
+                "5.001 - 20.000 obyvatel",
+                "20.001 - 100.000 obyvatel",
+                "Více než 100.000 obyvatel"
+            ]
+        },
+        "income_range": {
+            "order": [
+                "Do 15.000 Kč",
+                "15.001 - 20.000 Kč",
+                "20.001 - 25.000 Kč",
+                "25.001 - 30.000 Kč",
+                "30.001 - 40.000 Kč",
+                "40.001 - 60.000 Kč",
+                "60.001 - 80.000 Kč",
+                "Vice než 80.000 Kč"
+            ]
+        },
+        "living_standard": {
+            "order": [
+                "velmi špatnou",
+                "spíše špatnou",
+                "ani dobrou, ani špatnou",
+                "spíše dobrou",
+                "velmi dobrou",
+                "nevím"
+            ]
+        },
+        "interest_in_politics": {
+            "order": [
+                "vůbec se nezajímám",
+                "spíše se nezajímám",
+                "spíše se zajímám",
+                "velmi se zajímám",
+                "nevím"
+            ]
+        },
+        "region": {
+            "order": [
+                "Středočeský kraj",
+                "Hlavní město Praha",
+                "Jihomoravský kraj",
+                "Moravskoslezský kraj",
+                "Ústecký kraj",
+                "Jihočeský kraj",
+                "Olomoucký kraj",
+                "Plzeňský kraj",
+                "Zlínský kraj",
+                "Královéhradecký kraj",
+                "Pardubický kraj",
+                "Kraj Vysočina",
+                "Liberecký kraj",
+                "Karlovarský kraj"
+            ]
+        }
+    },
+    "claims": {
+        "election_2021": {
+            "column": "voted_party",
+            "map": "claims/election_2021.json"
+        }
+    },
+    "shared": {
+        "gender": {
+            "column": "gender",
+            "map": {
+                "muž": "male",
+                "žena": "female"
+            }
+        }
+    },
+    "note": "Prepared data only: no raw source and no build step, `data/sod_legacy/` is kept as it is. The 3880 respondents of `sod` in the same order and under the same ids, with the values as the cleaning of 2025 wrote them (lowercase answers, 347 respondents without an income, no EU, NATO or vaccination answers). employment_status joins several statuses with ', ', which one status also contains, so it cannot be split and is not a grouping column."
+}

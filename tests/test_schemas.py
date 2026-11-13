@@ -7,7 +7,7 @@ import pytest
 
 from panel.topic import framing_names, load_framing, load_topic, make_response_models, topic_names
 
-from tests.conftest import LEGACY_TOPIC, RESULTS_DIR, TOPICS_DIR, load_fixture, require
+from tests.conftest import TOPICS_DIR, load_fixture
 from tests.snapshots import schema_snapshot
 
 PAIRS = [(topic, framing) for topic in topic_names(TOPICS_DIR) for framing in framing_names(topic, TOPICS_DIR)]
@@ -23,12 +23,10 @@ def test_schema_matches_snapshot(topic_name, framing_name):
     assert generated(topic_name, framing_name) == load_fixture(f"schemas/{topic_name}/{framing_name}")
 
 
-def test_legacy_runs_record_the_schema_they_were_sent(legacy_store):
-    config = require(RESULTS_DIR / LEGACY_TOPIC / "config.json")
-    frozen = json.loads(config.read_text(encoding="utf-8"))["schemas"]
-    assert frozen == load_fixture("legacy_schema_sent")
-    assert legacy_store.runs()
-    for stem in legacy_store.runs():
+def test_legacy_runs_record_the_schema_they_were_sent(legacy_store, legacy_stems):
+    frozen = load_fixture("legacy_schema_sent")
+    assert legacy_stems
+    for stem in legacy_stems:
         assert legacy_store.record(stem)["response_schema"] in frozen.values(), stem
 
 

@@ -8,6 +8,7 @@
         "sod-extended": {"dataset": "sod", "description": "extended"},
         "sod-neutral":  {"dataset": "sod", "description": "default", "question": "neutral"},
         "sod-pick":     {"dataset": "sod", "description": "default", "shape": "Pick"},
+        "sod-legacy":   {"dataset": "sod_legacy", "description": "default"},
         "citizen":      {"dataset": "regions", "description": "citizen", "question": "neutral", "repeats": 10},
         "direct":       {"dataset": "regions", "description": "direct", "question": null, "repeats": 10}
     },

@@ -49,11 +49,14 @@ def prepare(
     Raises:
         FileNotFoundError: if the dataset, its builder or - with `rebuild_values=False` - its
             stored values table is missing.
-        ValueError: if the values are not what the dataset declares, or a description is unknown.
+        ValueError: if the values are not what the dataset declares, a description is unknown,
+            or the dataset has no source to rebuild from.
     """
     dataset = load_dataset(name)
     written = {}
     if rebuild_values:
+        if dataset.source is None:
+            raise ValueError(f"'{name}' is prepared data only: it has no source to rebuild its values from")
         builder = importlib.import_module(f"datasets.{name}.build")
         written[VALUES] = write_values(dataset, builder.build(dataset))
     written.update(render_all(dataset, read_values(dataset), descriptions))

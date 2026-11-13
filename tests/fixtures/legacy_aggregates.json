@@ -1,5 +1,5 @@
 {
-  "sod_legacy_cs_default_OpenAI_gpt-4.1-nano_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1-nano_Pick_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7147757731958764,
@@ -55,7 +55,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1-nano_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.29057989690721653,
@@ -165,7 +165,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1_Pick_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.8515747422680412,
@@ -221,7 +221,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1_Prob_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.8644046391752577,
@@ -331,7 +331,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o-mini_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o-mini_Pick_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7263530927835051,
@@ -387,7 +387,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o-mini_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o-mini_Prob_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7349355670103094,
@@ -497,7 +497,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o_Pick_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7670360824742266,
@@ -553,7 +553,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o_Prob_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7327190721649484,
@@ -663,7 +663,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenRouter_claude-sonnet-4-5_Prob_t=0.0_subset=200": {
+  "sod_legacy_cslegacy_legacy_OpenRouter_claude-sonnet-4-5_Prob_t=0.0_subset=200": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7463999999999998,
@@ -773,7 +773,7 @@
       }
     }
   },
-  "sod_legacy_cs_default_OpenRouter_gemini-3-flash-preview_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenRouter_gemini-3-flash-preview_Prob_t=0.0": {
     "csv": {
       "weighted=True normalized=True": {
         "Voted": 0.7780507731958761,

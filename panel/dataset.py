@@ -21,7 +21,8 @@ Declaration shape:
         "short": "sod",                   stem part: ASCII, no underscore
         "title": "...",
         "language": "cs",                 the language its values and descriptions are written in
-        "source": "SoD-CZ/....sav",       what prepare reads, relative to the folder
+        "source": "SoD-CZ/....sav",       what prepare reads, relative to the folder; null for a
+                                          dataset that is prepared data only and is never rebuilt
         "columns": ["gender", "age"],     every column of the values table, in order
         "optional": ["employment"],       columns a subject may lack; the rest must be filled
         "groups": ["gender", "region"],   columns analysis may group subjects by
@@ -100,7 +101,7 @@ class Dataset:
         short: the dataset's part of a results stem.
         title: human label.
         language: language code of its values and descriptions.
-        source: what prepare reads, relative to `dir`.
+        source: what prepare reads, relative to `dir`; None when the prepared data is all there is.
         columns: every column of the values table.
         optional: columns a subject may lack.
         groups: columns analysis may group by.
@@ -115,7 +116,7 @@ class Dataset:
     short: str
     title: str
     language: str
-    source: str
+    source: Union[str, None]
     columns: Tuple[str, ...]
     optional: Tuple[str, ...]
     groups: Tuple[str, ...]

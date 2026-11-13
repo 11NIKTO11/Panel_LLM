@@ -13,7 +13,7 @@ recompute each of these and compare; a difference is drift, not a new truth.
 |---|---|---|
 | `prompt_tables.json` | rows and digest of each stored prompt table, keyed `<dataset>/<description>`, taken after re-rendering reproduced it | `test_prompts.py` |
 | `schemas/<topic>/<framing>.json` | `model_json_schema()` of both response classes under that framing | `test_schemas.py` |
-| `legacy_schema_sent.json` | the schemas the legacy runs were sent: the frozen copy from `results/election_2021_legacy/config.json`, which every migrated record carries | `test_schemas.py` |
+| `legacy_schema_sent.json` | the schemas the legacy runs were sent, which every migrated record carries; since 2026-11-13 the only copy in the tree (once `results/election_2021_legacy/config.json`) | `test_schemas.py` |
 | `legacy_aggregates.json` | country-level aggregation of every legacy run, from its plain and its normalized CSV, for all four `weighted` x `normalized` combinations, keyed by run and, inside, by the native names the legacy CSVs used | `test_legacy_results.py` |
 | `legacy_reparse.json` | per legacy run: response model, raw-JSON shape (`bare` or `{prompt, result}`) and a digest of the reparsed frame | `test_legacy_results.py` |
 
@@ -46,3 +46,8 @@ recompute each of these and compare; a difference is drift, not a new truth.
     the legacy one before this was taken.
   - `schemas/election_2021_legacy/cs.json` is today's generation like the others; the frozen
     copy moved to `legacy_schema_sent.json`.
+- after the legacy topic was folded into `election_2021` on 2026-11-13 (`DECISIONS.md` §13),
+  deliberately:
+  - `legacy_aggregates.json` and `legacy_reparse.json` were rekeyed by the new stems
+    (`sod_legacy_cslegacy_legacy_...`); no number or digest changed.
+  - `schemas/election_2021_legacy/cs.json` moved to `schemas/election_2021/cs_legacy.json`, unchanged.

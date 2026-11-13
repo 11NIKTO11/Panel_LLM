@@ -47,8 +47,8 @@ def test_legacy_results_reparse(stem, legacy_store, legacy_topic, legacy_framing
     assert frame_digest(frame) == expected["json"]["sha256"]
 
 
-def test_every_legacy_run_has_a_fixture(legacy_store):
-    assert set(legacy_store.runs()) == set(AGGREGATES) == set(REPARSE)
+def test_every_legacy_run_has_a_fixture(legacy_stems):
+    assert set(legacy_stems) == set(AGGREGATES) == set(REPARSE)
 
 
 @pytest.mark.parametrize("stem", sorted(AGGREGATES))

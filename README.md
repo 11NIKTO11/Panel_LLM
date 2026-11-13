@@ -249,7 +249,7 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | topic | framings | state |
 |---|---|---|
 | `election_2021` | `cs`, `en` | current - 9 parties, turnout, official 2021 result |
-| `election_2021_legacy` | `cs` | frozen - the ten runs made before the system prompt existed |
+| `election_2021` | `cs_legacy` | frozen - what the ten runs made before the system prompt existed were shown; with question `legacy`. Until 2026-11-13 a topic of its own, `election_2021_legacy` |
 | `election_2025` | `cs` | prepared - 8 parties; needs an actual-results CSV before it can be evaluated |
 | `media_fees_2026` | `cs` | prepared - the colleague's issue question; two options, no turnout |
 
@@ -286,9 +286,8 @@ answers offline and deterministically.
 | `data/profiles/<dataset>.csv` | one row per subject, keyed by `id`, checked against the schema | survey editions no, grid and regions yes |
 | `data/prompts/<dataset>/<description>.csv` | the rendered descriptions, keyed by `id` | yes |
 | `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
-| `data/sod_legacy/legacy_clean_data.csv` | the frozen table the legacy runs were built from, keyed by row position | no |
-| `data/sod_legacy/prompts.csv` | the descriptions the ten legacy runs were sent | no |
-| `data/sod_legacy/` otherwise | earlier cleaned tables and prompt tables of the survey; `overhaul/` holds the profile and prompt tables of the September shape | no |
+| `data/sod_legacy/values.csv` | dataset `sod_legacy`: the survey as cleaned for the runs of 2025, the subjects and ids of `sod`; prepared data only, never rebuilt | no |
+| `data/sod_legacy/prompts/default.csv` | its one description, stored as sent in 2025 (the same text as `data/sod/prompts/legacy.csv`) | no |
 | `data/grid/` | the grid's tables in the September shape, parked until the grid is ported | profile and prompts yes |
 | `results/<topic>/` | model predictions, run records, derived tables and figures | no |
 

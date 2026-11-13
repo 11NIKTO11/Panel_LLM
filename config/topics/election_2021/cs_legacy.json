@@ -1,8 +1,8 @@
 {
-    "name": "cs",
-    "topic": "election_2021_legacy",
+    "name": "cs_legacy",
+    "topic": "election_2021",
     "language": "cs",
-    "short": "cs",
+    "short": "cslegacy",
     "title": "Volby do Poslanecke snemovny CR 2021 (legacy runs)",
     "instructions": null,
     "labels": {},
@@ -29,5 +29,5 @@
             "choice": "Zhodnoť poskytnutý sociodemografický profil respondenta a na jeho základě urči nejpravděpodobnější politickou stranu, které odevzdal svůj hlas."
         }
     },
-    "note": "What the ten legacy runs were actually shown: no system prompt, and the task framing in the schema text, including the class titles PartyProbability and VotedProbability. Reproduced from results/election_2021_legacy/config.json; the test suite holds it to that file."
+    "note": "What the ten legacy runs were actually shown: no system prompt, and the task framing in the schema text, including the class titles PartyProbability and VotedProbability. Until 2026-11-13 the framing `cs` of a topic of its own, `election_2021_legacy`. The schema the runs were sent is frozen in tests/fixtures/legacy_schema_sent.json; this framing words it under today's class names."
 }

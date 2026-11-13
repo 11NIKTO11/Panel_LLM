@@ -148,10 +148,6 @@
         "election_2021": {
             "column": "voted_party",
             "map": "claims/election_2021.json"
-        },
-        "election_2021_legacy": {
-            "column": "voted_party",
-            "map": "claims/election_2021.json"
         }
     },
     "shared": {

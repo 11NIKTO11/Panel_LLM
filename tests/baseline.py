@@ -38,7 +38,7 @@ from panel.describe.template import load_description
 from panel.run import ResultStore
 from panel.topic import framing_names, load_framing, load_topic, make_response_models, topic_names
 
-from tests.conftest import FIXTURES, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR
+from tests.conftest import FIXTURES, LEGACY_FRAMING, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR
 from tests.snapshots import (
     aggregate_all, frame_digest, json_shape, models_by_name, prompt_table_digest, reparse,
     schema_snapshot,
@@ -99,11 +99,13 @@ def legacy_runs() -> Tuple[Dict, Dict]:
         RuntimeError: if a run's raw JSON does not reparse to its stored CSV.
     """
     topic = load_topic(LEGACY_TOPIC, TOPICS_DIR)
-    models = models_by_name(topic, load_framing(topic, "cs", TOPICS_DIR))
+    models = models_by_name(topic, load_framing(topic, LEGACY_FRAMING, TOPICS_DIR))
     store = ResultStore(RESULTS_DIR, LEGACY_TOPIC)
     aggregates, reparsed = {}, {}
     for stem in store.runs():
         record = store.record(stem)
+        if "migrated" not in record:
+            continue
         paths = store.paths(stem)
         aggregates[stem] = {"csv": aggregate_all(store.frame(stem), topic)}
         if paths.normalized_csv.exists():
@@ -135,14 +137,13 @@ def main(argv=None) -> None:
     aggregates, reparsed = legacy_runs()
     _write(FIXTURES / "legacy_aggregates.json", aggregates)
     _write(FIXTURES / "legacy_reparse.json", reparsed)
-    _write(FIXTURES / "legacy_schema_sent.json", json.loads((RESULTS_DIR / LEGACY_TOPIC / "config.json").read_text(encoding="utf-8"))["schemas"])
     _write(FIXTURES / "manifest.json", {
         "taken_at": datetime.now().isoformat(timespec="seconds"),
         "git_commit": _git_commit(),
         "python": sys.version.split()[0],
         "pandas": pd.__version__,
         "pydantic": pydantic.__version__,
-        "legacy_schema_source": f"results/{LEGACY_TOPIC}/config.json",
+        "legacy_schema_source": "tests/fixtures/legacy_schema_sent.json, once results/election_2021_legacy/config.json",
     })
 
 

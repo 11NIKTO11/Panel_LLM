@@ -670,9 +670,23 @@ Only what today's code reads stays in the tree; the rest is parked outside git, 
 gitignored folders that Martin empties himself.
 
 - `data/` is one folder per dataset
-  - `data/sod_legacy/` (not in git): `legacy_clean_data.csv` and `prompts.csv`, what the legacy
-    runs were built from, with the earlier cleaned and prompt tables; `overhaul/` holds the
-    profile and prompt tables of the September shape
+  - `data/sod_legacy/` (not in git) is the prepared data of dataset `sod_legacy`
+    (2026-11-13): `values.csv` is the table the legacy prompts were built from, keyed by the
+    ids of `sod` (same subjects, same order), `prompts/default.csv` the prompts as sent
+    without their question. `datasets/sod_legacy/` declares it with `"source": null` - no
+    build step, `prepare` refuses to rebuild it - one stored description `default`, an empty
+    `forms.json` and a copy of the 2021 claims map; preset `sod-legacy`
+    - the originals keyed by row position (`legacy_clean_data.csv`, `prompts.csv`), the
+      earlier cleaned and prompt tables and `overhaul/` (the September shape, the only
+      prepared tables of `sod_en`) are in `_delete/sod_legacy/`
+    - `employment_status` is not a grouping column there: several statuses are joined by
+      ', ', which one status also contains
+    - kept as a snapshot of the 2025 data, on Martin's word. The ten migrated runs stay
+      dataset `sod`, description `legacy` and are not re-pointed at it: same subjects and
+      ids, the prompts are stored as sent, and on `sod` they group by today's columns
+    - rejected: a full mirror stack (runs re-pointed at `sod_legacy`); a template that
+      rebuilds the 2025 prompts from this table (§10's rejection stands: 354 prompts hold a
+      literal `nan`, which the template engine cannot word)
   - `data/prompts.csv` had been tracked although it is derived from the survey; it left the
     index here and stays in history
   - `data/grid/`: the grid's tables in the September shape, parked until the grid is ported
@@ -685,5 +699,40 @@ gitignored folders that Martin empties himself.
   `config/descriptions/latent_*` (`datasets/regions/descriptions/`), `paths.GRAPHS_DIR`,
   `panel_stats.ipynb`, `simulate.ipynb`, `tests/test_analysis.py`, `plots/distances.py`
 - still in the tree without a reader: `data/skop.csv`, `data/agentury.csv` (the source
-  `polls.json` was copied from), and the spent migration (`migrate_legacy.py`,
-  `panel/run/legacy.py`, `tests/test_legacy_migration.py`)
+  `polls.json` was copied from) (the spent migration code
+  left on the same day, §13)
+
+## 13. The legacy topic folded into `election_2021` (2026-11-13)
+
+`election_2021_legacy` is gone; the ten migrated runs are runs of `election_2021`. Settles
+the "one topic or two" question of §10.
+
+- why: the two `topic.json` were the same but for name and note. What sets the legacy runs
+  apart sits below the topic - no system prompt and the task in the schema text, one
+  ungendered question - and a topic holds several framings and questions
+  - framing `cs_legacy` (stem part `cslegacy`), question `legacy`: the legacy topic's `cs.json`
+    and `questions/default.json`, moved; only name, short and topic changed
+  - rejected: keeping the stems by giving the legacy files the shorts `cs` and `default` - a
+    new `sod` run with description `legacy` would land on the same stem with other text
+- the runs: stems `sod_legacy_cslegacy_legacy_<Client>_<model>_<Shape>_t=0.0[...]` in
+  `results/election_2021/`. Tables and raw JSON are byte copies; in each record only `stem`,
+  the spec's topic, framing and question, and the name and short of the framing and question
+  blocks changed, and `migrated.folded` names the stem and topic before. Checked per run
+  before writing: the dataset and description blocks and the three digests are what the new
+  spec resolves to
+- what it gives: legacy and new runs in one `compare.py` / `benchmark.py` call; the topic's
+  `plot.json`, `polls.json` and `positions.json` apply (`groups` and `compass` run)
+- checked: the legacy tests pass on the new stems (aggregates to 1e-12, reparse digests,
+  schema as sent); for gpt-4.1 `Prob` the area MAE equals the 2025 table; `compare.py` ran
+  on that run beside the Haiku 5.5 run
+- tests: `LEGACY_TOPIC` is `election_2021`, `LEGACY_FRAMING` `cs_legacy`; the legacy runs
+  of the store are those whose record has `migrated`; the schema-as-sent test reads the
+  fixture alone, the results folder's `config.json` left with the folder
+- parked in `_delete/legacy_topic/`, for Martin to remove: `results/election_2021_legacy/`
+  (the ten runs under the old stems, `config.json`, `preferences/`, `sod_claimed_votes.csv`),
+  the legacy `topic.json`, and `stem_renames.json` (old stem -> new)
+- the migration code left the tree the same day, on Martin's word: `migrate_legacy.py`,
+  `panel/run/legacy.py` and `tests/test_legacy_migration.py` migrated into a topic that no
+  longer exists; they are in `_delete/legacy_topic/code/`, last tracked at `2690a71`. §10
+  describes what they did.
+  `tests/baseline.py` did not import before this either (`profile_path` is gone)

@@ -19,7 +19,8 @@ ROOT = paths.ROOT
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 TOPICS_DIR = paths.TOPICS_DIR
 RESULTS_DIR = paths.RESULTS_DIR
-LEGACY_TOPIC = "election_2021_legacy"
+LEGACY_TOPIC = "election_2021"
+LEGACY_FRAMING = "cs_legacy"
 
 
 def load_fixture(name: str) -> Any:
@@ -48,7 +49,7 @@ def legacy_topic() -> Topic:
 
 @pytest.fixture(scope="session")
 def legacy_framing(legacy_topic) -> Framing:
-    return load_framing(legacy_topic, "cs", TOPICS_DIR)
+    return load_framing(legacy_topic, LEGACY_FRAMING, TOPICS_DIR)
 
 
 @pytest.fixture(scope="session")
@@ -57,3 +58,9 @@ def legacy_store():
 
     require(RESULTS_DIR / LEGACY_TOPIC)
     return ResultStore(RESULTS_DIR, LEGACY_TOPIC)
+
+
+@pytest.fixture(scope="session")
+def legacy_stems(legacy_store) -> list:
+    """The store's runs that were migrated from the legacy shape."""
+    return [stem for stem in legacy_store.runs() if "migrated" in legacy_store.record(stem)]

@@ -3,7 +3,7 @@ The run record: what a saved run was, in enough detail to audit it without the c
 
 Names make runs groupable; the copied text makes a record self-contained, so a later edit of a
 template or a framing cannot change what a past run meant. Legacy records under
-`election_2021_legacy` keep their older shape; nothing rewrites them.
+the legacy shape keep it; nothing rewrites them.
 """
 import subprocess
 import sys

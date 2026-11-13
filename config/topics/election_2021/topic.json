@@ -73,5 +73,5 @@
             ]
         }
     },
-    "note": "The 2021 Chamber of Deputies election, for runs made with the system-prompt design. Option ids are the former short labels, so result columns, claims maps and the colleague's p_* columns line up. The ten runs that predate the system prompt live under the frozen topic election_2021_legacy: same options, different framing, so the two are not directly comparable."
+    "note": "The 2021 Chamber of Deputies election, for runs made with the system-prompt design, and - under framing `cs_legacy` and question `legacy` - the ten runs made before it. Option ids are the former short labels, so result columns, claims maps and the colleague's p_* columns line up. The ten runs that predate the system prompt live under the frozen topic election_2021_legacy: same options, different framing, so the two are not directly comparable."
 }

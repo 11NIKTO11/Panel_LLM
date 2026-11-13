@@ -1,5 +1,5 @@
 {
-  "sod_legacy_cs_default_OpenAI_gpt-4.1-nano_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1-nano_Pick_t=0.0": {
     "rows": 3880,
     "response_model": "Pick",
     "json": {
@@ -8,7 +8,7 @@
       "sha256": "0e8a9e06bfd2a0fa6d238be94b19cf1dd9da38b35cc59c11995ee54e31a438ef"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1-nano_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",
     "json": {
@@ -17,7 +17,7 @@
       "sha256": "9e364753d4928dd652f4c51f4f4c66e27b76c7d71f6a60df8b4a2e130ee99eb2"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1_Pick_t=0.0": {
     "rows": 3880,
     "response_model": "Pick",
     "json": {
@@ -26,7 +26,7 @@
       "sha256": "e7c4d15d63990c749029f46fddddd03d10816280ba4653f64c87e5f33531a65d"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4.1_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4.1_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",
     "json": {
@@ -35,7 +35,7 @@
       "sha256": "7bf03271277310906f93f6748f5a896aeae13facbf87c1912f07833a9697927b"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o-mini_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o-mini_Pick_t=0.0": {
     "rows": 3880,
     "response_model": "Pick",
     "json": {
@@ -44,7 +44,7 @@
       "sha256": "22ef8d537c37feae60c95ca2eb03ccbbbca693158c64d9fb1148457319ba52e1"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o-mini_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o-mini_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",
     "json": {
@@ -53,7 +53,7 @@
       "sha256": "79de421ad869e1bf7da0224b68247450c45449f10b420ae4393015bcab058f84"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o_Pick_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o_Pick_t=0.0": {
     "rows": 3880,
     "response_model": "Pick",
     "json": {
@@ -62,7 +62,7 @@
       "sha256": "8fd4a31f974a3ae221f6dcec96cbfe297c99f5fd98077f25545deddd379b3850"
     }
   },
-  "sod_legacy_cs_default_OpenAI_gpt-4o_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenAI_gpt-4o_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",
     "json": {
@@ -71,7 +71,7 @@
       "sha256": "47bf1951b4033514cb77c69d3dadc68e3a6f450d54eb1b31050243033a4eaa34"
     }
   },
-  "sod_legacy_cs_default_OpenRouter_claude-sonnet-4-5_Prob_t=0.0_subset=200": {
+  "sod_legacy_cslegacy_legacy_OpenRouter_claude-sonnet-4-5_Prob_t=0.0_subset=200": {
     "rows": 200,
     "response_model": "Probabilities",
     "json": {
@@ -80,7 +80,7 @@
       "sha256": "98d86c1d6f07b69b5b956c6c4e672e773f6751f3fa9af9a4ba0f788529af0cff"
     }
   },
-  "sod_legacy_cs_default_OpenRouter_gemini-3-flash-preview_Prob_t=0.0": {
+  "sod_legacy_cslegacy_legacy_OpenRouter_gemini-3-flash-preview_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",
     "json": {
