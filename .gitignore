@@ -6,18 +6,10 @@ __pycache__
 
 # Dataset
 SoD-*
-/data/clean_data.csv
 /data/sod/
-/data/legacy_clean_data.csv
-/data/prompts.csv
-/data/prompts/sod/
-/data/prompts/sod_en/
-/data/prompts/self_description*.csv
-/datasets/sod/data/
+/data/sod_legacy/
+/data/grid/grid_*.csv
 /results.zip
-/data/profiles/sod.csv
-/data/profiles/sod_en.csv
-/data/grid_*.csv
 
 # Helper scripts
 /update_script.ipynb
@@ -34,4 +26,5 @@ tmp
 
 
 _delete
+_to_sort
 .pytest_cache

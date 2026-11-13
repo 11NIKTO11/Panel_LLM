@@ -13,12 +13,10 @@ numpy>=2.5.4
 
 # --- Plotting ---
 matplotlib>=3.11.2
-seaborn>=0.13.2               # only the superseded panel/analysis/plots/distances.py
-plotly>=7.1.0                 # only the superseded panel/analysis/plots/distances.py
 
 # --- Statistics ---
 scipy>=1.18.1                 # JS / KL distances, pairwise distances, Spearman
-scikit-learn>=1.9.1           # MDS in panel/analysis/stats/mapping.py
+scikit-learn>=1.9.1           # MDS in stats/mapping.py, the trained logit in stats/classifier.py
 statsmodels>=0.15.0           # MANOVA in panel/analysis/stats/manova.py
 
 # --- Dataset ---
