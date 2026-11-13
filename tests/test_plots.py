@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from matplotlib.figure import Figure
 
-from panel.analysis.plots import comparison, distributions, intervals, maps, matrices, stacked
+from panel.analysis.plots import comparison, curves, distributions, intervals, maps, matrices, stacked
 from panel.analysis.plots.style import ERRORS, colors, legible
 
 OPTIONS = ["a", "b", "c"]
@@ -36,6 +36,7 @@ def test_interval_panels():
     table = pd.DataFrame({"m": [0.1, 0.2, np.nan], "m_low": [0.05, 0.1, np.nan], "m_high": [0.2, 0.3, np.nan], "d": [-0.1, 0.0, 0.1]}, index=["x", "y", "z"])
     figure = intervals.interval_panels(table, ["m", "d"], percent=["m"], zero=["d"], marks={"m": ["(p<0.001)", "", ""]}, per_row=1, same_scale=False, title="t")
     assert isinstance(figure, Figure) and len(figure.axes) == 2
+    assert isinstance(intervals.interval_panels(table, ["m", "d"], percent=["m"], zero=["d"], bars=True), Figure)
 
 
 def test_violins_and_histograms():
@@ -48,6 +49,9 @@ def test_heatmap_and_grid():
     assert isinstance(matrices.heatmap(shares(40).corr(), bound=1, title="t", note="n"), Figure)
     table = pd.DataFrame({"one": [0.1, 0.9], "two": [0.5, np.nan]}, index=["x", "y"])
     assert isinstance(matrices.grid(table, below=table.round(1).astype(str), scale=100, decimals=1, cmap=ERRORS, title="t"), Figure)
+    assert isinstance(matrices.grid(table - 0.5, signed=True), Figure)
+    stacked_tables = matrices.grids({"first": table, "second": table * 2}, scale=100, decimals=1, cmap=ERRORS, title="t", note="n")
+    assert isinstance(stacked_tables, Figure) and len(stacked_tables.axes) == 2
     assert legible((0.0, 0.0, 0.2)) != legible((1.0, 1.0, 0.8))
 
 
@@ -62,3 +66,10 @@ def test_maps():
     panels = {name: target + 1 for name in ("one", "two", "three")}
     figure = maps.maps(panels, target, (0, 10), "x", "y", ("model", "experts"), title="t", note="n")
     assert isinstance(figure, Figure) and sum(ax.get_visible() for ax in figure.axes) == 3
+
+
+def test_lines():
+    places = pd.DataFrame({"one": [0.1, 0.3, 0.2], "two": [0.2, -0.1, 0.4]}, index=["x", "y", "z"])
+    figure = curves.line_panels({"m": places, "d": places - 0.2, "k": places}, levels={"m": places.mean()}, percent=["m"], zero=["d"], title="t", note="n")
+    assert isinstance(figure, Figure) and sum(ax.get_visible() for ax in figure.axes) == 3
+    assert isinstance(curves.curves({"one": places, "two": places * 2}, "one", "two", diagonal=True, title="t", note="n"), Figure)

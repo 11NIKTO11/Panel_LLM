@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from panel.analysis.stats import mapping, permanova
+from panel.analysis.stats import classifier, mapping, permanova
 from panel.analysis.stats.compositional import helmert_basis, ilr, replace_zeros
-from panel.analysis.stats.design import block
+from panel.analysis.stats.design import block, indicators
 from panel.analysis.stats.manova import DF, ETA, P, PILLAI, manova
 
 RNG = np.random.default_rng(0)
@@ -110,3 +110,27 @@ def test_mds_and_mantel_on_points_of_a_plane():
     assert observed > 0.99 and chance == pytest.approx(1 / 720)
     with pytest.raises(ValueError):
         mapping.mantel(np.zeros((9, 9)), np.zeros((9, 9)))
+
+
+def test_indicators_keep_every_level():
+    subjects, _ = synthetic()
+    assert indicators(subjects["group"]).shape == (120, 4)
+    assert indicators(subjects["held"], "; ").shape == (120, 3)
+    assert indicators(pd.Series(["a", None, "b"], name="gaps")).shape == (3, 3)
+    banded = indicators(pd.Series([20, 30, 70], name="age"), bands={"young": 25, "old": 99})
+    np.testing.assert_allclose(banded, [[1, 0], [0, 1], [0, 1]])
+    with pytest.raises(ValueError):
+        indicators(pd.Series([20, 120], name="age"), bands={"young": 25, "old": 99})
+
+
+def test_a_trained_model_finds_what_decides_the_answer():
+    features = RNG.normal(size=(200, 2))
+    answers = np.where(features[:, 0] > 0, "x", "y")
+    found = classifier.cross_validated(features, answers, ["x", "y", "z"], strength=1.0)
+    answered = pd.get_dummies(answers).reindex(columns=["x", "y", "z"], fill_value=0).to_numpy(dtype=float)
+    np.testing.assert_allclose(found.sum(axis=1), 1)
+    assert (found[:, 2] == 0).all() and (found.argmax(axis=1) == answered.argmax(axis=1)).mean() > 0.9
+    known, blind = classifier.losses(found, answered)[0].mean(), classifier.losses(np.full((200, 3), 1 / 3), answered)[0].mean()
+    assert known < blind == pytest.approx(np.log(3))
+    assert classifier.losses(answered, answered, floor=0.0)[1].max() == 0
+    assert classifier.recalibrated(found, answers, ["x", "y", "z"]).shape == (200, 3)
