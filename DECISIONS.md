@@ -408,7 +408,7 @@ panel/analysis/
   reference: no distance); the script prints that and goes on
 - changed from the colleague's `calculate_distances`, to compare at the end
   - Wasserstein is gone: it read the options as ordered positions, and reordering them
-    changed the value
+    changed the value. The paper did not use it
   - KL adds one floor, 1e-6, to both distributions for every source; before, `distances`
     clipped at 1e-12 and the notebook smoothed only the claimed series with 1e-6. KL still
     moves a lot with an empty option - JS does not need a floor and is the safer read
@@ -468,10 +468,17 @@ panel/analysis/
   - the separator is now stated three times (`clean.SEVERAL`, `forms.json` `split`,
     `levels.several`); open
 - the old "spread of options by region" is the `groups_spread` table, for every grouping
-  column, without a heatmap
+  column, without a heatmap; no comparison puts it side by side for several runs - open,
+  worth a look
+- runs to compare are named one by one; the old notebook took every run of the topic with
+  the same response shape
 - `effects`, changed from the colleague's MANOVA and PERMANOVA, to compare at the end
   - zeros are replaced multiplicatively by 0.005 before the log-ratio transform, not clipped
-    at 1e-12: a clipped zero sat some 25 log-units away and decided the test
+    at 1e-12: a clipped zero sat some 25 log-units away and decided the test. The value is
+    an argument, `effects(..., delta=)`: `--delta` on both scripts, `DELTA` in both
+    notebooks, and the figure's note states it. It only matters where a run has zero
+    shares: of the two trials Haiku 5.5 has none and Haiku 4.5 one
+  - Wilks' lambda is no longer reported; the paper did not use it
   - MANOVA reports partial eta squared (Pillai over its largest possible value) with F and
     p, so predictors with different numbers of levels compare; raw Wilks and Pillai did not
   - PERMANOVA tests each column alone and reports R squared; before, all columns went in as
@@ -499,7 +506,36 @@ panel/analysis/
     project's `ches2019.csv` the way its `ches_positions` does; six of the nine options
     are rated
   - not ported: its second distance (how alike two options' electorates are over the
-    subjects' columns) and the comparison against a model trained on real votes
+    subjects' columns)
+  - needs scikit-learn
+- the benchmark is the colleague's comparison against a model trained on real votes
+  (`ground_truth_section` in `pushforward.py`): `python benchmark.py <topic> <run> ...`,
+  `benchmark.ipynb`, `panel/analysis/benchmark/`. Runs are scored subject by subject on what
+  each subject claimed
+  - a third kind beside analyses and comparisons, with its own script: every benchmark is
+    `(ground, out) -> (table, figures)`, and `load_ground` fits the trained model once for
+    all of them. `scores`, `knowledge`, `agreement`, `calibration`
+  - an outcome is an option or, with turnout, not taking part; a run's answer is the
+    options' shares times the probability of taking part, and the probability of not
+  - scored are the subjects whose claim says something and that every named run answered;
+    runs of different datasets are refused
+  - the trained model is his: a ridge multinomial logit (`C` 0.3), 5-fold cross-validated,
+    on an indicator per level with none left out (`stats/design.py` `indicators`), a missing
+    answer being a level, age in the dataset's bands, employment an indicator per status.
+    Recalibration is his too: a cross-validated logit (`C` 1) on log(p + 0.01). Scores mix
+    in 1 % of a uniform distribution first
+  - which columns the model is trained on is an argument (`--predictors`, `PREDICTORS`),
+    by default the dataset's `groups` without the claims column. He used 10 columns
+    without the district; ours are the 12 grouping columns
+  - changed from his: the mean answer is over the scored subjects, his over distinct
+    profiles; the knowledge ratio is empty when the trained model does not beat the claimed
+    shares (his divided anyway, and a negative over a negative read as a good ratio);
+    intervals are bootstrap over subjects with the fitted probabilities held fixed, so they
+    leave out what refitting would add
+  - on the two 200-subject trials 151 subjects are scored and the trained model does not
+    beat the claimed shares, so the ratio is empty; it needs the full runs
+  - open: TabPFN and the other classical models he also compared against; refitting inside
+    the bootstrap
   - needs scikit-learn
 - tests: `test_stats.py` and `test_plots.py` were rewritten for the new functions,
   `test_analyze.py` runs every analysis and comparison on fake runs; the snapshot helper
@@ -521,6 +557,105 @@ panel/analysis/
     `tests/test_analysis.py`, `panel/analysis/plots/distances.py`; `sod_en` and `grid` are
     not ported
 
+## 11. After reading the colleague's notebook again (2026-11-12)
+
+`_delete/llm_panel.ipynb` held against the analysis layer; decided with Martin.
+
+- by area every metric, not MAE and RMSE alone: MAE, RMSE, turnout difference, JS, KL,
+  correlation, in `area` (a figure each) and in `compare.py` `areas` (a heatmap each; the
+  turnout difference is signed and coloured by its size, correlation is not in the error
+  colours)
+- areas come in the order the dataset declares for its area column (`levels.<column>.order`),
+  else most subjects first. `sod` and `regions` declare regions by population, the ranking of
+  `datasets/regions/regions.csv`. The same order now shows in `groups`
+  - rejected: reading the population file from analysis - an order is all a figure needs,
+    and `levels.order` already says it
+- `compare.py` `spread`: the standard deviation of each option within each area, a panel per
+  run on one colour range (the notebook's grid of heatmaps); a run with one subject per area
+  is left out
+- how turnout enters a predicted distribution is a setting of the loaded run:
+  `load_run(..., weighted=True)`, `--unweighted` on both scripts, `WEIGHTED` in both notebooks
+  - weighted (default) is the notebook's "soft voting": each answer's option shares times its
+    probability of voting, rescaled to 1. Unweighted counts every answer with a preference
+    the same (the notebook's `drop_both`)
+  - an unweighted pass writes under `<stem>_unweighted`, so it does not replace the default
+  - not added: the notebook's third reading, "Not Voted" as a tenth category. It is the
+    weighted shares times the mean turnout with the not-voting share beside them, so it says
+    nothing the weighted shares and the turnout difference do not; an error over it mixes
+    the two. Open if the paper's regional MAE has to be reproduced as it was
+- the distance figures (one run, and across runs) draw a bar from zero per row with its
+  interval, not a dot: read by length. Correlation, all near 1, reads worse this way
+- `compare.py` `areas` also draws `runs_areas_lines`: every metric a panel, a line per
+  source across the areas in their declared order, the source's value for the whole dashed -
+  the notebook's regional shape, beside the heatmaps that hold the numbers and intervals
+- named sets of runs are data, `config/comparisons.json` beside `presets.json`: a set is a
+  topic and `label -> run`, the run named as on the command line. `--set <name>` on
+  `compare.py` and `benchmark.py` takes one in place of a topic and runs; its labels name the
+  runs and its name the files. `load_runs` takes such a mapping in place of a list
+  - rejected: a file per topic folder - every file there is a framing unless the reader
+    is told to skip it
+- open
+  - interactivity, later
+  - distance to the claimed by any grouping column (the notebook's "other aggregations")
+
+## 10. The legacy migration (2026-11-12)
+
+**Run on `results/` on 2026-11-12**, after a trial into a scratch folder: `python
+migrate_legacy.py` lists, `--write` migrates, `--write --to <dir>` migrates into another
+results folder. The logic is `panel/run/legacy.py`.
+
+- a legacy run is parsed with today's response model and saved through `ResultStore.save`,
+  so a migrated run is in every file what a run sent today leaves: keyed by subject id,
+  option ids for columns, `options` in the JSON, a record `RunSpec.from_dict` reads
+  - the row position of a legacy run is the row of `data/sod/values.csv`: every column the
+    two tables share agrees row by row, so position -> id needs no lookup table
+  - a `VPick` run saved no JSON; its answers are rebuilt from its table (the turnout pair and
+    the one option at 1)
+  - new stems, e.g. `sod_legacy_cs_default_OpenAI_gpt-4.1_Prob_t=0.0`; nothing is
+    overwritten and the legacy files are only read
+- the description is `legacy`, a **stored** description (`"stored": true`, no sentences, in
+  `datasets/sod/descriptions/legacy.json`): its prompt table `data/sod/prompts/legacy.csv` is
+  the prompts as sent, written once from `data/prompts.csv`, and prepare never renders it
+  - why: the legacy wording is not this template language's, and a run's spec has to resolve
+    for `check`, `run.py --check` and `analyze.py`
+  - rejected: a template that reproduces the legacy text (the old describer's quirks would
+    have to enter `forms.json`); a special case in the readers for runs without a description
+- what a migrated record cannot know stays empty: `git_commit`, `git_dirty`, `versions`,
+  `model_resolved`. `saved_at` is the legacy run's, `response_schema` is the schema that was
+  sent (from the folder's frozen `config.json`, old class and field names), and `migrated`
+  names the legacy stem and the name before that
+- the 200-subject Sonnet run is `sample=200, random_state=42`: that draw over the values
+  gives exactly its subjects
+- checked on a trial into a scratch folder, all ten runs
+  - every table holds the legacy numbers exactly; every normalized table equals the legacy
+    one where there was one; the frozen aggregates of `tests/fixtures/legacy_aggregates.json`
+    hold to 1e-16
+  - the saved prompt equals the stored description with the question for the two runs that
+    saved prompts in their JSON (Sonnet, Gemini), and the `Prompt` column of all six `VProb`
+    tables equals `data/prompts.csv`. The four `VPick` runs saved no prompt anywhere: that
+    they were sent the same prompts is assumed
+  - `analyze`, `compare` and `benchmark` read them
+- done on Martin's go
+  - the ten runs are migrated in `results/election_2021_legacy/`; the legacy-shape files
+    (ten runs and `archive/`) are in `_delete/legacy_shape/`, for Martin to remove
+  - `legacy_aggregates.json` is rekeyed by the new stems, numbers untouched;
+    `legacy_reparse.json` is regenerated (rows are keyed by subject id, the four `Pick` runs
+    have JSON); the frozen schema is `tests/fixtures/legacy_schema_sent.json`, checked against
+    `config.json` and every record, and `schemas/election_2021_legacy/cs.json` is today's
+    generation like the others. The eight legacy tests pass again
+  - the migration's own tests need a run in the legacy shape and skip without one
+- still to do
+  - the `parties` alias and the bare shape of raw JSON in `ResultStore.load` have no reader
+    left in `results/` and can go; so can `migrate_legacy.py`, `panel/run/legacy.py` and
+    their tests once the one-topic question below is settled
+  - `results/election_2021_legacy/analysis/` still holds tables named by the legacy stems
+- open, Martin's
+  - one topic or two: as `election_2021_legacy` the migrated runs cannot be put beside the
+    new runs in `compare.py` or `benchmark.py` (one topic per call), and the topic has no
+    `plot.json`, polls or expert positions (the `groups` figure needs nine colours, `compass`
+    is skipped). Folding them into `election_2021` as a framing and a question of their own
+    would lift all of that; `Legacy` and the script's `TOPIC` are where it would be said
+
 ## 6. Pending Martin's decision
 
 - income cut points for `to_levels` (§4) - left open on purpose (2026-11-10); only needed for
@@ -528,3 +663,27 @@ panel/analysis/
 
 Confirmed 2026-11-10, as implemented: the topic folder shape (§1), repeats as one row per call
 (§4), the Czech `media_fees_2026` labels (§4).
+
+## 12. The tree after the port, sorted (2026-11-13)
+
+Only what today's code reads stays in the tree; the rest is parked outside git, in two
+gitignored folders that Martin empties himself.
+
+- `data/` is one folder per dataset
+  - `data/sod_legacy/` (not in git): `legacy_clean_data.csv` and `prompts.csv`, what the legacy
+    runs were built from, with the earlier cleaned and prompt tables; `overhaul/` holds the
+    profile and prompt tables of the September shape
+  - `data/prompts.csv` had been tracked although it is derived from the survey; it left the
+    index here and stays in history
+  - `data/grid/`: the grid's tables in the September shape, parked until the grid is ported
+  - `data/profiles/` and `data/prompts/` are gone; the regions tables there were superseded by
+    `data/regions/`
+- unported code left the tree for `_to_sort/unported/`: `datasets/sod_en/`, `datasets/grid/`,
+  `tests/test_english.py`, `config/descriptions/self_v1_en.json`. Their last tracked state is
+  commit `ccea2c6`; a port starts from there
+- superseded and removed: `datasets/regions/prepare.py` (`build.py`), the two
+  `config/descriptions/latent_*` (`datasets/regions/descriptions/`), `paths.GRAPHS_DIR`,
+  `panel_stats.ipynb`, `simulate.ipynb`, `tests/test_analysis.py`, `plots/distances.py`
+- still in the tree without a reader: `data/skop.csv`, `data/agentury.csv` (the source
+  `polls.json` was copied from), and the spent migration (`migrate_legacy.py`,
+  `panel/run/legacy.py`, `tests/test_legacy_migration.py`)

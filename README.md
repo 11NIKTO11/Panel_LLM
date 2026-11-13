@@ -16,7 +16,8 @@ new language is a config change, never a code edit.
 **In transition (2026-11-11):** prepare, the run and the analysis were reshaped - `python
 prepare.py sod` writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py` sends a
 run, `python analyze.py` and `python compare.py` read runs back; see `DECISIONS.md` §7, §8
-and §9. `sod` and `regions` are ported; `sod_en` and `grid` are not, so the sections below
+and §9. `sod` and `regions` are ported; `sod_en` and `grid` are not, and their code left the tree
+on 2026-11-13 until they are (`DECISIONS.md` §12, last at commit `ccea2c6`), so the sections below
 that mention `data/profiles/`, `config/descriptions/` or `datasets/schema.json` describe the
 previous shape.
 
@@ -87,9 +88,10 @@ it (`panel/paths.py` anchors them on the package).
 | 2 | `python run.py <name>` | subjects -> LLM -> `results/<topic>/` |
 | 3 | `python analyze.py <topic> <run>` | one saved run -> tables and figures |
 | 4 | `python compare.py <topic> <run> <run> ...` | several runs of a topic side by side |
+| 5 | `python benchmark.py <topic> <run> ...` | runs against a model trained on the subjects' own answers |
 
-`analyze.ipynb` and `compare.ipynb` are steps 3 and 4 one block at a time. `simulate.ipynb`
-is superseded by `run.py` and `panel_stats.ipynb` by `analyze.py`; neither runs. Nothing is defined in a
+`analyze.ipynb`, `compare.ipynb` and `benchmark.ipynb` are steps 3 to 5 one block at a time. `run.py` replaced
+`simulate.ipynb` and `analyze.py` replaced `panel_stats.ipynb`; both are gone. Nothing is defined in a
 notebook; the code is in `panel/`.
 
 ### 2.1 Declaring a run
@@ -154,8 +156,10 @@ for a cheap trial; its results land under a `_subset=<n>` stem and never overwri
 ```bash
 python analyze.py                                    # every topic's saved runs
 python analyze.py election_2021 <run>                # all analyses of one run
-python analyze.py election_2021 <run> --only effects --predictors gender,age,region
+python analyze.py election_2021 <run> --only effects --predictors gender,age,region --delta 0.001
 python compare.py election_2021 <run> <run> --name haiku
+python compare.py --set haiku                        # a named set of config/comparisons.json
+python benchmark.py election_2021 <run> <run> --name haiku --predictors gender,age,region
 ```
 
 A run is named by its stem or by any text only one stem contains. Tables go to
@@ -167,16 +171,23 @@ A run is named by its stem or by any text only one stem contains. Tables go to
 | `answers` | the mean of every column and how often each option is an answer's highest |
 | `country` | predicted, claimed and actual over all the run's subjects, with intervals |
 | `distance` | MAE, RMSE, turnout difference, JS, KL and correlation between the three |
-| `area` | MAE and RMSE per area, with subject counts |
+| `area` | every distance metric per area, with subject counts; areas in the dataset's declared order (regions by population) |
 | `spread` | each column's distribution over subjects; distance from the mean answer |
 | `correlation` | correlation and covariance between options |
 | `groups` | the prediction at each level of every grouping column |
 | `effects` | which columns the answers follow: MANOVA and PERMANOVA |
 | `compass` | the model's map of the options against expert positions (CHES 2019) |
 
-`compare.py` has `shares`, `distances` (polls included), `areas`, `effects` and `compass`
-across the named runs. Claimed is counted from the run's own subjects; intervals are bootstrap
+`compare.py` has `shares`, `distances` (polls included), `areas`, `spread`, `effects` and
+`compass` across the named runs. `--unweighted` on either script sums option shares without
+weighting them by the probability of voting; its files get the suffix `_unweighted`. Claimed is counted from the run's own subjects; intervals are bootstrap
 over subjects. What was decided and what changed from the earlier statistics is `DECISIONS.md` §9.
+
+`benchmark.py` scores runs subject by subject against what each subject claimed, beside a
+ridge logit trained on those claims (cross-validated) and the plain claimed shares: `scores`
+(log-loss, Brier), `knowledge` (what the description bought; how much of the trained model's
+knowledge a run holds), `agreement` and `calibration`. It needs a full run to mean anything:
+on 200 subjects the trained model does not beat the claimed shares.
 
 ### 2.3 Tests
 
@@ -187,8 +198,8 @@ python -m pytest
 Prepare, the topics, the run and the analysis are covered: descriptions render, schemas match
 their snapshots (`tests/fixtures/`, see its README), an offline run writes every file it
 should and its record round-trips, and every analysis and comparison runs on fake runs. In
-transition: `test_analysis.py` (superseded by `test_analyze.py`) and `test_english.py` do not import,
-and eight legacy tests fail on the renamed response classes (`DECISIONS.md` §8). Tests that
+transition: the English edition has no tests until it is ported. The legacy runs, migrated to today's shape
+(`DECISIONS.md` §10), are the regression fixture: their frozen aggregates must hold. Tests that
 need gitignored inputs (`results/`, `data/sod/`) skip by name on a machine without them.
 
 ---
@@ -204,8 +215,8 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | dataset | subjects | language | prepared by |
 |---|---|---|---|
 | `sod` | 3880 survey respondents, keyed by the survey's `id` | cs | `python -m datasets.sod.prepare` |
-| `sod_en` | the same respondents, the survey's English edition | en | `python -m datasets.sod_en.prepare` |
-| `grid` | 288 synthetic profiles, the full factorial of `grid_income3.json` | cs | `python -m datasets.grid.generate` |
+| `sod_en` | the same respondents, the survey's English edition | en | not ported, out of the tree |
+| `grid` | 288 synthetic profiles, the full factorial of `grid_income3.json` | cs | not ported, out of the tree |
 | `regions` | the country and its 14 regions, for place-level prompts | cs | `python prepare.py regions` |
 
 - `dataset.json` declares the language of the values, the columns every row must carry, the
@@ -275,10 +286,11 @@ answers offline and deterministically.
 | `data/profiles/<dataset>.csv` | one row per subject, keyed by `id`, checked against the schema | survey editions no, grid and regions yes |
 | `data/prompts/<dataset>/<description>.csv` | the rendered descriptions, keyed by `id` | yes |
 | `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
-| `data/legacy_clean_data.csv` | the frozen table the legacy runs were built from, keyed by row position | no |
-| `data/prompts.csv` | the descriptions the ten legacy runs were sent | yes |
+| `data/sod_legacy/legacy_clean_data.csv` | the frozen table the legacy runs were built from, keyed by row position | no |
+| `data/sod_legacy/prompts.csv` | the descriptions the ten legacy runs were sent | no |
+| `data/sod_legacy/` otherwise | earlier cleaned tables and prompt tables of the survey; `overhaul/` holds the profile and prompt tables of the September shape | no |
+| `data/grid/` | the grid's tables in the September shape, parked until the grid is ported | profile and prompts yes |
 | `results/<topic>/` | model predictions, run records, derived tables and figures | no |
-| `graphs/` | figures of the previous analysis layer | no |
 
 One run is four files sharing a stem, plus two archived copies:
 
@@ -307,8 +319,7 @@ turns into ids in memory.
 
 Prepare, the run and the analysis are in their reshaped form (`DECISIONS.md` §7, §8, §9).
 The analysis has only seen the two 200-subject trials, and its numbers are not yet compared
-with the earlier statistics; legacy runs are not read by it. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
+with the earlier statistics; the legacy runs were migrated and are read by it. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
 with a temperature, Haiku 5.5 with effort `low`); OpenAI, Gemini and OpenRouter have not been
-called since the overhaul. The legacy runs still load, but eight legacy tests fail on the
-renamed response classes (§8). `election_2025` has no reference results yet, and the English
+called since the overhaul. `election_2025` has no reference results yet, and the English
 texts have not been reviewed.
