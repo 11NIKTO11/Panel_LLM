@@ -23,11 +23,13 @@ def test_schema_matches_snapshot(topic_name, framing_name):
     assert generated(topic_name, framing_name) == load_fixture(f"schemas/{topic_name}/{framing_name}")
 
 
-def test_legacy_schema_identical():
+def test_legacy_runs_record_the_schema_they_were_sent(legacy_store):
     config = require(RESULTS_DIR / LEGACY_TOPIC / "config.json")
     frozen = json.loads(config.read_text(encoding="utf-8"))["schemas"]
-    assert frozen == load_fixture(f"schemas/{LEGACY_TOPIC}/cs")
-    assert json.dumps(generated(LEGACY_TOPIC, "cs"), ensure_ascii=False) == json.dumps(frozen, ensure_ascii=False)
+    assert frozen == load_fixture("legacy_schema_sent")
+    assert legacy_store.runs()
+    for stem in legacy_store.runs():
+        assert legacy_store.record(stem)["response_schema"] in frozen.values(), stem
 
 
 def test_topic_loads_all():

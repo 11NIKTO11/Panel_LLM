@@ -81,15 +81,13 @@ def prompt_tables() -> Dict:
 
 
 def schemas() -> Dict[str, Dict]:
-    """Today's generated schemas per topic and framing, keyed <topic>/<framing>; the legacy topic gets what its runs were shown."""
+    """Today's generated schemas per topic and framing, keyed <topic>/<framing>; what the legacy runs were shown is `legacy_schema_sent`."""
     out = {}
     for name in topic_names(TOPICS_DIR):
         topic = load_topic(name, TOPICS_DIR)
         for framing_name in framing_names(name, TOPICS_DIR):
             framing = load_framing(topic, framing_name, TOPICS_DIR)
             out[f"{name}/{framing_name}"] = schema_snapshot(*make_response_models(topic, framing))
-    config = json.loads((RESULTS_DIR / LEGACY_TOPIC / "config.json").read_text(encoding="utf-8"))
-    out[f"{LEGACY_TOPIC}/cs"] = config["schemas"]
     return out
 
 
@@ -101,7 +99,7 @@ def legacy_runs() -> Tuple[Dict, Dict]:
         RuntimeError: if a run's raw JSON does not reparse to its stored CSV.
     """
     topic = load_topic(LEGACY_TOPIC, TOPICS_DIR)
-    models = models_by_name(topic)
+    models = models_by_name(topic, load_framing(topic, "cs", TOPICS_DIR))
     store = ResultStore(RESULTS_DIR, LEGACY_TOPIC)
     aggregates, reparsed = {}, {}
     for stem in store.runs():
@@ -111,7 +109,7 @@ def legacy_runs() -> Tuple[Dict, Dict]:
         if paths.normalized_csv.exists():
             aggregates[stem]["normalized_csv"] = aggregate_all(store.frame(stem, normalized=True), topic)
 
-        entry = {"rows": int(record["n"]), "response_model": record["spec"]["response_model"], "json": None}
+        entry = {"rows": int(record["n"]), "response_model": {"Prob": "Probabilities", "Pick": "Pick"}[record["spec"]["shape"]], "json": None}
         if paths.results_json.exists():
             raw = json.loads(paths.results_json.read_text(encoding="utf-8"))
             frame = reparse(raw, models[entry["response_model"]], topic.columns)
@@ -137,6 +135,7 @@ def main(argv=None) -> None:
     aggregates, reparsed = legacy_runs()
     _write(FIXTURES / "legacy_aggregates.json", aggregates)
     _write(FIXTURES / "legacy_reparse.json", reparsed)
+    _write(FIXTURES / "legacy_schema_sent.json", json.loads((RESULTS_DIR / LEGACY_TOPIC / "config.json").read_text(encoding="utf-8"))["schemas"])
     _write(FIXTURES / "manifest.json", {
         "taken_at": datetime.now().isoformat(timespec="seconds"),
         "git_commit": _git_commit(),

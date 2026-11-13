@@ -12,16 +12,17 @@ recompute each of these and compare; a difference is drift, not a new truth.
 | file | holds | recomputed by |
 |---|---|---|
 | `prompt_tables.json` | rows and digest of each stored prompt table, keyed `<dataset>/<description>`, taken after re-rendering reproduced it | `test_prompts.py` |
-| `schemas/<topic>/<framing>.json` | `model_json_schema()` of both response classes under that framing; for `election_2021_legacy` the frozen copy from `results/election_2021_legacy/config.json`, not a generation | `test_schemas.py` |
-| `legacy_aggregates.json` | country-level aggregation of every legacy run, from its plain and its normalized CSV, for all four `weighted` x `normalized` combinations, keyed by the native names the legacy CSVs use | `test_legacy_results.py` |
-| `legacy_reparse.json` | per legacy run: response model, raw-JSON shape (`bare` or `{prompt, result}`) and a digest of the reparsed frame; `null` for the four `VPick` runs, which have no JSON | `test_legacy_results.py` |
+| `schemas/<topic>/<framing>.json` | `model_json_schema()` of both response classes under that framing | `test_schemas.py` |
+| `legacy_schema_sent.json` | the schemas the legacy runs were sent: the frozen copy from `results/election_2021_legacy/config.json`, which every migrated record carries | `test_schemas.py` |
+| `legacy_aggregates.json` | country-level aggregation of every legacy run, from its plain and its normalized CSV, for all four `weighted` x `normalized` combinations, keyed by run and, inside, by the native names the legacy CSVs used | `test_legacy_results.py` |
+| `legacy_reparse.json` | per legacy run: response model, raw-JSON shape (`bare` or `{prompt, result}`) and a digest of the reparsed frame | `test_legacy_results.py` |
 
 - `prompt_tables.json` keys were renamed in phase 3, digests unchanged: `self_description_v1`
   became `sod/self_v1` and `self_description_v2` became `sod/self_v2` when the templates moved
   to `config/descriptions/` and the tables under `data/prompts/<dataset>/`. The digest covers
   `id<TAB>text` lines only, so the column rename does not touch it.
 - `grid/self_v1` was added in phase 3 from the grid's own pre-overhaul render
-  (`grid_description_v1` in `data/grid_income3_sod.csv`, 288 rows). The shared `self_v1`
+  (`grid_description_v1` in `data/grid/grid_income3_sod.csv`, 288 rows). The shared `self_v1`
   template has to reproduce it, which is what retires the grid's separate template.
 - the schema snapshots moved from `schemas/<topic>.json` to `schemas/<topic>/cs.json` in
   phase 4, when a topic gained one framing per language. Three are unchanged; the legacy one
@@ -37,3 +38,11 @@ recompute each of these and compare; a difference is drift, not a new truth.
 - `schemas/election_2021/en.json` was added in phase 8 as the first snapshot of the English
   framing: English labels for the parties that translate, `ANO 2011` kept, English schema text.
   Built offline; no run has been sent with it.
+- after the legacy migration of 2026-11-12 (`DECISIONS.md` §10), deliberately:
+  - `legacy_aggregates.json` was rekeyed by the migrated stems; its numbers are the phase 0
+    ones, untouched, and the migrated tables reproduce them.
+  - `legacy_reparse.json` was regenerated: rows are keyed by subject id now, so every digest
+    changed, and the four `Pick` runs have JSON. The migration checked each table against
+    the legacy one before this was taken.
+  - `schemas/election_2021_legacy/cs.json` is today's generation like the others; the frozen
+    copy moved to `legacy_schema_sent.json`.

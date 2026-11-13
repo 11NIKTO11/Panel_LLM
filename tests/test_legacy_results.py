@@ -1,8 +1,10 @@
-"""The legacy runs are the regression fixture: their numbers must not drift through the refactor."""
+"""The legacy runs are the regression fixture: their numbers must not drift through the refactor, nor through their migration to today's shape."""
 import json
 
 import numpy as np
 import pytest
+
+from panel.analysis import load_run
 
 from tests.conftest import load_fixture, require
 from tests.snapshots import aggregate_all, frame_digest, json_shape, models_by_name, reparse
@@ -47,3 +49,11 @@ def test_legacy_results_reparse(stem, legacy_store, legacy_topic, legacy_framing
 
 def test_every_legacy_run_has_a_fixture(legacy_store):
     assert set(legacy_store.runs()) == set(AGGREGATES) == set(REPARSE)
+
+
+@pytest.mark.parametrize("stem", sorted(AGGREGATES))
+def test_a_migrated_run_is_read_by_the_analysis(stem, legacy_store):
+    require(legacy_store.paths(stem).record)
+    run = load_run(legacy_store, stem, styled=False)
+    assert run.record["migrated"]["from"] and len(run.subjects) == run.record["n"] == REPARSE[stem]["rows"]
+    assert run.claims and run.reference is not None

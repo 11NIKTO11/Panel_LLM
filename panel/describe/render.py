@@ -45,19 +45,24 @@ def render_all(
     Descriptions from the dataset's folder, rendered over `values` and stored; name -> table path.
 
     Args:
-        names: which descriptions; None renders every one the dataset has.
+        names: which descriptions; None renders every one the dataset has that is rendered
+            at all (a `stored` description keeps the table it has).
 
     Raises:
-        ValueError: if a name is not one of the dataset's descriptions.
+        ValueError: if a name is not one of the dataset's descriptions, or names a stored one.
     """
-    names = dataset.descriptions if names is None else tuple(names)
+    templates = {name: load_template(dataset.description_path(name)) for name in dataset.descriptions}
+    names = tuple(name for name in dataset.descriptions if not templates[name].stored) if names is None else tuple(names)
     unknown = [name for name in names if name not in dataset.descriptions]
     if unknown:
         raise ValueError(f"'{dataset.name}' has no descriptions {unknown}; it has {list(dataset.descriptions)}")
+    stored = [name for name in names if templates[name].stored]
+    if stored:
+        raise ValueError(f"descriptions {stored} of '{dataset.name}' are stored as sent and are not rendered")
     forms = load_forms(dataset.forms_path)
     written = {}
     for name in names:
-        descriptions = render(dataset, load_template(dataset.description_path(name)), values, forms)
+        descriptions = render(dataset, templates[name], values, forms)
         path = dataset.prompts_path(name)
         path.parent.mkdir(parents=True, exist_ok=True)
         descriptions.to_frame().to_csv(path, index=True, encoding="utf-8")

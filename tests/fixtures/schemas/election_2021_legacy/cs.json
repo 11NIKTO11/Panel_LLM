@@ -1,5 +1,5 @@
 {
-  "VotingProbabilities": {
+  "Probabilities": {
     "$defs": {
       "PartyProbability": {
         "description": "Strukturovaná reprezentace pravděpodobnosti hlasování pro konkrétní stranu.",
@@ -67,23 +67,23 @@
         "$ref": "#/$defs/VotedProbability",
         "description": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
       },
-      "parties": {
+      "options": {
         "description": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0.",
         "items": {
           "$ref": "#/$defs/PartyProbability"
         },
-        "title": "Parties",
+        "title": "Options",
         "type": "array"
       }
     },
     "required": [
       "voted_or_not",
-      "parties"
+      "options"
     ],
-    "title": "VotingProbabilities",
+    "title": "Probabilities",
     "type": "object"
   },
-  "VotingPick": {
+  "Pick": {
     "$defs": {
       "VotedProbability": {
         "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
@@ -138,7 +138,7 @@
       "voted_or_not",
       "choice"
     ],
-    "title": "VotingPick",
+    "title": "Pick",
     "type": "object"
   }
 }

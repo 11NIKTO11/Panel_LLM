@@ -1,0 +1,7 @@
+{
+    "name": "legacy",
+    "short": "legacy",
+    "stored": true,
+    "note": "The self-descriptions the runs of 2025 and early 2026 were sent, kept as sent: written by the describer that preceded templates, with wording no template here reproduces (the household's income, lowercase survey values, no vocalised preposition). The prompt table is written once by migrate_legacy.py from the saved prompts and is never rendered.",
+    "sentences": []
+}

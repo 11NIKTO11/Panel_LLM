@@ -73,5 +73,5 @@
             ]
         }
     },
-    "note": "Frozen. The ten runs under results/election_2021_legacy/ were made before the system prompt existed; their framing sat in the response schema's own descriptions, which the cs framing reproduces byte for byte from that folder's config.json. Nothing new should be written here."
+    "note": "Frozen. The ten runs under results/election_2021_legacy/ were made before the system prompt existed; their framing sat in the response schema's own descriptions. The runs were migrated to today's shape on 2026-11-12 (stems sod_legacy_...); each record carries the schema it was sent, from that folder's config.json. The cs framing words that schema under today's class names. Nothing new should be written here."
 }

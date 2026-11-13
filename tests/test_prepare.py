@@ -7,7 +7,7 @@ import pytest
 
 from panel.dataset import INDEX, load_claims, load_dataset, read_values, validate_values
 from panel.describe.forms import ColumnForms, Forms, load_forms
-from panel.describe.render import read_prompts, render
+from panel.describe.render import read_prompts, render, render_all
 from panel.describe.template import PromptTemplate, load_template
 from panel.prepare import count_prompts, prepare
 
@@ -100,7 +100,8 @@ def test_render_refuses(sod):
 def test_dataset_declares_roles(sod):
     assert sod.short.isascii() and "_" not in sod.short
     assert set(sod.optional) | set(sod.groups) | {sod.area} <= set(sod.columns)
-    assert sod.descriptions == ("default", "extended")
+    assert sod.descriptions == ("default", "extended", "legacy")
+    assert [name for name in sod.descriptions if load_template(sod.description_path(name)).stored] == ["legacy"]
     assert load_claims(sod, "election_2021").column in sod.columns
 
 
@@ -132,7 +133,11 @@ def test_sod_forms_and_templates_agree(sod):
 def test_sod_prompts_match_values(sod):
     require(sod.values_path)
     values, forms = read_values(sod), load_forms(sod.forms_path)
+    with pytest.raises(ValueError):
+        render_all(sod, values, ["legacy"])
     for name in sod.descriptions:
+        if load_template(sod.description_path(name)).stored:
+            continue
         require(sod.prompts_path(name))
         stored = read_prompts(sod, name, values.index)[name]
         fresh = render(sod, load_template(sod.description_path(name)), values, forms)

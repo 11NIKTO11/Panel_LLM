@@ -25,6 +25,9 @@ which is how a sentence degrades when an answer is missing, and disappears when 
   drops the alternative.
 - the renderer capitalises each sentence, so forms are lowercase phrases.
 - a variant is additive: new wording is a new file, never an edit of one a run has recorded.
+- `"stored": true` with no sentences declares a description that is not rendered: its prompt
+  table holds prompts as they were once sent, and prepare leaves it alone. The runs migrated
+  from the legacy shape have one, because their wording is not this template language's.
 """
 import json
 import re
@@ -38,7 +41,7 @@ from .forms import Forms
 
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_0-9]+))?\}")
 REQUIRED_KEYS = {"name", "short", "sentences"}
-OPTIONAL_KEYS = {"note", "standalone"}
+OPTIONAL_KEYS = {"note", "standalone", "stored"}
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,7 @@ class PromptTemplate:
         short: the description's part of a results stem.
         sentences: alternatives in priority order, per sentence.
         standalone: the description is the whole prompt; no question follows it.
+        stored: the prompt table is kept as it was sent and never rendered; no sentences.
         note: free text; not used by code.
     """
     name: str
@@ -58,6 +62,7 @@ class PromptTemplate:
     sentences: Tuple[Tuple[str, ...], ...]
     standalone: bool = False
     note: str = ""
+    stored: bool = False
 
     @property
     def columns(self) -> Tuple[str, ...]:
@@ -104,7 +109,8 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
     Raises:
         FileNotFoundError: if there is no such file.
         ValueError: on unknown or missing keys, a name that disagrees with the filename, a
-            short that could not sit in a stem, or a sentence without alternatives.
+            short that could not sit in a stem, a sentence without alternatives, or a
+            stored description with sentences.
     """
     path = Path(path)
     if not path.exists():
@@ -119,10 +125,12 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
     short = config["short"]
     if not short or not short.isascii() or "_" in short:
         raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
-    sentences = tuple(tuple(block) for block in config["sentences"])
-    if not sentences or any(not block for block in sentences):
+    sentences, stored = tuple(tuple(block) for block in config["sentences"]), bool(config.get("stored", False))
+    if stored and sentences:
+        raise ValueError(f"{path}: a stored description is not rendered and has no sentences")
+    if not stored and (not sentences or any(not block for block in sentences)):
         raise ValueError(f"{path}: every sentence needs at least one alternative")
     return PromptTemplate(
         name=config["name"], short=short, sentences=sentences,
-        standalone=bool(config.get("standalone", False)), note=config.get("note", ""),
+        standalone=bool(config.get("standalone", False)), note=config.get("note", ""), stored=stored,
     )
