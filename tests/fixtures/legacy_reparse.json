@@ -71,15 +71,6 @@
       "sha256": "47bf1951b4033514cb77c69d3dadc68e3a6f450d54eb1b31050243033a4eaa34"
     }
   },
-  "sod_legacy_cslegacy_legacy_OpenRouter_claude-sonnet-4-5_Prob_t=0.0_subset=200": {
-    "rows": 200,
-    "response_model": "Probabilities",
-    "json": {
-      "shape": "wrapped",
-      "rows": 200,
-      "sha256": "98d86c1d6f07b69b5b956c6c4e672e773f6751f3fa9af9a4ba0f788529af0cff"
-    }
-  },
   "sod_legacy_cslegacy_legacy_OpenRouter_gemini-3-flash-preview_Prob_t=0.0": {
     "rows": 3880,
     "response_model": "Probabilities",

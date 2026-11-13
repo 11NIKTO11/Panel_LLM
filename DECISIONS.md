@@ -736,3 +736,22 @@ the "one topic or two" question of §10.
   longer exists; they are in `_delete/legacy_topic/code/`, last tracked at `2690a71`. §10
   describes what they did.
   `tests/baseline.py` did not import before this either (`profile_path` is gone)
+
+## 14. Trial runs out of `results/` (2026-11-13)
+
+On Martin's word: every subset run and every Fake run was a test and left `results/`.
+
+- gone from `results/election_2021/`: the Fake run (`subset=20`), the two 200-subject Haiku
+  trials (4.5 and 5.5) with their archive copies, per-run tables and plots, the legacy
+  200-subject Sonnet run, and the `*_haiku` comparison and benchmark outputs, which were
+  computed from the two Haiku trials alone
+  - parked in `_delete/results_test_runs/`, for Martin to remove
+- left: nine legacy runs (eight GPT, one Gemini) and the two `regions` runs (`x10`, `x3`)
+- where earlier sections say "ten legacy runs", "the 200-subject Sonnet run" or "seen live
+  on 200 subjects", they describe what was there then; what those trials showed (§8, §9)
+  still stands as observed
+- the Sonnet run's entry left `tests/fixtures/legacy_aggregates.json` and
+  `legacy_reparse.json`
+- left dangling on purpose: the set `haiku` in `config/comparisons.json` and the default
+  `STEM` of `analyze.ipynb` name the Haiku runs without their subset, so they match the full
+  runs once those are sent

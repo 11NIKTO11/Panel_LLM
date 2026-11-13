@@ -249,7 +249,7 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | topic | framings | state |
 |---|---|---|
 | `election_2021` | `cs`, `en` | current - 9 parties, turnout, official 2021 result |
-| `election_2021` | `cs_legacy` | frozen - what the ten runs made before the system prompt existed were shown; with question `legacy`. Until 2026-11-13 a topic of its own, `election_2021_legacy` |
+| `election_2021` | `cs_legacy` | frozen - what the runs made before the system prompt existed were shown (nine are kept); with question `legacy`. Until 2026-11-13 a topic of its own, `election_2021_legacy` |
 | `election_2025` | `cs` | prepared - 8 parties; needs an actual-results CSV before it can be evaluated |
 | `media_fees_2026` | `cs` | prepared - the colleague's issue question; two options, no turnout |
 
@@ -317,8 +317,12 @@ turns into ids in memory.
 ## 5. Status
 
 Prepare, the run and the analysis are in their reshaped form (`DECISIONS.md` §7, §8, §9).
-The analysis has only seen the two 200-subject trials, and its numbers are not yet compared
-with the earlier statistics; the legacy runs were migrated and are read by it. Sent live so far: two 200-subject trials through the Anthropic clients (Haiku 4.5
-with a temperature, Haiku 5.5 with effort `low`); OpenAI, Gemini and OpenRouter have not been
+The only full `sod` runs in `results/` are the nine legacy ones (eight GPT, one Gemini), migrated
+and read by the analysis; for gpt-4.1 the regional MAE equals the 2025 table, the rest is not yet
+compared with the earlier statistics. Sent live since the overhaul: two 200-subject trials through
+the Anthropic clients (Haiku 4.5 with a temperature, Haiku 5.5 with effort `low`), removed from
+`results/` on 2026-11-13 with the other trial runs, so the named set `haiku` of
+`config/comparisons.json` and the default `STEM` of `analyze.ipynb` find no run until full Haiku
+runs exist; OpenAI, Gemini and OpenRouter have not been
 called since the overhaul. `election_2025` has no reference results yet, and the English
 texts have not been reviewed.
