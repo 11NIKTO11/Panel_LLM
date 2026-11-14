@@ -123,5 +123,11 @@
             }
         }
     },
+    "together": {
+        "geography": [
+            "region",
+            "district"
+        ]
+    },
     "note": "Prepared data only: no raw source and no build step, `data/sod_legacy/` is kept as it is. The 3880 respondents of `sod` in the same order and under the same ids, with the values as the cleaning of 2025 wrote them (lowercase answers, 347 respondents without an income, no EU, NATO or vaccination answers). employment_status joins several statuses with ', ', which one status also contains, so it cannot be split and is not a grouping column."
 }

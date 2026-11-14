@@ -28,6 +28,8 @@ which is how a sentence degrades when an answer is missing, and disappears when 
 - `"stored": true` with no sentences declares a description that is not rendered: its prompt
   table holds prompts as they were once sent, and prepare leaves it alone. The runs migrated
   from the legacy shape have one, because their wording is not this template language's.
+  Its `"reads"` lists the values columns those prompts were built from, which a rendered
+  template's slots say by themselves.
 """
 import json
 import re
@@ -41,7 +43,7 @@ from .forms import Forms
 
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_0-9]+))?\}")
 REQUIRED_KEYS = {"name", "short", "sentences"}
-OPTIONAL_KEYS = {"note", "standalone", "stored"}
+OPTIONAL_KEYS = {"note", "standalone", "stored", "reads"}
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,7 @@ class PromptTemplate:
         standalone: the description is the whole prompt; no question follows it.
         stored: the prompt table is kept as it was sent and never rendered; no sentences.
         note: free text; not used by code.
+        reads: a stored description's values columns, the ones its prompts were built from.
     """
     name: str
     short: str
@@ -63,10 +66,13 @@ class PromptTemplate:
     standalone: bool = False
     note: str = ""
     stored: bool = False
+    reads: Tuple[str, ...] = ()
 
     @property
     def columns(self) -> Tuple[str, ...]:
-        """Every column the template reads, in order of first appearance."""
+        """Every column the template reads, in order of first appearance; a stored description's `reads`."""
+        if self.stored:
+            return self.reads
         seen = {}
         for block in self.sentences:
             for line in block:
@@ -109,8 +115,8 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
     Raises:
         FileNotFoundError: if there is no such file.
         ValueError: on unknown or missing keys, a name that disagrees with the filename, a
-            short that could not sit in a stem, a sentence without alternatives, or a
-            stored description with sentences.
+            short that could not sit in a stem, a sentence without alternatives, a stored
+            description with sentences, or `reads` on a rendered one.
     """
     path = Path(path)
     if not path.exists():
@@ -130,7 +136,10 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
         raise ValueError(f"{path}: a stored description is not rendered and has no sentences")
     if not stored and (not sentences or any(not block for block in sentences)):
         raise ValueError(f"{path}: every sentence needs at least one alternative")
+    if not stored and "reads" in config:
+        raise ValueError(f"{path}: `reads` is for a stored description; a rendered one's slots say what it reads")
     return PromptTemplate(
         name=config["name"], short=short, sentences=sentences,
         standalone=bool(config.get("standalone", False)), note=config.get("note", ""), stored=stored,
+        reads=tuple(config.get("reads", ())),
     )

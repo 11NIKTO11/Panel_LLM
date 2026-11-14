@@ -35,11 +35,13 @@ Declaration shape:
         },
         "claims": {"election_2021": {"column": "voted_party", "map": "claims/election_2021.json"}},
         "shared": {"gender": {"column": "gender", "map": {"Muž": "male", "Žena": "female"}}},
+        "together": {"geography": ["region", "district"]},   columns that share credit in an
+                                          attribution (kernel's Shapley effects) as one factor
         "note": "free text, ignored by code"
     }
 """
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
@@ -51,7 +53,7 @@ CONFIG_NAME = "dataset.json"
 FORMS_NAME = "forms.json"
 DESCRIPTIONS_DIR = "descriptions"
 REQUIRED_KEYS = {"name", "short", "title", "language", "source", "columns", "claims"}
-OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "note"}
+OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "together", "note"}
 LEVEL_KEYS = {"bands", "order", "several"}
 CLAIM_KEYS = {"column", "map"}
 SHARED_KEYS = {"column", "map"}
@@ -110,6 +112,8 @@ class Dataset:
         levels: column -> how analysis reads it as levels (`Levels`), for the columns that say.
         claims: topic name -> where the dataset's answer to it lives.
         shared: shared vocabulary name -> the column carrying it and its map; often empty.
+        together: name -> columns that share credit as one factor when effects are attributed;
+            often empty.
         dir: the dataset's folder.
         note: free text; not used by code.
     """
@@ -126,6 +130,7 @@ class Dataset:
     claims: Dict[str, ClaimRef]
     shared: Dict[str, SharedRef]
     dir: Path
+    together: Dict[str, Tuple[str, ...]] = field(default_factory=dict)
     note: str = ""
 
     @property
@@ -215,6 +220,11 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
             raise ValueError(f"{path}: levels of '{column}' need exactly one of {sorted(LEVEL_KEYS)}")
         levels[column] = Levels(bands=dict(entry.get("bands", {})), order=tuple(entry.get("order", ())), several=entry.get("several"))
     named |= set(levels)
+    together = {name: tuple(group) for name, group in config.get("together", {}).items()}
+    grouped = [column for group in together.values() for column in group]
+    if len(grouped) != len(set(grouped)) or any(len(group) < 2 for group in together.values()):
+        raise ValueError(f"{path}: 'together' needs groups of two columns or more, none in two groups")
+    named |= set(grouped)
     stray = sorted(named - set(columns))
     if stray:
         raise ValueError(f"{path}: roles name columns the dataset does not have: {stray}")
@@ -222,7 +232,7 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
     return Dataset(
         name=config["name"], short=short, title=config["title"], language=config["language"],
         source=config["source"], columns=columns, optional=optional, groups=groups, area=area, levels=levels,
-        claims=claims, shared=shared, dir=directory, note=config.get("note", ""),
+        claims=claims, shared=shared, dir=directory, note=config.get("note", ""), together=together,
     )
 
 
