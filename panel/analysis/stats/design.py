@@ -8,9 +8,10 @@ A predictor as columns of a design matrix, without the intercept:
 One is left out each time because, with the intercept, it is what the others are read against.
 
 A penalised model needs no level left out: `indicators` keeps every level, a missing answer
-being one more.
+being one more; `with_interactions` adds the products of every two predictors' indicators.
 """
-from typing import Mapping, Union
+import itertools
+from typing import Mapping, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -65,3 +66,14 @@ def indicators(values: pd.Series, several: Union[str, None] = None, bands: Union
         return pd.get_dummies(pd.cut(values, [float("-inf"), *bands.values()], labels=list(bands)), dtype=float).to_numpy()
     values = values.fillna(missing)
     return (values.str.get_dummies(several) if several else pd.get_dummies(values)).to_numpy(dtype=float)
+
+
+def with_interactions(blocks: Sequence[np.ndarray]) -> np.ndarray:
+    """
+    The predictors' indicator blocks side by side, then the product of every column of one
+    with every column of another, for each pair of predictors; products that are zero for
+    every row are left out.
+    """
+    products = [(first[:, :, None] * second[:, None, :]).reshape(len(first), -1) for first, second in itertools.combinations(blocks, 2)]
+    joined = np.hstack(products) if products else np.empty((len(blocks[0]), 0))
+    return np.hstack([*blocks, joined[:, joined.any(axis=0)]])

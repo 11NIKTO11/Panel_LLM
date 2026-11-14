@@ -18,6 +18,7 @@ import pandas as pd
 
 from panel.topic import PlotStyle, Topic
 
+from ..aggregate import outcome_shares
 from ..comparison import RunSet
 from ..saved import NotApplicable, SavedRun
 from ..stats.classifier import cross_validated, losses, recalibrated
@@ -69,20 +70,6 @@ class Ground:
         return list(dict.fromkeys(self.losses.columns.get_level_values(0)))
 
 
-def outcome_shares(run: SavedRun) -> pd.DataFrame:
-    """
-    One row per subject, a column per outcome, summing to 1; a subject is left out if no
-    answer of it says which option while saying it might take part.
-    """
-    frame, options = run.normalized, run.options
-    if not run.topic.turnout:
-        return frame[options].dropna().groupby(level=0, sort=False).mean()
-    taking, staying = run.topic.turnout
-    defined = frame[options].notna().all(axis=1) | (frame[taking] == 0)
-    joint = frame[options].fillna(0.0).mul(frame[taking], axis=0).assign(**{staying: frame[staying]})
-    return joint[defined].dropna().groupby(level=0, sort=False).mean()
-
-
 def own_answers(run: SavedRun) -> pd.Series:
     """Each subject's own outcome; a subject whose answer says nothing is left out."""
     meaning = dict(run.claims.options)
@@ -119,7 +106,7 @@ def load_ground(runs: RunSet, predictors: Union[Sequence[str], None] = None, str
         raise ValueError(f"'{first.dataset.name}' has no columns {unknown}; it has {list(first.subjects.columns)}")
 
     outcomes = first.options + ([runs.topic.turnout[1]] if runs.topic.turnout else [])
-    predicted = {label: outcome_shares(run) for label, run in runs.runs.items()}
+    predicted = {label: outcome_shares(run.normalized, run.topic) for label, run in runs.runs.items()}
     answers = own_answers(first)
     for shares in predicted.values():
         answers = answers[answers.index.isin(shares.index)]

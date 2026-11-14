@@ -1,9 +1,15 @@
 """The statistical layer on small synthetic data: invariants of the transforms, and the tests against direct formulas."""
+import itertools
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from panel.analysis.stats import classifier, mapping, permanova
+from panel.analysis.stats.distributions import pairwise_tv, tv
+from panel.analysis.stats.sensitivity import sensitivity
+from panel.analysis.stats.spectral import EFFECTIVE_AXES, STABLE_RANK, SUM_RATIO, centred_svd, soft_ranks
+from panel.analysis.stats.variance import cv_r2, eps2, factorial, loo_r2
 from panel.analysis.stats.compositional import helmert_basis, ilr, replace_zeros
 from panel.analysis.stats.design import block, indicators
 from panel.analysis.stats.manova import DF, ETA, P, PILLAI, manova
@@ -146,3 +152,67 @@ def test_a_trained_model_finds_what_decides_the_answer():
     assert known < blind == pytest.approx(np.log(3))
     assert classifier.losses(answered, answered, floor=0.0)[1].max() == 0
     assert classifier.recalibrated(found, answers, ["x", "y", "z"]).shape == (200, 3)
+
+
+def test_tv_and_its_pairs():
+    assert tv([0.5, 0.5, 0.0], [0.0, 0.5, 0.5]) == pytest.approx(0.5)
+    rows = RNG.dirichlet(np.ones(4), 30)
+    found, (largest, i, j) = pairwise_tv(rows, chunk=7)
+    brute = [tv(rows[a], rows[b]) for a in range(30) for b in range(a + 1, 30)]
+    np.testing.assert_allclose(np.sort(found), np.sort(brute), atol=1e-6)
+    assert largest == pytest.approx(max(brute)) and tv(rows[i], rows[j]) == pytest.approx(largest)
+
+
+def test_centred_svd_and_soft_ranks():
+    matrix = RNG.dirichlet(np.ones(5), 40).T
+    left, singular, right = centred_svd(matrix)
+    np.testing.assert_allclose((left * singular) @ right, matrix - matrix.mean(axis=1, keepdims=True), atol=1e-12)
+    assert (left[np.abs(left).argmax(axis=0), range(left.shape[1])] > 0).all()
+    one = soft_ranks(np.array([2.0, 0.0, 0.0]))
+    assert one[SUM_RATIO] == one[STABLE_RANK] == pytest.approx(1.0) and one[EFFECTIVE_AXES] == pytest.approx(1.0)
+    assert soft_ranks(np.array([1.0, 1.0]))[EFFECTIVE_AXES] == pytest.approx(2.0)
+
+
+def test_sensitivity_is_exact_at_both_ends():
+    values, population = RNG.random(50), RNG.dirichlet(np.ones(50))
+    small, whole = sensitivity(values, population, [1e-6, 1.0])
+    assert small / 1e-6 == pytest.approx(values.max() - values[np.argsort(values)[0]])
+    assert whole == pytest.approx(values.max() - values @ population)
+
+
+def test_eps2_is_the_corrected_share_of_one_way_anova():
+    groups = RNG.choice(list("abc"), 300)
+    values = np.column_stack([RNG.normal(size=300) + (groups == "a"), RNG.normal(size=300)])
+    pooled, each = eps2(values, groups)
+    frame = pd.DataFrame(values).assign(g=groups)
+    means = frame.groupby("g").transform("mean").to_numpy()
+    total = ((values - values.mean(axis=0)) ** 2).sum(axis=0)
+    between = ((means - values.mean(axis=0)) ** 2).sum(axis=0)
+    expected = (between - 2 * (total - between) / 297) / total
+    np.testing.assert_allclose(each, expected)
+    assert pooled == pytest.approx((between.sum() - 2 * (total - between).sum() / 297) / total.sum())
+    assert each[0] > 0.1 and abs(each[1]) < 0.03
+
+
+def test_ridge_r2_follows_the_signal():
+    features = RNG.normal(size=(200, 3))
+    values = np.column_stack([features @ [1.0, -1.0, 0.5] + 0.1 * RNG.normal(size=200), RNG.normal(size=200)])
+    each, pooled = cv_r2(features, values)
+    assert each[0] > 0.9 and each[1] < 0.05 and each[1] < pooled < each[0]
+    assert loo_r2(features, values[:, 0]) > 0.9 and loo_r2(features, values[:, 1]) < 0.05
+
+
+def test_factorial_splits_a_complete_design_exactly():
+    levels = {"a": ["x", "y"], "b": ["p", "q", "r"], "c": ["u", "v"]}
+    factors = pd.DataFrame(list(itertools.product(*levels.values())), columns=list(levels))
+    values = np.column_stack([
+        (factors["a"] == "x") * 2.0 + (factors["b"] == "p") * 1.0 + ((factors["a"] == "y") & (factors["c"] == "v")) * 3.0,
+        RNG.normal(size=len(factors)),
+    ])
+    split = factorial(values, factors)
+    parts = sum(value for name, value in split.items() if name != "total")
+    np.testing.assert_allclose(parts, split["total"])
+    assert split["b x c"][0] == pytest.approx(0, abs=1e-12) and split["rest"][0] == pytest.approx(0, abs=1e-12)
+    assert split["a x c"][0] > 0 and split["c"][0] > 0
+    with pytest.raises(ValueError):
+        factorial(values[1:], factors.iloc[1:])
