@@ -1,0 +1,62 @@
+{
+    "name": "grid_colleague",
+    "short": "gridcolleague",
+    "title": "The colleague's profile grid, in their own ids",
+    "language": "en",
+    "source": "dataset.json",
+    "columns": [
+        "gender",
+        "education",
+        "age",
+        "income",
+        "interest"
+    ],
+    "groups": [
+        "gender",
+        "education",
+        "age",
+        "income",
+        "interest"
+    ],
+    "levels": {
+        "gender": {
+            "order": [
+                "female",
+                "male"
+            ]
+        },
+        "education": {
+            "order": [
+                "primary",
+                "apprenticeship",
+                "secondary_maturita",
+                "university"
+            ]
+        },
+        "age": {
+            "order": [
+                "18-29",
+                "30-44",
+                "45-59",
+                "60+"
+            ]
+        },
+        "income": {
+            "order": [
+                "low",
+                "middle",
+                "high"
+            ]
+        },
+        "interest": {
+            "order": [
+                "none",
+                "rather_no",
+                "rather_yes",
+                "very"
+            ]
+        }
+    },
+    "claims": {},
+    "note": "384 synthetic profiles = 2 x 4 x 4 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. The colleague's design as their delivered results write it: their column names and English ids, a profile's own key being its levels joined by '_'. Their prompt text was not delivered, so there is no description and nothing to send; the dataset is what their results are read against. Ported from CoRe/_grid_separate grid/grid_config_colleague.json."
+}

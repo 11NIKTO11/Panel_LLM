@@ -1,0 +1,33 @@
+{
+    "name": "cs_grid",
+    "topic": "election_2021",
+    "language": "cs",
+    "short": "csgrid",
+    "title": "Volby do Poslanecké sněmovny ČR 2021 (grid runs)",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2021.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, postoje k EU/NATO atd.).\n2.  Na základě analýzy odhadni dvě klíčové věci:\n    a) Jaká je pravděpodobnost, že respondent vůbec šel k volbám.\n    b) Pokud volil, jaké jsou pravděpodobnosti pro jednotlivé politické strany.\n3.  Dbej na to, aby součet pravděpodobností účasti byl přesně 1.0.\n4.  Dbej na to, aby součet pravděpodobností VŠECH stran byl přesně 1.0.",
+    "labels": {},
+    "schema": {
+        "turnout": {
+            "title": "TurnoutProbability",
+            "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
+            "voted": "Pravděpodobnost, že se respondent zúčastnil.",
+            "not_voted": "Pravděpodobnost, že se respondent nezúčastnil.",
+            "field": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+        },
+        "option": {
+            "title": "OptionProbability",
+            "description": "Pravděpodobnost jedné z nabízených možností.",
+            "name": "Identifikátor jedné z nabízených možností.",
+            "probability": "Pravděpodobnost této možnosti."
+        },
+        "probabilities": {
+            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
+            "options": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0."
+        },
+        "pick": {
+            "description": "Zjednodušený výstup: jedna vybraná možnost.",
+            "choice": "Nejpravděpodobnější možnost pro tento profil."
+        }
+    },
+    "note": "What the grid runs of September 2026 (CoRe/_grid_separate) were sent: the system prompt of that time, which still names the profile's attributes and the form of the answer, and its general schema text - options, not parties - including the class titles OptionProbability and TurnoutProbability. The schema as sent is kept in each grid run's record; this framing words it under today's class and field names."
+}

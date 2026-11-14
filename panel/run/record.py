@@ -4,6 +4,10 @@ The run record: what a saved run was, in enough detail to audit it without the c
 Names make runs groupable; the copied text makes a record self-contained, so a later edit of a
 template or a framing cannot change what a past run meant. Legacy records under
 the legacy shape keep it; nothing rewrites them.
+
+A run someone else sent and delivered as a table carries a `delivered` block instead of what
+it was sent: its description and framing are names without text, so it is read but never
+resolved or checked.
 """
 import subprocess
 import sys
@@ -21,6 +25,7 @@ from panel.llm import BaseLLMClient
 from .resolve import Resolved
 
 SDKS = ("openai", "anthropic", "google-genai", "requests")
+DELIVERED = "delivered"
 
 
 def _git(*args: str) -> str:

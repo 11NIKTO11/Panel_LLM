@@ -62,5 +62,5 @@ def legacy_store():
 
 @pytest.fixture(scope="session")
 def legacy_stems(legacy_store) -> list:
-    """The store's runs that were migrated from the legacy shape."""
-    return [stem for stem in legacy_store.runs() if "migrated" in legacy_store.record(stem)]
+    """The store's runs that were migrated from the legacy shape: framed by the legacy framing."""
+    return [stem for stem in legacy_store.runs() if legacy_store.record(stem)["spec"]["framing"] == LEGACY_FRAMING]

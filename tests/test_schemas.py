@@ -30,6 +30,14 @@ def test_legacy_runs_record_the_schema_they_were_sent(legacy_store, legacy_stems
         assert legacy_store.record(stem)["response_schema"] in frozen.values(), stem
 
 
+def test_grid_framing_words_the_schema_the_grid_runs_were_sent():
+    renamed = {"VotingProbabilities": "Probabilities", "VotingPick": "Pick", "parties": "options", "Parties": "Options"}
+    sent = json.dumps(load_fixture("grid_schema_sent"), ensure_ascii=False)
+    for old, new in renamed.items():
+        sent = sent.replace(f'"{old}"', f'"{new}"')
+    assert json.loads(sent) == generated("election_2021", "cs_grid")
+
+
 def test_topic_loads_all():
     topics = [load_topic(name, TOPICS_DIR) for name in topic_names(TOPICS_DIR)]
     assert any(topic.turnout is None for topic in topics), "no topic exercises the turnout-less shape"

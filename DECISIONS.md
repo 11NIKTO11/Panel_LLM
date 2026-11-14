@@ -755,3 +755,100 @@ On Martin's word: every subset run and every Fake run was a test and left `resul
 - left dangling on purpose: the set `haiku` in `config/comparisons.json` and the default
   `STEM` of `analyze.ipynb` name the Haiku runs without their subset, so they match the full
   runs once those are sent
+
+## 15. The grids as datasets (2026-11-14)
+
+Step (a) of porting the grid experiment from `CoRe/_grid_separate`: the grids its runs were
+sent, as datasets of their own. Importing the runs (b) and the grid analysis come later.
+
+- one dataset per grid that has runs, plus the colleague's
+  - `grid_sod` (360): the survey's vocabulary, incomes `Do 15.000` / `30.001 - 40.000` /
+    `Vice než 80.000` - the config as committed (`132038d`); its runs are the three of
+    2026-09-11, `grid-sod-r1..r3`
+  - `grid_sod45` (360): the same with incomes cut at 25 and 45 thousand - an uncommitted
+    edit of that config, sent once on 2026-09-24 under the stem `grid-sod-r1`, which
+    overwrote the first repeat of `grid_sod`; that repeat survives only in the old folder's
+    `archive/`. Why the incomes changed is not recorded
+  - `grid_simple` (384): the colleague's design in Czech words; one run, `grid-simple`
+  - `grid_colleague` (384): the colleague's design in their own column names and English ids;
+    no description - their prompt text was not delivered - so nothing to send. It is what
+    their two delivered CSVs (election, media fees) are read against: their `profile_id` is
+    a row's levels joined by `_`
+  - not ported: `simple_sod` and the old `datasets/grid` (`income3`, no runs); `sod_en`,
+    `simple_en` (English, wait with `sod_en`)
+- a grid's source is its own declaration: `"source": "dataset.json"`; each column is a
+  factor, its `levels.order` the factor's levels. `panel/grid.py: full_factorial` builds the
+  rows (first column slowest, numbered from 1), and each grid's `build.py` is that function
+  under the name `prepare` imports, so `panel/prepare.py` has no grid case
+  - rejected: a separate factors file beside `dataset.json` - the levels would be written
+    twice, once to build and once to order analysis
+  - rejected: a grid case in `prepare` (a `"build": "grid"` key or similar)
+- descriptions: `default` of `grid_sod`, `grid_sod45`, `grid_simple` is the old
+  `grid_description_v1` sentence for sentence; the age clause is a `clause` form of
+  `age_range`, the only form a grid needs. The two Czech grids also declare `shared.gender`,
+  so a new run may use a question worded by gender
+- checked against `_grid_separate`: values and descriptions equal its grid CSVs; description
+  plus the old question equals the `Prompt` of every saved copy of every run, archives
+  included (5 for `grid_sod`, 3 for `grid_sod45`, 2 for `grid_simple`); every delivered row of
+  the colleague is one row of `grid_colleague`
+- framing `cs_grid` (stem part `csgrid`) for the grid runs (2026-11-14): their system prompt
+  is the one of September, which still names the profile's attributes and the form of the
+  answer, and their schema text the general one of that time (options, not parties) - neither
+  `cs` nor `cs_legacy`. Built from `_grid_separate`'s topic file, texts copied
+  - the schema it generates is the one the runs were sent but for the fixed names
+    (`VotingProbabilities` / `VotingPick`, `parties` and the title `Parties` pydantic derives
+    from it): `tests/fixtures/grid_schema_sent.json` holds the schema as sent, and a test
+    checks the two differ by those names only
+  - the question is `legacy`: the same text, which the runs sent after a space
+- dropped for now: the comparison scales (`sod_to_grid_categories.json`, `grid_categories.py`,
+  `colleague_report_claims.json`); how grids are compared with the survey and each other is
+  decided later. `data/grid/` and `_to_sort/unported/datasets/grid/` are superseded
+
+### 15.1 The grid runs brought in (2026-11-14)
+
+`python migrate_grid.py <path to _grid_separate> [--write [--to <dir>]]`, one-off like the
+legacy migration: the old folder is only read, new stems, nothing overwritten. Run into a
+trial folder first, then into `results/`; the two agreed byte for byte.
+
+- ours, framing `cs_grid`, question `legacy`, `OpenRouter gpt-4o`, `t=0.3`:
+  - `gridsod_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3`: the three repeats of
+    2026-09-11, saved then as three runs `grid-sod-r1..r3`, are one run with a `repeat`
+    column - the shape every repeated run has. Repeat 1 is rebuilt from its table (its raw
+    JSON was overwritten by the `grid_sod45` run); 2 and 3 are parsed from their raw JSON
+  - `gridsod45_..._t=0.3` and `gridsimple_..._t=0.3`: one repeat each
+  - each saved prompt equals today's (description, a space, the question) and each repeat's
+    numbers equal its old table exactly; `check` passes
+  - record: `saved_at` the latest repeat's, `response_schema` the schema as sent
+    (`tests/fixtures/grid_schema_sent.json`), code and SDK versions empty, and `migrated`
+    listing per repeat the old stem, date, commit (of `_grid_separate`'s repository) and
+    whether its answers came from raw JSON or the table
+  - rejected: one table per repeat, as before - a repeat is a row of one run
+- the colleague's, delivered as per-profile means without prompts: runs over `grid_colleague`
+  with the stored, standalone description `delivered` and the framing name `colleague`, which
+  has no file - their system prompt and schema were not delivered
+  - `gridcolleague_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3`
+    (`election_2021`): the mean of 3 valid repeats per profile, one row each, `repeat` 1 -
+    the stem says x3 because three calls were made; the spread over repeats is only in the
+    delivered table
+  - `..._t=0.0` (`media_fees_2026`): one repeat
+  - not resolvable, so written at the store's paths by hand; the record carries a `delivered`
+    block (`panel.run.record.DELIVERED`: file, sha256, report, `averaged`, a note) instead of
+    framing, question and schema, and `analyze.py` does not `check` such a run. The delivered
+    tables are copied to `results/<topic>/delivered/`, keeping `_std`; `w_` is
+    `p_<option> x p_voted` and is dropped, `Not Voted` is `1 - p_voted`
+  - checked: the election run aggregates to the report's table (turnout-weighted shares,
+    renormalized) to the second decimal, and turnout 72.6 %
+- tests: `tests/test_grid_results.py`; `legacy_stems` now selects by the legacy framing,
+  since the grid runs carry `migrated` too
+- found and fixed: `effects` raised on a topic with two options (`media_fees_2026`): one
+  log-ratio coordinate, and statsmodels' `MANOVA` refuses a single dependent variable. With one
+  coordinate `stats.manova` now F-tests the same hypotheses on the least-squares fit, and
+  Pillai's trace is the partial R squared `qF / (qF + residual df)` - what it is for one
+  variable, so the table keeps its columns and meaning; checked against the one-way ANOVA
+  formulas in `tests/test_stats.py`
+  - rejected: leaving the MANOVA columns empty for two options - the test is valid there
+- found, not fixed: `compare.py`'s `spread` raises on a dataset without an area column (every
+  grid) instead of skipping; `analyze.ipynb` still checks every run, so a delivered run stops
+  at that cell
+- `migrate_grid.py` is spent once Martin has looked at the runs; `CoRe/_grid_separate`
+  holds everything it read

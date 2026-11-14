@@ -1,0 +1,16 @@
+{
+    "note": "Only the age band needs a form, the clause 'je mi mezi 18 a 24 lety'; every other level is spliced as it stands, survey answers verbatim, so 'Příjem naší domácnosti je Do 15.000 Kč' keeps the capital D.",
+    "columns": {
+        "age_range": {
+            "forms": {
+                "clause": {
+                    "18–24 let": "je mi mezi 18 a 24 lety",
+                    "25–34 let": "je mi mezi 25 a 34 lety",
+                    "35–44 let": "je mi mezi 35 a 44 lety",
+                    "45–54 let": "je mi mezi 45 a 54 lety",
+                    "55–65 let": "je mi mezi 55 a 65 lety"
+                }
+            }
+        }
+    }
+}

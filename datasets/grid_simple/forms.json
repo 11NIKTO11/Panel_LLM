@@ -1,0 +1,15 @@
+{
+    "note": "Only the age band needs a form, the clause 'je mi mezi 18 a 29 lety'; every other level is spliced as it stands.",
+    "columns": {
+        "age_range": {
+            "forms": {
+                "clause": {
+                    "18-29": "je mi mezi 18 a 29 lety",
+                    "30-44": "je mi mezi 30 a 44 lety",
+                    "45-59": "je mi mezi 45 a 59 lety",
+                    "60+": "je mi 60 a více let"
+                }
+            }
+        }
+    }
+}

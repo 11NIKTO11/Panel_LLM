@@ -1,0 +1,385 @@
+id,gender,education_level,age_range,income_range,interest_in_politics
+1,muž,základní,18-29,nízký,vůbec se nezajímám
+2,muž,základní,18-29,nízký,spíše se nezajímám
+3,muž,základní,18-29,nízký,spíše se zajímám
+4,muž,základní,18-29,nízký,velmi se zajímám
+5,muž,základní,18-29,střední,vůbec se nezajímám
+6,muž,základní,18-29,střední,spíše se nezajímám
+7,muž,základní,18-29,střední,spíše se zajímám
+8,muž,základní,18-29,střední,velmi se zajímám
+9,muž,základní,18-29,vysoký,vůbec se nezajímám
+10,muž,základní,18-29,vysoký,spíše se nezajímám
+11,muž,základní,18-29,vysoký,spíše se zajímám
+12,muž,základní,18-29,vysoký,velmi se zajímám
+13,muž,základní,30-44,nízký,vůbec se nezajímám
+14,muž,základní,30-44,nízký,spíše se nezajímám
+15,muž,základní,30-44,nízký,spíše se zajímám
+16,muž,základní,30-44,nízký,velmi se zajímám
+17,muž,základní,30-44,střední,vůbec se nezajímám
+18,muž,základní,30-44,střední,spíše se nezajímám
+19,muž,základní,30-44,střední,spíše se zajímám
+20,muž,základní,30-44,střední,velmi se zajímám
+21,muž,základní,30-44,vysoký,vůbec se nezajímám
+22,muž,základní,30-44,vysoký,spíše se nezajímám
+23,muž,základní,30-44,vysoký,spíše se zajímám
+24,muž,základní,30-44,vysoký,velmi se zajímám
+25,muž,základní,45-59,nízký,vůbec se nezajímám
+26,muž,základní,45-59,nízký,spíše se nezajímám
+27,muž,základní,45-59,nízký,spíše se zajímám
+28,muž,základní,45-59,nízký,velmi se zajímám
+29,muž,základní,45-59,střední,vůbec se nezajímám
+30,muž,základní,45-59,střední,spíše se nezajímám
+31,muž,základní,45-59,střední,spíše se zajímám
+32,muž,základní,45-59,střední,velmi se zajímám
+33,muž,základní,45-59,vysoký,vůbec se nezajímám
+34,muž,základní,45-59,vysoký,spíše se nezajímám
+35,muž,základní,45-59,vysoký,spíše se zajímám
+36,muž,základní,45-59,vysoký,velmi se zajímám
+37,muž,základní,60+,nízký,vůbec se nezajímám
+38,muž,základní,60+,nízký,spíše se nezajímám
+39,muž,základní,60+,nízký,spíše se zajímám
+40,muž,základní,60+,nízký,velmi se zajímám
+41,muž,základní,60+,střední,vůbec se nezajímám
+42,muž,základní,60+,střední,spíše se nezajímám
+43,muž,základní,60+,střední,spíše se zajímám
+44,muž,základní,60+,střední,velmi se zajímám
+45,muž,základní,60+,vysoký,vůbec se nezajímám
+46,muž,základní,60+,vysoký,spíše se nezajímám
+47,muž,základní,60+,vysoký,spíše se zajímám
+48,muž,základní,60+,vysoký,velmi se zajímám
+49,muž,střední bez maturity (vyučení),18-29,nízký,vůbec se nezajímám
+50,muž,střední bez maturity (vyučení),18-29,nízký,spíše se nezajímám
+51,muž,střední bez maturity (vyučení),18-29,nízký,spíše se zajímám
+52,muž,střední bez maturity (vyučení),18-29,nízký,velmi se zajímám
+53,muž,střední bez maturity (vyučení),18-29,střední,vůbec se nezajímám
+54,muž,střední bez maturity (vyučení),18-29,střední,spíše se nezajímám
+55,muž,střední bez maturity (vyučení),18-29,střední,spíše se zajímám
+56,muž,střední bez maturity (vyučení),18-29,střední,velmi se zajímám
+57,muž,střední bez maturity (vyučení),18-29,vysoký,vůbec se nezajímám
+58,muž,střední bez maturity (vyučení),18-29,vysoký,spíše se nezajímám
+59,muž,střední bez maturity (vyučení),18-29,vysoký,spíše se zajímám
+60,muž,střední bez maturity (vyučení),18-29,vysoký,velmi se zajímám
+61,muž,střední bez maturity (vyučení),30-44,nízký,vůbec se nezajímám
+62,muž,střední bez maturity (vyučení),30-44,nízký,spíše se nezajímám
+63,muž,střední bez maturity (vyučení),30-44,nízký,spíše se zajímám
+64,muž,střední bez maturity (vyučení),30-44,nízký,velmi se zajímám
+65,muž,střední bez maturity (vyučení),30-44,střední,vůbec se nezajímám
+66,muž,střední bez maturity (vyučení),30-44,střední,spíše se nezajímám
+67,muž,střední bez maturity (vyučení),30-44,střední,spíše se zajímám
+68,muž,střední bez maturity (vyučení),30-44,střední,velmi se zajímám
+69,muž,střední bez maturity (vyučení),30-44,vysoký,vůbec se nezajímám
+70,muž,střední bez maturity (vyučení),30-44,vysoký,spíše se nezajímám
+71,muž,střední bez maturity (vyučení),30-44,vysoký,spíše se zajímám
+72,muž,střední bez maturity (vyučení),30-44,vysoký,velmi se zajímám
+73,muž,střední bez maturity (vyučení),45-59,nízký,vůbec se nezajímám
+74,muž,střední bez maturity (vyučení),45-59,nízký,spíše se nezajímám
+75,muž,střední bez maturity (vyučení),45-59,nízký,spíše se zajímám
+76,muž,střední bez maturity (vyučení),45-59,nízký,velmi se zajímám
+77,muž,střední bez maturity (vyučení),45-59,střední,vůbec se nezajímám
+78,muž,střední bez maturity (vyučení),45-59,střední,spíše se nezajímám
+79,muž,střední bez maturity (vyučení),45-59,střední,spíše se zajímám
+80,muž,střední bez maturity (vyučení),45-59,střední,velmi se zajímám
+81,muž,střední bez maturity (vyučení),45-59,vysoký,vůbec se nezajímám
+82,muž,střední bez maturity (vyučení),45-59,vysoký,spíše se nezajímám
+83,muž,střední bez maturity (vyučení),45-59,vysoký,spíše se zajímám
+84,muž,střední bez maturity (vyučení),45-59,vysoký,velmi se zajímám
+85,muž,střední bez maturity (vyučení),60+,nízký,vůbec se nezajímám
+86,muž,střední bez maturity (vyučení),60+,nízký,spíše se nezajímám
+87,muž,střední bez maturity (vyučení),60+,nízký,spíše se zajímám
+88,muž,střední bez maturity (vyučení),60+,nízký,velmi se zajímám
+89,muž,střední bez maturity (vyučení),60+,střední,vůbec se nezajímám
+90,muž,střední bez maturity (vyučení),60+,střední,spíše se nezajímám
+91,muž,střední bez maturity (vyučení),60+,střední,spíše se zajímám
+92,muž,střední bez maturity (vyučení),60+,střední,velmi se zajímám
+93,muž,střední bez maturity (vyučení),60+,vysoký,vůbec se nezajímám
+94,muž,střední bez maturity (vyučení),60+,vysoký,spíše se nezajímám
+95,muž,střední bez maturity (vyučení),60+,vysoký,spíše se zajímám
+96,muž,střední bez maturity (vyučení),60+,vysoký,velmi se zajímám
+97,muž,střední s maturitou,18-29,nízký,vůbec se nezajímám
+98,muž,střední s maturitou,18-29,nízký,spíše se nezajímám
+99,muž,střední s maturitou,18-29,nízký,spíše se zajímám
+100,muž,střední s maturitou,18-29,nízký,velmi se zajímám
+101,muž,střední s maturitou,18-29,střední,vůbec se nezajímám
+102,muž,střední s maturitou,18-29,střední,spíše se nezajímám
+103,muž,střední s maturitou,18-29,střední,spíše se zajímám
+104,muž,střední s maturitou,18-29,střední,velmi se zajímám
+105,muž,střední s maturitou,18-29,vysoký,vůbec se nezajímám
+106,muž,střední s maturitou,18-29,vysoký,spíše se nezajímám
+107,muž,střední s maturitou,18-29,vysoký,spíše se zajímám
+108,muž,střední s maturitou,18-29,vysoký,velmi se zajímám
+109,muž,střední s maturitou,30-44,nízký,vůbec se nezajímám
+110,muž,střední s maturitou,30-44,nízký,spíše se nezajímám
+111,muž,střední s maturitou,30-44,nízký,spíše se zajímám
+112,muž,střední s maturitou,30-44,nízký,velmi se zajímám
+113,muž,střední s maturitou,30-44,střední,vůbec se nezajímám
+114,muž,střední s maturitou,30-44,střední,spíše se nezajímám
+115,muž,střední s maturitou,30-44,střední,spíše se zajímám
+116,muž,střední s maturitou,30-44,střední,velmi se zajímám
+117,muž,střední s maturitou,30-44,vysoký,vůbec se nezajímám
+118,muž,střední s maturitou,30-44,vysoký,spíše se nezajímám
+119,muž,střední s maturitou,30-44,vysoký,spíše se zajímám
+120,muž,střední s maturitou,30-44,vysoký,velmi se zajímám
+121,muž,střední s maturitou,45-59,nízký,vůbec se nezajímám
+122,muž,střední s maturitou,45-59,nízký,spíše se nezajímám
+123,muž,střední s maturitou,45-59,nízký,spíše se zajímám
+124,muž,střední s maturitou,45-59,nízký,velmi se zajímám
+125,muž,střední s maturitou,45-59,střední,vůbec se nezajímám
+126,muž,střední s maturitou,45-59,střední,spíše se nezajímám
+127,muž,střední s maturitou,45-59,střední,spíše se zajímám
+128,muž,střední s maturitou,45-59,střední,velmi se zajímám
+129,muž,střední s maturitou,45-59,vysoký,vůbec se nezajímám
+130,muž,střední s maturitou,45-59,vysoký,spíše se nezajímám
+131,muž,střední s maturitou,45-59,vysoký,spíše se zajímám
+132,muž,střední s maturitou,45-59,vysoký,velmi se zajímám
+133,muž,střední s maturitou,60+,nízký,vůbec se nezajímám
+134,muž,střední s maturitou,60+,nízký,spíše se nezajímám
+135,muž,střední s maturitou,60+,nízký,spíše se zajímám
+136,muž,střední s maturitou,60+,nízký,velmi se zajímám
+137,muž,střední s maturitou,60+,střední,vůbec se nezajímám
+138,muž,střední s maturitou,60+,střední,spíše se nezajímám
+139,muž,střední s maturitou,60+,střední,spíše se zajímám
+140,muž,střední s maturitou,60+,střední,velmi se zajímám
+141,muž,střední s maturitou,60+,vysoký,vůbec se nezajímám
+142,muž,střední s maturitou,60+,vysoký,spíše se nezajímám
+143,muž,střední s maturitou,60+,vysoký,spíše se zajímám
+144,muž,střední s maturitou,60+,vysoký,velmi se zajímám
+145,muž,vysokoškolské,18-29,nízký,vůbec se nezajímám
+146,muž,vysokoškolské,18-29,nízký,spíše se nezajímám
+147,muž,vysokoškolské,18-29,nízký,spíše se zajímám
+148,muž,vysokoškolské,18-29,nízký,velmi se zajímám
+149,muž,vysokoškolské,18-29,střední,vůbec se nezajímám
+150,muž,vysokoškolské,18-29,střední,spíše se nezajímám
+151,muž,vysokoškolské,18-29,střední,spíše se zajímám
+152,muž,vysokoškolské,18-29,střední,velmi se zajímám
+153,muž,vysokoškolské,18-29,vysoký,vůbec se nezajímám
+154,muž,vysokoškolské,18-29,vysoký,spíše se nezajímám
+155,muž,vysokoškolské,18-29,vysoký,spíše se zajímám
+156,muž,vysokoškolské,18-29,vysoký,velmi se zajímám
+157,muž,vysokoškolské,30-44,nízký,vůbec se nezajímám
+158,muž,vysokoškolské,30-44,nízký,spíše se nezajímám
+159,muž,vysokoškolské,30-44,nízký,spíše se zajímám
+160,muž,vysokoškolské,30-44,nízký,velmi se zajímám
+161,muž,vysokoškolské,30-44,střední,vůbec se nezajímám
+162,muž,vysokoškolské,30-44,střední,spíše se nezajímám
+163,muž,vysokoškolské,30-44,střední,spíše se zajímám
+164,muž,vysokoškolské,30-44,střední,velmi se zajímám
+165,muž,vysokoškolské,30-44,vysoký,vůbec se nezajímám
+166,muž,vysokoškolské,30-44,vysoký,spíše se nezajímám
+167,muž,vysokoškolské,30-44,vysoký,spíše se zajímám
+168,muž,vysokoškolské,30-44,vysoký,velmi se zajímám
+169,muž,vysokoškolské,45-59,nízký,vůbec se nezajímám
+170,muž,vysokoškolské,45-59,nízký,spíše se nezajímám
+171,muž,vysokoškolské,45-59,nízký,spíše se zajímám
+172,muž,vysokoškolské,45-59,nízký,velmi se zajímám
+173,muž,vysokoškolské,45-59,střední,vůbec se nezajímám
+174,muž,vysokoškolské,45-59,střední,spíše se nezajímám
+175,muž,vysokoškolské,45-59,střední,spíše se zajímám
+176,muž,vysokoškolské,45-59,střední,velmi se zajímám
+177,muž,vysokoškolské,45-59,vysoký,vůbec se nezajímám
+178,muž,vysokoškolské,45-59,vysoký,spíše se nezajímám
+179,muž,vysokoškolské,45-59,vysoký,spíše se zajímám
+180,muž,vysokoškolské,45-59,vysoký,velmi se zajímám
+181,muž,vysokoškolské,60+,nízký,vůbec se nezajímám
+182,muž,vysokoškolské,60+,nízký,spíše se nezajímám
+183,muž,vysokoškolské,60+,nízký,spíše se zajímám
+184,muž,vysokoškolské,60+,nízký,velmi se zajímám
+185,muž,vysokoškolské,60+,střední,vůbec se nezajímám
+186,muž,vysokoškolské,60+,střední,spíše se nezajímám
+187,muž,vysokoškolské,60+,střední,spíše se zajímám
+188,muž,vysokoškolské,60+,střední,velmi se zajímám
+189,muž,vysokoškolské,60+,vysoký,vůbec se nezajímám
+190,muž,vysokoškolské,60+,vysoký,spíše se nezajímám
+191,muž,vysokoškolské,60+,vysoký,spíše se zajímám
+192,muž,vysokoškolské,60+,vysoký,velmi se zajímám
+193,žena,základní,18-29,nízký,vůbec se nezajímám
+194,žena,základní,18-29,nízký,spíše se nezajímám
+195,žena,základní,18-29,nízký,spíše se zajímám
+196,žena,základní,18-29,nízký,velmi se zajímám
+197,žena,základní,18-29,střední,vůbec se nezajímám
+198,žena,základní,18-29,střední,spíše se nezajímám
+199,žena,základní,18-29,střední,spíše se zajímám
+200,žena,základní,18-29,střední,velmi se zajímám
+201,žena,základní,18-29,vysoký,vůbec se nezajímám
+202,žena,základní,18-29,vysoký,spíše se nezajímám
+203,žena,základní,18-29,vysoký,spíše se zajímám
+204,žena,základní,18-29,vysoký,velmi se zajímám
+205,žena,základní,30-44,nízký,vůbec se nezajímám
+206,žena,základní,30-44,nízký,spíše se nezajímám
+207,žena,základní,30-44,nízký,spíše se zajímám
+208,žena,základní,30-44,nízký,velmi se zajímám
+209,žena,základní,30-44,střední,vůbec se nezajímám
+210,žena,základní,30-44,střední,spíše se nezajímám
+211,žena,základní,30-44,střední,spíše se zajímám
+212,žena,základní,30-44,střední,velmi se zajímám
+213,žena,základní,30-44,vysoký,vůbec se nezajímám
+214,žena,základní,30-44,vysoký,spíše se nezajímám
+215,žena,základní,30-44,vysoký,spíše se zajímám
+216,žena,základní,30-44,vysoký,velmi se zajímám
+217,žena,základní,45-59,nízký,vůbec se nezajímám
+218,žena,základní,45-59,nízký,spíše se nezajímám
+219,žena,základní,45-59,nízký,spíše se zajímám
+220,žena,základní,45-59,nízký,velmi se zajímám
+221,žena,základní,45-59,střední,vůbec se nezajímám
+222,žena,základní,45-59,střední,spíše se nezajímám
+223,žena,základní,45-59,střední,spíše se zajímám
+224,žena,základní,45-59,střední,velmi se zajímám
+225,žena,základní,45-59,vysoký,vůbec se nezajímám
+226,žena,základní,45-59,vysoký,spíše se nezajímám
+227,žena,základní,45-59,vysoký,spíše se zajímám
+228,žena,základní,45-59,vysoký,velmi se zajímám
+229,žena,základní,60+,nízký,vůbec se nezajímám
+230,žena,základní,60+,nízký,spíše se nezajímám
+231,žena,základní,60+,nízký,spíše se zajímám
+232,žena,základní,60+,nízký,velmi se zajímám
+233,žena,základní,60+,střední,vůbec se nezajímám
+234,žena,základní,60+,střední,spíše se nezajímám
+235,žena,základní,60+,střední,spíše se zajímám
+236,žena,základní,60+,střední,velmi se zajímám
+237,žena,základní,60+,vysoký,vůbec se nezajímám
+238,žena,základní,60+,vysoký,spíše se nezajímám
+239,žena,základní,60+,vysoký,spíše se zajímám
+240,žena,základní,60+,vysoký,velmi se zajímám
+241,žena,střední bez maturity (vyučení),18-29,nízký,vůbec se nezajímám
+242,žena,střední bez maturity (vyučení),18-29,nízký,spíše se nezajímám
+243,žena,střední bez maturity (vyučení),18-29,nízký,spíše se zajímám
+244,žena,střední bez maturity (vyučení),18-29,nízký,velmi se zajímám
+245,žena,střední bez maturity (vyučení),18-29,střední,vůbec se nezajímám
+246,žena,střední bez maturity (vyučení),18-29,střední,spíše se nezajímám
+247,žena,střední bez maturity (vyučení),18-29,střední,spíše se zajímám
+248,žena,střední bez maturity (vyučení),18-29,střední,velmi se zajímám
+249,žena,střední bez maturity (vyučení),18-29,vysoký,vůbec se nezajímám
+250,žena,střední bez maturity (vyučení),18-29,vysoký,spíše se nezajímám
+251,žena,střední bez maturity (vyučení),18-29,vysoký,spíše se zajímám
+252,žena,střední bez maturity (vyučení),18-29,vysoký,velmi se zajímám
+253,žena,střední bez maturity (vyučení),30-44,nízký,vůbec se nezajímám
+254,žena,střední bez maturity (vyučení),30-44,nízký,spíše se nezajímám
+255,žena,střední bez maturity (vyučení),30-44,nízký,spíše se zajímám
+256,žena,střední bez maturity (vyučení),30-44,nízký,velmi se zajímám
+257,žena,střední bez maturity (vyučení),30-44,střední,vůbec se nezajímám
+258,žena,střední bez maturity (vyučení),30-44,střední,spíše se nezajímám
+259,žena,střední bez maturity (vyučení),30-44,střední,spíše se zajímám
+260,žena,střední bez maturity (vyučení),30-44,střední,velmi se zajímám
+261,žena,střední bez maturity (vyučení),30-44,vysoký,vůbec se nezajímám
+262,žena,střední bez maturity (vyučení),30-44,vysoký,spíše se nezajímám
+263,žena,střední bez maturity (vyučení),30-44,vysoký,spíše se zajímám
+264,žena,střední bez maturity (vyučení),30-44,vysoký,velmi se zajímám
+265,žena,střední bez maturity (vyučení),45-59,nízký,vůbec se nezajímám
+266,žena,střední bez maturity (vyučení),45-59,nízký,spíše se nezajímám
+267,žena,střední bez maturity (vyučení),45-59,nízký,spíše se zajímám
+268,žena,střední bez maturity (vyučení),45-59,nízký,velmi se zajímám
+269,žena,střední bez maturity (vyučení),45-59,střední,vůbec se nezajímám
+270,žena,střední bez maturity (vyučení),45-59,střední,spíše se nezajímám
+271,žena,střední bez maturity (vyučení),45-59,střední,spíše se zajímám
+272,žena,střední bez maturity (vyučení),45-59,střední,velmi se zajímám
+273,žena,střední bez maturity (vyučení),45-59,vysoký,vůbec se nezajímám
+274,žena,střední bez maturity (vyučení),45-59,vysoký,spíše se nezajímám
+275,žena,střední bez maturity (vyučení),45-59,vysoký,spíše se zajímám
+276,žena,střední bez maturity (vyučení),45-59,vysoký,velmi se zajímám
+277,žena,střední bez maturity (vyučení),60+,nízký,vůbec se nezajímám
+278,žena,střední bez maturity (vyučení),60+,nízký,spíše se nezajímám
+279,žena,střední bez maturity (vyučení),60+,nízký,spíše se zajímám
+280,žena,střední bez maturity (vyučení),60+,nízký,velmi se zajímám
+281,žena,střední bez maturity (vyučení),60+,střední,vůbec se nezajímám
+282,žena,střední bez maturity (vyučení),60+,střední,spíše se nezajímám
+283,žena,střední bez maturity (vyučení),60+,střední,spíše se zajímám
+284,žena,střední bez maturity (vyučení),60+,střední,velmi se zajímám
+285,žena,střední bez maturity (vyučení),60+,vysoký,vůbec se nezajímám
+286,žena,střední bez maturity (vyučení),60+,vysoký,spíše se nezajímám
+287,žena,střední bez maturity (vyučení),60+,vysoký,spíše se zajímám
+288,žena,střední bez maturity (vyučení),60+,vysoký,velmi se zajímám
+289,žena,střední s maturitou,18-29,nízký,vůbec se nezajímám
+290,žena,střední s maturitou,18-29,nízký,spíše se nezajímám
+291,žena,střední s maturitou,18-29,nízký,spíše se zajímám
+292,žena,střední s maturitou,18-29,nízký,velmi se zajímám
+293,žena,střední s maturitou,18-29,střední,vůbec se nezajímám
+294,žena,střední s maturitou,18-29,střední,spíše se nezajímám
+295,žena,střední s maturitou,18-29,střední,spíše se zajímám
+296,žena,střední s maturitou,18-29,střední,velmi se zajímám
+297,žena,střední s maturitou,18-29,vysoký,vůbec se nezajímám
+298,žena,střední s maturitou,18-29,vysoký,spíše se nezajímám
+299,žena,střední s maturitou,18-29,vysoký,spíše se zajímám
+300,žena,střední s maturitou,18-29,vysoký,velmi se zajímám
+301,žena,střední s maturitou,30-44,nízký,vůbec se nezajímám
+302,žena,střední s maturitou,30-44,nízký,spíše se nezajímám
+303,žena,střední s maturitou,30-44,nízký,spíše se zajímám
+304,žena,střední s maturitou,30-44,nízký,velmi se zajímám
+305,žena,střední s maturitou,30-44,střední,vůbec se nezajímám
+306,žena,střední s maturitou,30-44,střední,spíše se nezajímám
+307,žena,střední s maturitou,30-44,střední,spíše se zajímám
+308,žena,střední s maturitou,30-44,střední,velmi se zajímám
+309,žena,střední s maturitou,30-44,vysoký,vůbec se nezajímám
+310,žena,střední s maturitou,30-44,vysoký,spíše se nezajímám
+311,žena,střední s maturitou,30-44,vysoký,spíše se zajímám
+312,žena,střední s maturitou,30-44,vysoký,velmi se zajímám
+313,žena,střední s maturitou,45-59,nízký,vůbec se nezajímám
+314,žena,střední s maturitou,45-59,nízký,spíše se nezajímám
+315,žena,střední s maturitou,45-59,nízký,spíše se zajímám
+316,žena,střední s maturitou,45-59,nízký,velmi se zajímám
+317,žena,střední s maturitou,45-59,střední,vůbec se nezajímám
+318,žena,střední s maturitou,45-59,střední,spíše se nezajímám
+319,žena,střední s maturitou,45-59,střední,spíše se zajímám
+320,žena,střední s maturitou,45-59,střední,velmi se zajímám
+321,žena,střední s maturitou,45-59,vysoký,vůbec se nezajímám
+322,žena,střední s maturitou,45-59,vysoký,spíše se nezajímám
+323,žena,střední s maturitou,45-59,vysoký,spíše se zajímám
+324,žena,střední s maturitou,45-59,vysoký,velmi se zajímám
+325,žena,střední s maturitou,60+,nízký,vůbec se nezajímám
+326,žena,střední s maturitou,60+,nízký,spíše se nezajímám
+327,žena,střední s maturitou,60+,nízký,spíše se zajímám
+328,žena,střední s maturitou,60+,nízký,velmi se zajímám
+329,žena,střední s maturitou,60+,střední,vůbec se nezajímám
+330,žena,střední s maturitou,60+,střední,spíše se nezajímám
+331,žena,střední s maturitou,60+,střední,spíše se zajímám
+332,žena,střední s maturitou,60+,střední,velmi se zajímám
+333,žena,střední s maturitou,60+,vysoký,vůbec se nezajímám
+334,žena,střední s maturitou,60+,vysoký,spíše se nezajímám
+335,žena,střední s maturitou,60+,vysoký,spíše se zajímám
+336,žena,střední s maturitou,60+,vysoký,velmi se zajímám
+337,žena,vysokoškolské,18-29,nízký,vůbec se nezajímám
+338,žena,vysokoškolské,18-29,nízký,spíše se nezajímám
+339,žena,vysokoškolské,18-29,nízký,spíše se zajímám
+340,žena,vysokoškolské,18-29,nízký,velmi se zajímám
+341,žena,vysokoškolské,18-29,střední,vůbec se nezajímám
+342,žena,vysokoškolské,18-29,střední,spíše se nezajímám
+343,žena,vysokoškolské,18-29,střední,spíše se zajímám
+344,žena,vysokoškolské,18-29,střední,velmi se zajímám
+345,žena,vysokoškolské,18-29,vysoký,vůbec se nezajímám
+346,žena,vysokoškolské,18-29,vysoký,spíše se nezajímám
+347,žena,vysokoškolské,18-29,vysoký,spíše se zajímám
+348,žena,vysokoškolské,18-29,vysoký,velmi se zajímám
+349,žena,vysokoškolské,30-44,nízký,vůbec se nezajímám
+350,žena,vysokoškolské,30-44,nízký,spíše se nezajímám
+351,žena,vysokoškolské,30-44,nízký,spíše se zajímám
+352,žena,vysokoškolské,30-44,nízký,velmi se zajímám
+353,žena,vysokoškolské,30-44,střední,vůbec se nezajímám
+354,žena,vysokoškolské,30-44,střední,spíše se nezajímám
+355,žena,vysokoškolské,30-44,střední,spíše se zajímám
+356,žena,vysokoškolské,30-44,střední,velmi se zajímám
+357,žena,vysokoškolské,30-44,vysoký,vůbec se nezajímám
+358,žena,vysokoškolské,30-44,vysoký,spíše se nezajímám
+359,žena,vysokoškolské,30-44,vysoký,spíše se zajímám
+360,žena,vysokoškolské,30-44,vysoký,velmi se zajímám
+361,žena,vysokoškolské,45-59,nízký,vůbec se nezajímám
+362,žena,vysokoškolské,45-59,nízký,spíše se nezajímám
+363,žena,vysokoškolské,45-59,nízký,spíše se zajímám
+364,žena,vysokoškolské,45-59,nízký,velmi se zajímám
+365,žena,vysokoškolské,45-59,střední,vůbec se nezajímám
+366,žena,vysokoškolské,45-59,střední,spíše se nezajímám
+367,žena,vysokoškolské,45-59,střední,spíše se zajímám
+368,žena,vysokoškolské,45-59,střední,velmi se zajímám
+369,žena,vysokoškolské,45-59,vysoký,vůbec se nezajímám
+370,žena,vysokoškolské,45-59,vysoký,spíše se nezajímám
+371,žena,vysokoškolské,45-59,vysoký,spíše se zajímám
+372,žena,vysokoškolské,45-59,vysoký,velmi se zajímám
+373,žena,vysokoškolské,60+,nízký,vůbec se nezajímám
+374,žena,vysokoškolské,60+,nízký,spíše se nezajímám
+375,žena,vysokoškolské,60+,nízký,spíše se zajímám
+376,žena,vysokoškolské,60+,nízký,velmi se zajímám
+377,žena,vysokoškolské,60+,střední,vůbec se nezajímám
+378,žena,vysokoškolské,60+,střední,spíše se nezajímám
+379,žena,vysokoškolské,60+,střední,spíše se zajímám
+380,žena,vysokoškolské,60+,střední,velmi se zajímám
+381,žena,vysokoškolské,60+,vysoký,vůbec se nezajímám
+382,žena,vysokoškolské,60+,vysoký,spíše se nezajímám
+383,žena,vysokoškolské,60+,vysoký,spíše se zajímám
+384,žena,vysokoškolské,60+,vysoký,velmi se zajímám

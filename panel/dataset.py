@@ -22,7 +22,8 @@ Declaration shape:
         "title": "...",
         "language": "cs",                 the language its values and descriptions are written in
         "source": "SoD-CZ/....sav",       what prepare reads, relative to the folder; null for a
-                                          dataset that is prepared data only and is never rebuilt
+                                          dataset that is prepared data only and is never rebuilt;
+                                          "dataset.json" for a grid, built from its levels (panel.grid)
         "columns": ["gender", "age"],     every column of the values table, in order
         "optional": ["employment"],       columns a subject may lack; the rest must be filled
         "groups": ["gender", "region"],   columns analysis may group subjects by

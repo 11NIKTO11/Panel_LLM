@@ -20,6 +20,7 @@ from panel import paths
 from panel.analysis import ANALYSES, NotApplicable, Output, describe, find_stem, load_run
 from panel.run import ResultStore, resolve
 from panel.run.check import check, report
+from panel.run.record import DELIVERED
 from panel.topic import topic_names
 
 
@@ -46,7 +47,10 @@ def main() -> None:
     out = Output(store, run.stem + ("_unweighted" if args.unweighted else ""), save=not args.no_save)
     settings = {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
     print(describe(run))
-    print(f"\n{report(check(resolve(run.spec), store), len(run.options))}")
+    if DELIVERED in run.record:
+        print(f"\ndelivered, not sent from here - nothing to check: {run.record[DELIVERED]['note']}")
+    else:
+        print(f"\n{report(check(resolve(run.spec), store), len(run.options))}")
     for name, analysis in ANALYSES.items():
         if args.only in (None, name):
             try:

@@ -1,14 +1,17 @@
 """Prepare: a dataset's declaration, its values table, its forms, and the descriptions rendered from them."""
 import importlib
 import json
+import math
+from dataclasses import replace
 
 import pandas as pd
 import pytest
 
-from panel.dataset import INDEX, load_claims, load_dataset, read_values, validate_values
+from panel.dataset import INDEX, dataset_names, load_claims, load_dataset, read_values, validate_values
 from panel.describe.forms import ColumnForms, Forms, load_forms
 from panel.describe.render import read_prompts, render, render_all
 from panel.describe.template import PromptTemplate, load_template
+from panel.grid import full_factorial
 from panel.prepare import count_prompts, prepare
 
 from tests.conftest import require
@@ -173,6 +176,50 @@ def test_regions_render_from_the_source():
     for name, fresh in (("citizen", citizen), ("direct", direct)):
         stored = read_prompts(regions, name, values.index)[name]
         assert (stored == fresh).all(), name
+
+
+GRIDS = [name for name in dataset_names()
+         if (load_dataset(name).dir / "build.py").exists()
+         and importlib.import_module(f"datasets.{name}.build").build is full_factorial]
+
+
+def test_grids_are_found():
+    assert {"grid_sod", "grid_sod45", "grid_simple", "grid_colleague"} <= set(GRIDS)
+
+
+@pytest.mark.parametrize("name", GRIDS)
+def test_grid_is_the_full_factorial_of_its_levels(name):
+    grid = load_dataset(name)
+    values = full_factorial(grid)
+    validate_values(grid, values)
+    orders = [grid.levels[column].order for column in grid.columns]
+    assert len(values) == math.prod(len(order) for order in orders) and not values.duplicated().any()
+    assert list(values.index) == list(range(1, len(values) + 1))
+    assert tuple(values.iloc[0]) == tuple(order[0] for order in orders)
+    assert tuple(values.iloc[1]) == tuple(order[0] for order in orders[:-1]) + (orders[-1][1],)
+    forms = load_forms(grid.forms_path)
+    for description in grid.descriptions:
+        template = load_template(grid.description_path(description))
+        if template.stored:
+            continue
+        fresh = render(grid, template, values, forms)
+        assert fresh.is_unique, description
+        require(grid.prompts_path(description))
+        assert (read_prompts(grid, description, values.index)[description] == fresh).all(), description
+
+
+def test_grid_sod_words_a_profile_as_its_runs_were_sent():
+    grid = load_dataset("grid_sod")
+    values = full_factorial(grid)
+    described = render(grid, load_template(grid.description_path("default")), values, load_forms(grid.forms_path))
+    assert described[1] == ("Jsem muž, je mi mezi 18 a 24 lety, mé vzdělání je základní + středoškolské vzdělání "
+                            "bez maturity. Příjem naší domácnosti je Do 15.000 Kč. Vůbec se nezajímám o politiku.")
+
+
+def test_grid_refuses_a_column_without_levels():
+    grid = load_dataset("grid_sod")
+    with pytest.raises(ValueError):
+        full_factorial(replace(grid, levels={column: grid.levels[column] for column in grid.columns[1:]}))
 
 
 def test_prepare_unknown_description(sod):
