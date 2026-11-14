@@ -37,7 +37,7 @@ def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = 
     Raises:
         NotApplicable: if a run has nothing to test.
     """
-    quiet = Output(out.store, out.stem, save=False)
+    quiet = Output(out.folder, save=False)
     own = {label: single(run, quiet, predictors, delta=delta)[0] for label, run in runs.runs.items()}
     table = pd.concat(own, names=[RUN, COLUMN])
     out.table(NAME, table)

@@ -20,8 +20,9 @@ REPORTED_TURNOUT = 72.6
 
 @pytest.fixture(scope="module")
 def store() -> ResultStore:
-    require(RESULTS_DIR / "election_2021" / f"{COLLEAGUE}_run.json")
-    return ResultStore(RESULTS_DIR, "election_2021")
+    found = ResultStore(RESULTS_DIR, "election_2021")
+    require(found.paths(COLLEAGUE).record)
+    return found
 
 
 @pytest.mark.parametrize("stem", sorted(OURS))

@@ -1,7 +1,7 @@
 {
     "name": "election_2021",
     "reference": {
-        "path": "data/election_data.csv",
+        "path": "reference.csv",
         "key": "region",
         "total": "Česko"
     },

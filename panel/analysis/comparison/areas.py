@@ -42,7 +42,7 @@ def areas(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     Raises:
         NotApplicable: if a run has no area column or the topic no reference.
     """
-    quiet = Output(out.store, out.stem, save=False)
+    quiet = Output(out.folder, save=False)
     own = {label: area(run, quiet)[0] for label, run in runs.runs.items()}
     stands = {label: next(name for name, other in runs.runs.items() if other is run) for label, run in runs.claimed.items()}
     first = next(iter(own.values()))

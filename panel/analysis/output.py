@@ -2,11 +2,13 @@
 Where an analysis leaves what it made, and whether it leaves anything.
 
 An analysis hands every table and figure to an `Output` and gets it back, so the same code
-serves a script that saves everything and a notebook that only looks. Tables go to
-`results/<topic>/analysis/<name>_<stem>.csv`, figures to
-`results/<topic>/plots/<name>_<stem>.png`; both are regenerable.
+serves a script that saves everything and a notebook that only looks. An output writes into
+one folder of the results - a run's, or a named comparison's (`ResultStore.run_dir`,
+`comparison_dir`): tables to `<folder>/analysis/<name>.csv`, figures to
+`<folder>/plots/<name>.png`; both are regenerable.
 """
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 from matplotlib.figure import Figure
@@ -16,33 +18,43 @@ from panel.run import ResultStore
 
 class Output:
     """
-    The derived tables and figures of one run, or of one named comparison of runs (`stem` is then its
-    name); with `save` off nothing touches the disk. `written` lists what was saved.
+    The derived tables and figures of one run, or of one named comparison of runs; with `save`
+    off nothing touches the disk. `written` lists what was saved.
+
+    Args:
+        folder: the run's or the comparison's folder; may be None when nothing is saved.
+        save: write what is handed in.
+        dpi: of the figures.
+        suffix: added to every file name, for a variant kept beside the plain output.
     """
 
-    def __init__(self, store: ResultStore, stem: str, save: bool = True, dpi: int = 150):
-        self.store = store
-        self.stem = stem
+    def __init__(self, folder: Union[Path, None], save: bool = True, dpi: int = 150, suffix: str = ""):
+        self.folder = folder
         self.save = save
         self.dpi = dpi
+        self.suffix = suffix
         self.written = []
 
     def table_path(self, name: str) -> Path:
-        return self.store.analysis(f"{name}_{self.stem}.csv")
+        return self.folder / ResultStore.ANALYSIS_DIR / f"{name}{self.suffix}.csv"
 
     def figure_path(self, name: str) -> Path:
-        return self.store.plot(f"{name}_{self.stem}.png")
+        return self.folder / ResultStore.PLOTS_DIR / f"{name}{self.suffix}.png"
 
     def table(self, name: str, frame: pd.DataFrame) -> pd.DataFrame:
-        """The frame, written as `<name>_<stem>.csv` when saving is on."""
+        """The frame, written as `analysis/<name>.csv` when saving is on."""
         if self.save:
-            frame.to_csv(self.table_path(name), encoding="utf-8")
-            self.written.append(self.table_path(name))
+            path = self.table_path(name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            frame.to_csv(path, encoding="utf-8")
+            self.written.append(path)
         return frame
 
     def figure(self, name: str, figure: Figure) -> Figure:
-        """The figure, written as `<name>_<stem>.png` when saving is on."""
+        """The figure, written as `plots/<name>.png` when saving is on."""
         if self.save:
-            figure.savefig(self.figure_path(name), dpi=self.dpi, bbox_inches="tight")
-            self.written.append(self.figure_path(name))
+            path = self.figure_path(name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            figure.savefig(path, dpi=self.dpi, bbox_inches="tight")
+            self.written.append(path)
         return figure

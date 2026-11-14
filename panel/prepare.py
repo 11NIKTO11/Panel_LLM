@@ -4,14 +4,21 @@ Prepare a dataset: build its values table, render its descriptions.
 The general half of the prepare step. What is specific to a dataset is one function in its
 folder, `datasets/<name>/build.py::build(dataset) -> DataFrame`, which turns the raw source
 into values; everything after that - checking, storing, rendering - is the same for all.
+
+A saved run records the sha256 of the tables it was built from, and reading it back refuses
+values that have changed since. So prepare does not replace such a table with a different one
+unless told to: it writes, compares, and on a refusal puts every table back as it was.
 """
+import hashlib
 import importlib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Sequence, Union
+from typing import Dict, List, Sequence, Union
 
-from panel.dataset import load_dataset, read_values, write_values
+from panel import paths
+from panel.dataset import Dataset, load_dataset, read_values, write_values
 from panel.describe.render import read_prompts, render_all
+from panel.run.store import digests_in_use
 
 VALUES = "values"
 
@@ -31,17 +38,49 @@ class PromptCount:
     distinct: int
 
 
+def _stored(dataset: Dataset) -> Dict[Path, bytes]:
+    """Every table prepare has written for the dataset, as it stands."""
+    tables = [dataset.values_path, *dataset.prompts_path("*").parent.glob("*.csv")]
+    return {path: path.read_bytes() for path in tables if path.exists()}
+
+
+def _refuse_replaced(before: Dict[Path, bytes], written: Sequence[Path], in_use: Dict[str, List[str]]) -> None:
+    """Put the tables back and raise, if writing changed one a saved run was built from."""
+    runs = {
+        path: in_use.get(hashlib.sha256(before[path]).hexdigest(), [])
+        for path in written if path in before and before[path] != path.read_bytes()
+    }
+    refused = {path: stems for path, stems in runs.items() if stems}
+    if not refused:
+        return
+    for path in written:
+        if path in before:
+            path.write_bytes(before[path])
+        else:
+            path.unlink()
+    listed = "; ".join(f"{path} ({len(stems)} runs, e.g. {stems[0]})" for path, stems in refused.items())
+    raise FileExistsError(
+        f"prepare would replace tables that saved runs were built from: {listed}. Nothing was changed. "
+        "New wording belongs in a description of a new name; with overwrite those runs can no longer "
+        "be read against their dataset."
+    )
+
+
 def prepare(
-    name: str, descriptions: Union[Sequence[str], None] = None, rebuild_values: bool = True
+    name: str, descriptions: Union[Sequence[str], None] = None, rebuild_values: bool = True,
+    overwrite: bool = False, results_dir: Union[str, Path] = paths.RESULTS_DIR,
 ) -> Dict[str, Path]:
     """
-    Write a dataset's prepared output under `data/<name>/`.
+    Write a dataset's prepared output under `datasets/<name>/prepared/`.
 
     Args:
         name: the dataset, a folder under `datasets/`.
         descriptions: which of its descriptions to render; None renders all of them.
         rebuild_values: build the values table from the raw source; False renders over the
             stored one, for when only a template or a form changed.
+        overwrite: replace a table even if a saved run was built from it and it comes out
+            different.
+        results_dir: where the saved runs are looked for.
 
     Returns:
         What was written: `values` (when rebuilt) and each description name -> its path.
@@ -51,8 +90,11 @@ def prepare(
             stored values table is missing.
         ValueError: if the values are not what the dataset declares, a description is unknown,
             or the dataset has no source to rebuild from.
+        FileExistsError: if a table a saved run was built from would change, without `overwrite`;
+            every table is then as it was before.
     """
     dataset = load_dataset(name)
+    before = _stored(dataset)
     written = {}
     if rebuild_values:
         if dataset.source is None:
@@ -60,6 +102,8 @@ def prepare(
         builder = importlib.import_module(f"datasets.{name}.build")
         written[VALUES] = write_values(dataset, builder.build(dataset))
     written.update(render_all(dataset, read_values(dataset), descriptions))
+    if not overwrite:
+        _refuse_replaced(before, list(written.values()), digests_in_use(results_dir))
     return written
 
 

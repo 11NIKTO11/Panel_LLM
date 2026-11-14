@@ -24,8 +24,9 @@ GRIDS = {"sod": "gridsod_default", "simple": "gridsimple", "colleague": "gridcol
 
 @pytest.fixture(scope="module")
 def store() -> ResultStore:
-    require(RESULTS_DIR / "election_2021" / f"{LEGACY['gpt-4o']}_run.json")
-    return ResultStore(RESULTS_DIR, "election_2021")
+    found = ResultStore(RESULTS_DIR, "election_2021")
+    require(found.paths(LEGACY["gpt-4o"]).record)
+    return found
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +72,7 @@ def test_noise_floor_comes_from_repeats_then_copies(grids, legacy):
 @pytest.mark.parametrize("model", sorted(LEGACY))
 def test_scales_reproduce_pushforward(model, legacy):
     expected = PUSHFORWARD["scorecard"][model]
-    out = Output(None, "test", save=False)
+    out = Output(None, save=False)
     table, _ = KERNEL_ANALYSES["scales"](type(legacy)(legacy.topic, {model: legacy.kernels[model]}, legacy.style), out)
     row = table.loc[model]
     assert row["Dobrushin δ"] == pytest.approx(expected["delta (Dobrushin)"], abs=1e-6)
@@ -87,7 +88,7 @@ def test_variance_and_axes_reproduce_pushforward(model, legacy):
     assert split[MAIN] + split[INTERACTIONS] == pytest.approx(expected["var explained by properties (main+inter)"], abs=2e-3)
     assert split[NOISE] == pytest.approx(expected["var: noise"], abs=2e-3)
     single = type(legacy)(legacy.topic, {model: kernel}, legacy.style)
-    table, _ = KERNEL_ANALYSES["axes"](single, Output(None, "test", save=False))
+    table, _ = KERNEL_ANALYSES["axes"](single, Output(None, save=False))
     assert table.loc[model, EFFECTIVE_AXES] == pytest.approx(expected["effective number of axes"], abs=1e-6)
 
 
@@ -96,7 +97,7 @@ def test_shapley_reproduces_pushforward(legacy):
     kernel, expected = legacy.kernels[model], PUSHFORWARD["shapley"][model]
     named = {name: next(column for column in kernel.players() if set(columns) == set(kernel.run.dataset.together.get(column, (column,))))
              for name, columns in PUSHFORWARD["players"].items()}
-    table, _ = KERNEL_ANALYSES["shapley"](type(legacy)(legacy.topic, {model: kernel}, legacy.style), Output(None, "test", save=False), draws=0)
+    table, _ = KERNEL_ANALYSES["shapley"](type(legacy)(legacy.topic, {model: kernel}, legacy.style), Output(None, save=False), draws=0)
     found = table.loc[model]
     for name, effect in expected["effects"].items():
         assert found.loc[named[name], "effect"] == pytest.approx(effect, abs=1e-6), name
@@ -106,7 +107,7 @@ def test_shapley_reproduces_pushforward(legacy):
 
 
 def test_intervals_pair_kernels_of_the_same_profiles(store, legacy, grids):
-    out = Output(None, "test", save=False)
+    out = Output(None, save=False)
     table, _ = KERNEL_ANALYSES["intervals"](legacy, out, draws=20, reference="gpt-4o")
     estimate, low, high = (table.xs("gpt-4o")[column] for column in ("estimate", "low", "high"))
     assert (low <= estimate + 1e-9).all() and (estimate <= high + 1e-9).all()
@@ -115,14 +116,14 @@ def test_intervals_pair_kernels_of_the_same_profiles(store, legacy, grids):
 
 
 def test_surrogate_on_a_grid_observes_the_whole_product(grids):
-    table, _ = KERNEL_ANALYSES["surrogate"](type(grids)(grids.topic, {"sod": grids.kernels["sod"]}, grids.style), Output(None, "test", save=False))
+    table, _ = KERNEL_ANALYSES["surrogate"](type(grids)(grids.topic, {"sod": grids.kernels["sod"]}, grids.style), Output(None, save=False))
     row = table.loc["sod"]
     assert row["additive R² (out of sample)"] > 0.9 and row["independent factors: share observed"] == 1.0
     assert row["δ surrogate, full product"] == pytest.approx(row["δ surrogate, observed profiles"])
 
 
 def test_agreement_holds_the_runs_against_the_trained_model(legacy):
-    table, _ = KERNEL_ANALYSES["agreement"](legacy, Output(None, "test", save=False))
+    table, _ = KERNEL_ANALYSES["agreement"](legacy, Output(None, save=False))
     assert set(table.index) == set(LEGACY) and (table["shared profiles"] > 2000).all()
     assert table.loc["gpt-4.1-nano", "mean TV"] > table.loc["gpt-4o", "mean TV"]
 
@@ -130,7 +131,7 @@ def test_agreement_holds_the_runs_against_the_trained_model(legacy):
 def test_every_analysis_runs_on_grids_and_survey_runs(store):
     """Shapley is left out: `test_shapley_reproduces_pushforward` runs it, and on a survey run it takes a minute."""
     kernels = load_kernels(load_runs(store, {**GRIDS, "gpt-4o": LEGACY["gpt-4o"], "gpt-4.1": LEGACY["gpt-4.1"]}))
-    out = Output(None, "test", save=False)
+    out = Output(None, save=False)
     settings = {"intervals": {"draws": 5}, "agreement": {"reference": "gpt-4o"}}
     for name, analysis in KERNEL_ANALYSES.items():
         if name == "shapley":

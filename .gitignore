@@ -6,9 +6,8 @@ __pycache__
 
 # Dataset
 SoD-*
-/data/sod/
-/data/sod_legacy/
-/data/grid/grid_*.csv
+/datasets/sod/prepared/
+/datasets/sod_legacy/prepared/
 /results.zip
 
 # Helper scripts

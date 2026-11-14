@@ -8,11 +8,9 @@ A dataset is a folder under `datasets/`. Everything that knows its vocabulary li
         forms.json            how each value is worded inside a sentence (panel.describe.forms)
         descriptions/*.json   its description templates (panel.describe.template)
         claims/<topic>.json   its answers to a topic, sorted by meaning
-
-Its prepare step writes, under `data/<name>/`:
-
-    values.csv                one row per subject, the dataset's own values - read by analysis
-    prompts/<description>.csv one rendered text per subject - read by a run
+        prepared/             what its prepare step writes
+            values.csv                one row per subject, the dataset's own values - read by analysis
+            prompts/<description>.csv one rendered text per subject - read by a run
 
 Declaration shape:
 
@@ -52,6 +50,7 @@ from panel import paths
 CONFIG_NAME = "dataset.json"
 FORMS_NAME = "forms.json"
 DESCRIPTIONS_DIR = "descriptions"
+PREPARED_DIR = "prepared"
 REQUIRED_KEYS = {"name", "short", "title", "language", "source", "columns", "claims"}
 OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "together", "note"}
 LEVEL_KEYS = {"bands", "order", "several"}
@@ -100,7 +99,7 @@ class Levels:
 class Dataset:
     """
     Attributes:
-        name: folder under `datasets/` and under `data/`, and what a run records.
+        name: folder under `datasets/`, and what a run records.
         short: the dataset's part of a results stem.
         title: human label.
         language: language code of its values and descriptions.
@@ -145,7 +144,7 @@ class Dataset:
     @property
     def data_dir(self) -> Path:
         """Where everything prepare writes for this dataset lives."""
-        return paths.DATA_DIR / self.name
+        return self.dir / PREPARED_DIR
 
     @property
     def values_path(self) -> Path:
@@ -310,7 +309,7 @@ def validate_values(dataset: Dataset, frame: pd.DataFrame) -> None:
 
 def write_values(dataset: Dataset, frame: pd.DataFrame) -> Path:
     """
-    Validate and store a dataset's values table at `data/<name>/values.csv`.
+    Validate and store a dataset's values table at `datasets/<name>/prepared/values.csv`.
 
     Raises:
         ValueError: see `validate_values`.

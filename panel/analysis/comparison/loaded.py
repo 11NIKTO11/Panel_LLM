@@ -13,6 +13,7 @@ import pandas as pd
 from panel.run import ResultStore
 from panel.topic import PlotStyle, Topic, load_polls
 
+from ..output import Output
 from ..saved import SavedRun, find_stem, load_run
 
 CLAIMED = "claimed"
@@ -83,6 +84,16 @@ def load_runs(store: ResultStore, texts: Union[Sequence[str], Mapping[str, str]]
         raise ValueError(f"name each run to compare once; got {stems}")
     runs = [load_run(store, stem, styled, weighted) for stem in stems]
     return RunSet(topic=runs[0].topic, runs=dict(zip(given, runs)) if given else labels(runs), polls=load_polls(runs[0].topic), style=runs[0].style)
+
+
+def comparison_output(store: ResultStore, name: str, runs: RunSet, save: bool = True, suffix: str = "") -> Output:
+    """
+    Where a named comparison of `runs` leaves what it makes: `results/<topic>/comparisons/<name>/`.
+    When saving, the folder also says which runs it was made from (`runs.json`, label -> stem).
+    """
+    if save:
+        store.save_comparison(name, {label: run.stem for label, run in runs.runs.items()})
+    return Output(store.comparison_dir(name), save=save, suffix=suffix)
 
 
 def describe(runs: RunSet) -> str:

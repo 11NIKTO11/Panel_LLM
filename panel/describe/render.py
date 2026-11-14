@@ -2,7 +2,7 @@
 Render a dataset's descriptions over its values and store them as prompt tables.
 
 A prompt table is one rendered description per subject, at
-`data/<dataset>/prompts/<description>.csv`. It is written in the same pass as the values
+`datasets/<dataset>/prepared/prompts/<description>.csv`. It is written in the same pass as the values
 table, so it cannot lag the rows it describes, and a run reads it instead of calling a
 describer - the prompt a run sent is a stored artifact.
 """

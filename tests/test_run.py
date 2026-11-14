@@ -53,7 +53,7 @@ def test_execute_offline(tmp_path):
     written = execute(run, store, FakeClient(), max_workers=4)
 
     plain = store.paths(run.stem)
-    archived = list((store.topic_dir / store.ARCHIVE_DIR).glob(f"{run.stem}_*"))
+    archived = list((store.run_dir(run.stem) / store.ARCHIVE_DIR).iterdir())
     assert all(getattr(plain, name).exists() for name in FOUR) and len(archived) == 2
     frame = store.frame(run.stem)
     assert frame.index.name == "id" and len(frame) == 20 and list(frame.columns) == run.topic.columns + ["Prompt"]

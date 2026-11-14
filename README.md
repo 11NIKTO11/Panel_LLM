@@ -14,7 +14,7 @@ names one of each plus a model, so a new election, a new issue question, a new d
 new language is a config change, never a code edit.
 
 **In transition (2026-11-11):** prepare, the run and the analysis were reshaped - `python
-prepare.py sod` writes `data/sod/values.csv` and `data/sod/prompts/`, `python run.py` sends a
+prepare.py sod` writes `datasets/sod/prepared/values.csv` and `datasets/sod/prepared/prompts/`, `python run.py` sends a
 run, `python analyze.py` and `python compare.py` read runs back; see `DECISIONS.md` §7, §8
 and §9. `sod` and `regions` are ported; `sod_en` and `grid` are not, and their code left the tree
 on 2026-11-13 until they are (`DECISIONS.md` §12, last at commit `ccea2c6`), so the sections below
@@ -84,8 +84,8 @@ it (`panel/paths.py` anchors them on the package).
 
 | step | command or notebook | what it does |
 |---|---|---|
-| 1 | `python prepare.py sod` | `.sav` -> `data/sod/values.csv`, then `data/sod/prompts/*.csv` |
-| 2 | `python run.py <name>` | subjects -> LLM -> `results/<topic>/` |
+| 1 | `python prepare.py sod` | `.sav` -> `datasets/sod/prepared/values.csv`, then `datasets/sod/prepared/prompts/*.csv` |
+| 2 | `python run.py <name>` | subjects -> LLM -> `results/<topic>/runs/<stem>/` |
 | 3 | `python analyze.py <topic> <run>` | one saved run -> tables and figures |
 | 4 | `python compare.py <topic> <run> <run> ...` | several runs of a topic side by side |
 | 5 | `python benchmark.py <topic> <run> ...` | runs against a model trained on the subjects' own answers |
@@ -159,14 +159,15 @@ python analyze.py                                    # every topic's saved runs
 python analyze.py election_2021 <run>                # all analyses of one run
 python analyze.py election_2021 <run> --only effects --predictors gender,age,region --delta 0.001
 python compare.py election_2021 <run> <run> --name haiku
-python compare.py --set haiku                        # a named set of config/comparisons.json
+python compare.py election_2021 --set haiku          # a named set of the topic's comparisons.json
 python benchmark.py election_2021 <run> <run> --name haiku --predictors gender,age,region
 python kernel.py election_2021 gridsod_ gridsimple --name grids
 python kernel.py election_2021 <run> <run> --reference gpt-4o --draws 100
 ```
 
-A run is named by its stem or by any text only one stem contains. Tables go to
-`results/<topic>/analysis/`, figures to `results/<topic>/plots/`; `--no-save` writes nothing,
+A run is named by its stem or by any text only one stem contains. Tables go to `analysis/` and
+figures to `plots/` inside the run's folder (`results/<topic>/runs/<stem>/`) or, for several runs,
+the comparison's (`results/<topic>/comparisons/<name>/`); `--no-save` writes nothing,
 `--plain` ignores the topic's `plot.json`.
 
 | analysis | what it gives |
@@ -223,7 +224,7 @@ their snapshots (`tests/fixtures/`, see its README), an offline run writes every
 should and its record round-trips, and every analysis and comparison runs on fake runs. In
 transition: the English edition has no tests until it is ported. The legacy runs, migrated to today's shape
 (`DECISIONS.md` §10), are the regression fixture: their frozen aggregates must hold. Tests that
-need gitignored inputs (`results/`, `data/sod/`) skip by name on a machine without them.
+need gitignored inputs (`results/`, `datasets/sod/prepared/`) skip by name on a machine without them.
 
 ---
 
@@ -278,15 +279,17 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 
 - `topic.json` is the language-neutral half: option ids (ASCII, the result columns) with their
   native names and foreign aliases, the turnout roles, and the reference results with their key
-  column and total row.
-- a framing (`cs.json`, `en.json`) is the system prompt, the label overrides and the wording
+  column and total row. The reference file itself (`reference.csv`) sits beside it.
+- a framing (`framings/<name>.json`: `cs`, `en`) is the system prompt, the label overrides and the wording
   of the response schema. The system prompt says only what holds for every run of the topic;
   the schema text says what the answer looks like.
 - a question (`questions/<name>.json`) is what follows the description, per language.
+- `comparisons.json` (optional) names sets of the topic's runs, `label -> run`, for
+  `--set` on `compare.py`, `benchmark.py` and `kernel.py`.
 - **the order of the options is the order the model sees them** - it becomes the `enum` order in
   the schema sent to the provider, so it is prompt content, not presentation.
 - to add a topic, copy the closest folder and change `name` and `options` in `topic.json`, then
-  `instructions` in `cs.json` and the text in `questions/default.json`. The loaders refuse unknown keys, a name that
+  `instructions` in `framings/cs.json` and the text in `questions/default.json`. The loaders refuse unknown keys, a name that
   disagrees with the folder, a label for an unknown id, duplicate labels and reused aliases.
 
 ### 3.4 Models
@@ -306,26 +309,35 @@ answers offline and deterministically.
 
 | path | contents | in git |
 |---|---|---|
-| `data/profiles/<dataset>.csv` | one row per subject, keyed by `id`, checked against the schema | survey editions no, grid and regions yes |
-| `data/prompts/<dataset>/<description>.csv` | the rendered descriptions, keyed by `id` | yes |
-| `data/election_data.csv` | official 2021 result, country + 14 regions | yes |
-| `data/sod_legacy/values.csv` | dataset `sod_legacy`: the survey as cleaned for the runs of 2025, the subjects and ids of `sod`; prepared data only, never rebuilt | no |
-| `data/sod_legacy/prompts/default.csv` | its one description, stored as sent in 2025 (the same text as `data/sod/prompts/legacy.csv`) | no |
-| `data/grid/` | the grid's tables in the September shape, parked until the grid is ported | profile and prompts yes |
+| `datasets/<dataset>/prepared/values.csv` | one row per subject, keyed by `id`, checked against the dataset's declaration | `sod`, `sod_legacy` no; grids and regions yes |
+| `datasets/<dataset>/prepared/prompts/<description>.csv` | the rendered descriptions, keyed by `id` | as the values |
+| `config/topics/election_2021/reference.csv` | official 2021 result, country + 14 regions; named by the topic's `reference` block | yes |
+| `datasets/sod_legacy/prepared/values.csv` | dataset `sod_legacy`: the survey as cleaned for the runs of 2025, the subjects and ids of `sod`; prepared data only, never rebuilt | no |
+| `datasets/sod_legacy/prepared/prompts/default.csv` | its one description, stored as sent in 2025 (the same text as `datasets/sod/prepared/prompts/legacy.csv`) | no |
 | `results/<topic>/` | model predictions, run records, derived tables and figures | no |
 
-One run is four files sharing a stem, plus two archived copies:
+One run is a folder named by its stem; what was derived from several runs is a folder per
+named comparison:
 
 ```
 results/election_2021/
-├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0.csv             one row per call: id, [repeat], options, Prompt
-├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0.json            the same, as returned
-├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_normalized.csv  turnout and options each rescaled to sum to 1
-├── sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0_run.json        the record
-├── analysis/   derived tables, named after the run they came from (regenerable)
-├── plots/      figures, named the same way (regenerable)
-└── archive/    timestamped copies of the CSV and the record, one set per save
+├── runs/sod_default_cs_default_OpenRouter_gpt-4.1-nano_Prob_t=0.0/
+│   ├── results.csv       one row per call: id, [repeat], options, Prompt
+│   ├── results.json      the same, as returned
+│   ├── normalized.csv    turnout and options each rescaled to sum to 1
+│   ├── run.json          the record
+│   ├── archive/          <timestamp>.csv + <timestamp>_run.json, one pair per save
+│   ├── analysis/         tables derived from this run (regenerable)
+│   ├── plots/            its figures (regenerable)
+│   └── delivered/        only for a run someone else sent: the table as delivered
+└── comparisons/<name>/
+    ├── runs.json         label -> stem: the runs it was made from
+    ├── analysis/         runs_*, benchmark_*, kernel_* tables (regenerable)
+    └── plots/            their figures
 ```
+
+The comparison's name is the set's (`--set`), `--name`, or the topic. Files inside a run's
+folder carry no stem; the folder does.
 
 The stem is `<dataset>_<description>_<framing>_<question>_<Client>_<model>_<Shape>_t=<t>`, plus
 `_e=<effort>` when the run sets one, `_x<repeats>` for a repeated run and `_subset=<n>` for a
@@ -345,7 +357,7 @@ and read by the analysis; for gpt-4.1 the regional MAE equals the 2025 table, th
 compared with the earlier statistics. Sent live since the overhaul: two 200-subject trials through
 the Anthropic clients (Haiku 4.5 with a temperature, Haiku 5.5 with effort `low`), removed from
 `results/` on 2026-11-13 with the other trial runs, so the named set `haiku` of
-`config/comparisons.json` and the default `STEM` of `analyze.ipynb` find no run until full Haiku
+`config/topics/election_2021/comparisons.json` and the default `STEM` of `analyze.ipynb` find no run until full Haiku
 runs exist; OpenAI, Gemini and OpenRouter have not been
 called since the overhaul. `election_2025` has no reference results yet, and the English
 texts have not been reviewed.

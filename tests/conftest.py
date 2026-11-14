@@ -1,7 +1,7 @@
 """
 Shared fixtures: where things are, and loaders for the phase 0 baselines under `fixtures/`.
 
-An input that is not in git (`data/sod/values.csv`, `results/`) makes a test skip naming
+An input that is not in git (`datasets/sod/prepared/values.csv`, `results/`) makes a test skip naming
 the path it needed, rather than fail.
 """
 import json

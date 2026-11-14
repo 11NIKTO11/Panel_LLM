@@ -32,7 +32,7 @@ def shares(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
         runs and the claimed; a poll has no turnout - and its figure, polls not drawn.
     """
     topic = runs.topic
-    quiet = Output(out.store, out.stem, save=False)
+    quiet = Output(out.folder, save=False)
     own = {label: country(run, quiet)[0] for label, run in runs.runs.items()}
     stands = {label: next(name for name, other in runs.runs.items() if other is run) for label, run in runs.claimed.items()}
 

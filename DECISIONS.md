@@ -395,7 +395,7 @@ panel/analysis/
   - colours cover all the options or none, and both turnout columns or neither; the turnout
     pair is drawn green and red in `country`
   - `framing_names` skips `plot.json`, `polls.json` and `positions.json`, the one change
-    this made to the run layer
+    this made to the run layer (superseded by §18: framings have a folder, nothing is skipped)
 - claimed is counted from scratch: the run's own subjects' answers in the claims column,
   sorted by the dataset's claims map; nothing reads `<name>_claimed_votes.csv`
 - intervals are bootstrap over subjects (a subject's repeats are drawn together); they say how
@@ -593,7 +593,7 @@ panel/analysis/
   `compare.py` and `benchmark.py` takes one in place of a topic and runs; its labels name the
   runs and its name the files. `load_runs` takes such a mapping in place of a list
   - rejected: a file per topic folder - every file there is a framing unless the reader
-    is told to skip it
+    is told to skip it (reversed in §19, once framings had a folder: §18)
 - open
   - interactivity, later
   - distance to the claimed by any grouping column (the notebook's "other aggregations")
@@ -961,3 +961,134 @@ the same way.
 - **OpenRouter**: offline too - no `plugins`, no `:online` suffix; not changed
 - `tests/test_llm.py` checks the request body and the refusal offline (the SDK's transport
   replaced); that the API accepts `tools: []` is not verified live yet
+
+## 18. Framings in a folder of their own (2026-11-14)
+
+- **A framing is `config/topics/<topic>/framings/<name>.json`**, as a question is
+  `questions/<name>.json`. The topic root holds only the files a topic has one of:
+  `topic.json`, `plot.json`, `polls.json`, `positions.json`
+- **Why**: `framing_names` defined a framing as every `*.json` in the topic folder except a
+  list of known names, so each new topic-level file had to be added to that list or it was
+  listed as a framing. A framing is now found by path and the list is gone
+- **Unchanged**: framing names, their `short`, the stems, the records (they store the name and
+  the texts, never a path), the schema fixtures under `tests/fixtures/schemas/`
+- older sections of this record name framing files at the topic root (`cs.json`); they
+  describe the tree as it was
+
+## 19. Named sets of runs belong to their topic (2026-11-14)
+
+- **`config/topics/<topic>/comparisons.json`**, optional, replaces `config/comparisons.json`:
+  `set name -> {label -> run}`. The `topic` key is gone - the folder says it
+- **Why now**: a set names stems, which mean something only among one topic's runs, and each
+  set already named exactly one topic. §11 rejected the per-topic file because every file in
+  a topic folder was read as a framing; §18 removed that reason
+- **Command line**: `--set` stands in for the runs, not for the topic -
+  `python compare.py election_2021 --set haiku`, likewise `benchmark.py` and `kernel.py`. The
+  topic is always named
+- **One file, not a folder of sets**: a set is a few lines
+  - rejected: `comparisons/<name>.json`, a file per set
+- **Not covered**: a set across topics (the colleague's election x media-fees report). Nothing
+  compares across topics yet; when something does, such a set needs a home above the topics
+- `load_comparisons(topic, topics_dir)`; a topic without the file has no sets
+
+## 20. Prepare does not replace a table a saved run was built from (2026-11-14)
+
+- **The concern**: `data/sod/` and `data/sod_legacy/` (now `datasets/<name>/prepared/`, §23) are not in git, and prepare overwrote
+  without asking. A saved run records the sha256 of its values and prompt tables, and
+  `SavedRun` refuses values that changed since - so one re-prepare with a changed build or
+  wording made the old runs unreadable, with the old tables gone
+- **The rule**: prepare refuses (`FileExistsError`) when a table it wrote differs from the one
+  that was there and a saved run of any topic records the old one's sha256
+  (`panel.run.store.digests_in_use`, over every run record under `results/`). `--overwrite` /
+  `overwrite=True` replaces it anyway
+  - a table that comes out byte for byte the same, or that no run names, is written as before
+  - all or nothing: on a refusal every table prepare wrote in that call is put back, and a
+    table that did not exist before is removed, so values and prompts never disagree
+  - it writes first and compares after, so the bytes compared are the bytes the writers
+    produce; nothing is serialized twice
+- **Not guarded**: `forms.json` and the description files (in git, not written by prepare);
+  runs under `archive/` and trial runs outside `results/`
+- rejected: an `archive/` under `data/<dataset>/`, as results have - a prepared table is
+  rebuilt from its source, a run cannot be; the prompts a run sent are in its own table
+- checked: `tests/test_prepare.py`; `python prepare.py grid_simple` and `regions` rewrite their
+  tables unchanged
+
+## 21. The colleague's prompts are marked as unknown (2026-11-14)
+
+- `datasets/grid_colleague/prepared/prompts/README.md` (then under `data/`) stands where the prompt table would be and says
+  what was not delivered and what goes there when it is. No `delivered.csv` is invented
+
+## 22. A topic's reference results sit in its folder (2026-11-14)
+
+- **`config/topics/election_2021/reference.csv`**, moved from `data/election_data.csv`; the
+  `reference.path` of `topic.json` is relative to the topic's folder (`Topic.dir`), no longer
+  to the repo root
+- **Why**: the file belongs to the topic, not to a dataset, and `data/` is one folder per
+  dataset. It is a measured fact rather than a setting, but so are `polls.json` and
+  `positions.json`, which were already there: the topic folder is everything that defines
+  the topic
+  - rejected: `data/reference/<topic>.csv` - a second kind of thing under `data/`
+- **`data/grid/` is out of the tree** (`_delete/data_grid/`): the old `grid` dataset's tables
+  (`income3`, 288 profiles, the September shape with `profile.csv` and `prompts_self_v1.csv`),
+  superseded by the grid datasets of §15 and read by nothing; it never had a run
+- without a reader: `data/agentury.csv` (copied into `polls.json`) and `data/skop.csv`, moved to
+  `_delete/data_leftovers/` with §23
+
+## 23. A dataset's prepared data lives in its folder (2026-11-14)
+
+- **`datasets/<name>/prepared/`** holds `values.csv` and `prompts/<description>.csv`; the
+  root `data/` folder is gone, and with it `paths.DATA_DIR`. `Dataset.data_dir` is
+  `dir / "prepared"`, the one place the location is stated
+- **Why**: `data` and `datasets` were two names for two halves of one thing, and the half
+  that is derived sat apart from what it is derived from. A dataset is now found whole by
+  one path: declaration, build, wording, raw source, prepared tables
+  - the raw survey files were already in `datasets/sod/`, so the folder was never code only
+  - saved runs record no paths, so nothing in `results/` changed
+- **Cost, accepted**: generated files inside an importable package, and the ignore rules are
+  per dataset - `datasets/sod/prepared/` and `datasets/sod_legacy/prepared/` are not in git,
+  the grids' and `regions`' are
+- rejected: renaming `data/` to `prepared/` - removes the similar names, keeps the split
+- moved with `git mv` where tracked; `data/agentury.csv` and `data/skop.csv`, which nothing
+  reads, went to `_delete/data_leftovers/`
+
+## 24. Results: a folder per run, a folder per comparison (2026-11-14)
+
+A topic's results folder held every run's four files side by side and two folders,
+`analysis/` and `plots/`, with everything derived from any run or any set of runs.
+
+```
+results/<topic>/
+├── runs/<stem>/          results.csv  results.json  normalized.csv  run.json
+│                         archive/  analysis/  plots/  [delivered/]
+├── comparisons/<name>/   runs.json  analysis/  plots/
+└── <name>_claimed_votes.csv   (legacy, read by nothing)
+```
+
+- **A run is a folder named by its stem.** Its files carry no stem: `results.csv`,
+  `results.json`, `normalized.csv`, `run.json`; archived copies are
+  `archive/<timestamp>.csv` and `archive/<timestamp>_run.json`
+  - why short names: a stem is up to ~90 characters, and a stem twice in one path
+    (`runs/<stem>/analysis/<statistic>_<stem>.csv`) passes the 260 of a Windows path
+  - cost: a file copied out of its folder no longer names its run; `run.json` holds the stem
+- **What was derived from one run sits in it**: `analysis/<statistic>.csv`,
+  `plots/<name>.png`. A table someone else delivered sits in that run's `delivered/`; the
+  record's `delivered.file` is relative to the run's folder and did not change
+- **What was derived from several runs is a named comparison**:
+  `comparisons/<name>/analysis|plots/`, the name being the set's (`--set`), `--name`, or the
+  topic. `runs.json` there is `label -> stem`, the runs it was made from - written on every
+  saving pass, so it also covers a comparison that is in no `comparisons.json`. It has the
+  shape of a set and can be copied into one
+  - `compare.py`, `benchmark.py` and `kernel.py` write into the same folder under one name;
+    their files differ by prefix (`runs_`, `benchmark_`, `kernel_`)
+  - the `_unweighted` variant is a file suffix inside the same folder, not a folder
+- **Code**: `ResultStore.run_dir`, `comparison_dir`, `paths`, `save_comparison` are where
+  these paths are built (`analysis()`, `plot()`, `path()` are gone). `Output(folder, save,
+  suffix=)` writes into one folder; `comparison_output(store, name, runs)` makes a
+  comparison's and records its runs
+- **Migration**: `python migrate_results.py [--write]`, one-off - files renamed, never
+  rewritten, the sha256 of every file compared before and after. 134 files moved;
+  `sod_claimed_votes.csv` stayed. `comparisons/grids/` got its `runs.json` from the set;
+  `comparisons/election_2021/` has none - which runs those tables were made from is not known
+  - not migrated: the trial runs outside `results/` (§14) and anything under `_delete/`
+  - `migrate_results.py` is spent; `migrate_grid.py` (spent too) was pointed at the new paths
+- rejected: keeping `<stem>.csv` names inside the run folder - the path length above

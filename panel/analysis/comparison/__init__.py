@@ -9,7 +9,7 @@ from .areas import areas
 from .compass import compass
 from .distances import distances
 from .effects import effects
-from .loaded import RunSet, describe, load_runs
+from .loaded import RunSet, comparison_output, describe, load_runs
 from .sets import Comparison, load_comparisons
 from .shares import shares
 from .spreads import spreads

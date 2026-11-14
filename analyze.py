@@ -11,8 +11,8 @@ Analyze a saved run from the command line.
     python analyze.py election_2021 haiku-5-5 --no-save
     python analyze.py election_2021 haiku-5-5 --plain      ignore the topic's plot.json
 
-Reads `results/<topic>/`, writes tables to `results/<topic>/analysis/` and figures to
-`results/<topic>/plots/`. `analyze.ipynb` is the same thing one block at a time.
+Reads `results/<topic>/runs/<run>/` and writes tables to its `analysis/`, figures to its
+`plots/`. `analyze.ipynb` is the same thing one block at a time.
 """
 import argparse
 
@@ -44,7 +44,7 @@ def main() -> None:
 
     store = ResultStore(paths.RESULTS_DIR, args.topic)
     run = load_run(store, find_stem(store, args.run), styled=not args.plain, weighted=not args.unweighted)
-    out = Output(store, run.stem + ("_unweighted" if args.unweighted else ""), save=not args.no_save)
+    out = Output(store.run_dir(run.stem), save=not args.no_save, suffix="_unweighted" if args.unweighted else "")
     settings = {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
     print(describe(run))
     if DELIVERED in run.record:

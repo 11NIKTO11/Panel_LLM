@@ -1,32 +1,39 @@
 """
 ResultStore: owner of every path under one topic's results folder. Nothing else builds a results path.
 
-A saved run is four files sharing one stem - the raw results as JSON, the same as a wide CSV,
-a row-normalized CSV, and the run record - plus an archived copy of the CSV and the record. The
-stem identifies a run at a glance; the record carries what a filename cannot, and having one is
-what makes a run a run: `runs()` lists records.
+A saved run is a folder named by its stem, holding four files - the raw results as JSON, the
+same as a wide CSV, a row-normalized CSV, and the run record - an archived copy of the CSV and
+the record per save, and whatever was derived from the run. The stem identifies a run at a
+glance; the record carries what a name cannot, and having one is what makes a run a run:
+`runs()` lists records. What was derived from several runs sits in a folder per named
+comparison, with the runs it was made from.
 
     results/election_2021/
-    |-- <stem>.json                 raw results: {"<id>" or "<id>:<repeat>": {"prompt", "result"}}
-    |-- <stem>.csv                  one row per call: id, [repeat], the topic's columns, Prompt
-    |-- <stem>_normalized.csv       column groups rescaled to sum to 1 per row
-    |-- <stem>_run.json             the run record (panel.run.record)
-    |-- <name>_claimed_votes.csv    topic-level reference series
-    |-- analysis/                   tables derived from runs: <statistic>_<stem>.csv
-    |-- plots/                      figures derived from runs: <name>_<stem>.png
-    |-- archive/                    <stem>_<timestamp>.csv + _run.json, one per save
-    `-- preferences/                pre-RunSpec tables that map to no single run
+    |-- runs/<stem>/
+    |   |-- results.json            raw results: {"<id>" or "<id>:<repeat>": {"prompt", "result"}}
+    |   |-- results.csv             one row per call: id, [repeat], the topic's columns, Prompt
+    |   |-- normalized.csv          column groups rescaled to sum to 1 per row
+    |   |-- run.json                the run record (panel.run.record)
+    |   |-- archive/                <timestamp>.csv + <timestamp>_run.json, one pair per save
+    |   |-- analysis/               tables derived from the run: <statistic>.csv
+    |   |-- plots/                  figures derived from the run: <name>.png
+    |   `-- delivered/              for a run someone else sent: the table as delivered
+    |-- comparisons/<name>/
+    |   |-- runs.json               label -> stem: the runs this comparison was made from
+    |   |-- analysis/               <statistic>.csv
+    |   `-- plots/                  <name>.png
+    `-- <name>_claimed_votes.csv    topic-level reference series (legacy)
 
 One folder per topic: runs on different topics answer with different vocabularies and cannot
 be compared or concatenated. The dataset stays in the stem rather than becoming a folder - two
-datasets on one topic are meant to be compared. Legacy folders keep their files and records as
-they are; their CSV headers are native names, which `Topic.rename` turns into ids in memory.
+datasets on one topic are meant to be compared. Files inside a run's folder carry no stem: the
+folder does, and a stem twice in one path does not fit a Windows path.
 """
 import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, List, Mapping, Tuple, Type, Union
 
 import pandas as pd
 from pydantic import BaseModel
@@ -38,6 +45,7 @@ from .record import build_record
 from .resolve import REPEAT, SUBJECT, Resolved
 
 PROMPT = "Prompt"
+DIGEST_SUFFIX = "_sha256"
 
 
 @dataclass(frozen=True)
@@ -50,14 +58,28 @@ class RunPaths:
     record: Path
 
 
+def digests_in_use(results_dir: Union[str, Path]) -> Dict[str, List[str]]:
+    """The sha256 of every file a saved run of any topic was built from -> the stems of those runs."""
+    found: Dict[str, List[str]] = {}
+    for path in sorted(Path(results_dir).glob(f"*/{ResultStore.RUNS_DIR}/*/{ResultStore.RECORD_NAME}")):
+        dataset = json.loads(path.read_text(encoding="utf-8")).get("dataset", {})
+        for key, digest in dataset.items():
+            if key.endswith(DIGEST_SUFFIX):
+                found.setdefault(digest, []).append(path.parent.name)
+    return found
+
+
 class ResultStore:
     """One topic's results folder; see the module docstring for the layout."""
 
-    RECORD_SUFFIX = "_run.json"
-    NORMALIZED_SUFFIX = "_normalized"
+    RUNS_DIR = "runs"
+    COMPARISONS_DIR = "comparisons"
+    RECORD_NAME = "run.json"
+    MEMBERS_NAME = "runs.json"
     ANALYSIS_DIR = "analysis"
     PLOTS_DIR = "plots"
     ARCHIVE_DIR = "archive"
+    DELIVERED_DIR = "delivered"
 
     def __init__(self, results_dir: Union[str, Path], topic: str):
         self.results_dir = Path(results_dir)
@@ -67,40 +89,44 @@ class ResultStore:
     def topic_dir(self) -> Path:
         return self.results_dir / self.topic
 
-    def path(self, name: str) -> Path:
-        """A path in this topic's folder, for files belonging to no single run."""
-        return self.topic_dir / name
+    def run_dir(self, stem: str) -> Path:
+        """One run's folder: its four files, its archive, and what was derived from it."""
+        return self.topic_dir / self.RUNS_DIR / stem
 
-    def analysis(self, name: str) -> Path:
-        """A path in `analysis/`, for tables derived from runs. Creates the folder."""
-        directory = self.topic_dir / self.ANALYSIS_DIR
-        directory.mkdir(parents=True, exist_ok=True)
-        return directory / name
-
-    def plot(self, name: str) -> Path:
-        """A path in `plots/`, for figures derived from runs. Creates the folder."""
-        directory = self.topic_dir / self.PLOTS_DIR
-        directory.mkdir(parents=True, exist_ok=True)
-        return directory / name
+    def comparison_dir(self, name: str) -> Path:
+        """One named comparison's folder: what was derived from several runs, and which."""
+        return self.topic_dir / self.COMPARISONS_DIR / name
 
     def paths(self, stem: str, timestamp: Union[str, None] = None) -> RunPaths:
         """The four files of one run, or with a timestamp their archived copy."""
-        directory = self.topic_dir / self.ARCHIVE_DIR if timestamp else self.topic_dir
-        base = f"{stem}_{timestamp}" if timestamp else stem
+        directory = self.run_dir(stem)
+        if timestamp:
+            archive = directory / self.ARCHIVE_DIR
+            return RunPaths(
+                stem=stem,
+                results_json=archive / f"{timestamp}.json",
+                results_csv=archive / f"{timestamp}.csv",
+                normalized_csv=archive / f"{timestamp}_normalized.csv",
+                record=archive / f"{timestamp}_{self.RECORD_NAME}",
+            )
         return RunPaths(
             stem=stem,
-            results_json=directory / f"{base}.json",
-            results_csv=directory / f"{base}.csv",
-            normalized_csv=directory / f"{base}{self.NORMALIZED_SUFFIX}.csv",
-            record=directory / f"{base}{self.RECORD_SUFFIX}",
+            results_json=directory / "results.json",
+            results_csv=directory / "results.csv",
+            normalized_csv=directory / "normalized.csv",
+            record=directory / self.RECORD_NAME,
         )
 
     def runs(self) -> List[str]:
-        """Stems of this topic's saved runs: every stem with a run record."""
-        return sorted(
-            path.name[: -len(self.RECORD_SUFFIX)]
-            for path in self.topic_dir.glob(f"*{self.RECORD_SUFFIX}")
-        )
+        """Stems of this topic's saved runs: every run folder with a run record."""
+        return sorted(path.parent.name for path in (self.topic_dir / self.RUNS_DIR).glob(f"*/{self.RECORD_NAME}"))
+
+    def save_comparison(self, name: str, runs: Mapping[str, str]) -> Path:
+        """Write which runs a named comparison was made from, `label -> stem`, as its `runs.json`."""
+        path = self.comparison_dir(name) / self.MEMBERS_NAME
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(dict(runs), ensure_ascii=False, indent=4), encoding="utf-8")
+        return path
 
     def record(self, stem: str) -> Dict[str, Any]:
         """
@@ -170,7 +196,7 @@ class ResultStore:
         Write one result set under the run's stem.
 
         Called twice per run - once as it defaults, once with `timestamped=False`. The
-        timestamped set lands in `archive/`, unique per save, and is what keeps an overwritten
+        timestamped set lands in the run's `archive/`, unique per save, and is what keeps an overwritten
         run recoverable; it holds the CSV and the record only, because the raw JSON and the
         normalized CSV are reconstructions of the CSV. The plain set is the handle a stem is
         loaded by and is overwritten freely by the same spec.

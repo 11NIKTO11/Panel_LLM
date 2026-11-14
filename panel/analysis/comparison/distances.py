@@ -44,7 +44,7 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
         NotApplicable: if the topic has neither a reference nor claims.
     """
     topic, options = runs.topic, list(runs.topic.options)
-    quiet = Output(out.store, out.stem, save=False)
+    quiet = Output(out.folder, save=False)
     own = {}
     for label, run in runs.runs.items():
         try:

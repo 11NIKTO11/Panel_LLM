@@ -21,7 +21,7 @@ class _Kept(Output):
     """An output that writes nothing and keeps the tables it is handed, by name."""
 
     def __init__(self, out: Output):
-        super().__init__(out.store, out.stem, save=False)
+        super().__init__(out.folder, save=False)
         self.tables = {}
 
     def table(self, name: str, frame: pd.DataFrame) -> pd.DataFrame:

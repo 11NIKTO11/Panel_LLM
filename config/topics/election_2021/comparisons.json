@@ -1,0 +1,12 @@
+{
+    "haiku": {
+        "Haiku 4.5": "sod_default_cs_default_AnthropicLegacy_claude-haiku-4-5",
+        "Haiku 5.5": "sod_default_cs_default_Anthropic_claude-haiku-5-5"
+    },
+    "grids": {
+        "grid sod": "gridsod_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3",
+        "grid sod45": "gridsod45_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "grid simple": "gridsimple_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "colleague": "gridcolleague_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
+    }
+}

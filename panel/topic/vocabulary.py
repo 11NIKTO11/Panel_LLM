@@ -12,7 +12,7 @@ Config shape:
     {
         "name": "election_2021",
         "reference": {                          null when there is nothing to compare to
-            "path": "data/election_data.csv",   relative to the repo root
+            "path": "reference.csv",            relative to the topic's folder
             "key": "region",                    the column naming each row
             "total": "Česko"                    the key of the row that is the whole
         },
@@ -74,6 +74,7 @@ class Topic:
         aliases: foreign column name -> our column, over options and turnout.
         turnout: (yes column, no column) for a topic with an attendance dimension, else None.
         reference: the real-world results to compare against, or None.
+        dir: the topic's folder.
         note: free text; not used by code.
     """
     name: str
@@ -82,6 +83,7 @@ class Topic:
     aliases: Dict[str, str]
     turnout: Union[Tuple[str, str], None]
     reference: Union[Reference, None]
+    dir: Path
     note: str = ""
 
     @property
@@ -116,7 +118,7 @@ class Topic:
         """
         if not self.reference:
             raise ValueError(f"topic '{self.name}' declares no reference results")
-        frame = self.rename(pd.read_csv(paths.ROOT / self.reference.path, encoding="utf-8-sig"))
+        frame = self.rename(pd.read_csv(self.dir / self.reference.path, encoding="utf-8-sig"))
         missing = [column for column in [self.reference.key] + self.columns if column not in frame.columns]
         if missing:
             raise ValueError(f"{self.reference.path} is missing columns {missing}")
@@ -200,5 +202,5 @@ def load_topic(name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> To
 
     return Topic(
         name=config["name"], options=options, names=names, aliases=taken, turnout=turnout,
-        reference=reference, note=config.get("note", ""),
+        reference=reference, dir=path.parent, note=config.get("note", ""),
     )

@@ -72,7 +72,7 @@ def test_to_series_is_keyed_by_id():
 @pytest.mark.parametrize("bad_labels", [{"Nobody": "x"}, {"ANO": "Jiná strana"}], ids=["unknown id", "duplicate label"])
 def test_framing_rejects_bad_labels(tmp_path, bad_labels):
     shutil.copytree(TOPICS_DIR / "election_2021", tmp_path / "election_2021")
-    path = tmp_path / "election_2021" / "cs.json"
+    path = tmp_path / "election_2021" / "framings" / "cs.json"
     config = json.loads(path.read_text(encoding="utf-8"))
     config["labels"] = bad_labels
     path.write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")

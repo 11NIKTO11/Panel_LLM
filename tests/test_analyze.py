@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from panel.analysis import ANALYSES, NotApplicable, Output, describe, find_stem, load_run
 from panel.analysis.benchmark import BENCHMARKS, load_ground
 from panel.analysis.benchmark.ground import SHARES, TRAINED
-from panel.analysis.comparison import COMPARISONS, load_comparisons, load_runs
+from panel.analysis.comparison import COMPARISONS, comparison_output, load_comparisons, load_runs
 from panel.analysis.comparison import describe as describe_runs
 from panel.analysis.levels import members
 from panel.analysis.area import ordered
@@ -45,7 +45,7 @@ def test_a_run_is_found_and_read_back(saved):
 @pytest.mark.parametrize("text", ["subset=20", "x3"])
 def test_every_analysis_gives_a_table_and_figures(saved, text):
     run = load_run(saved, find_stem(saved, text))
-    out = Output(saved, run.stem)
+    out = Output(saved.run_dir(run.stem))
     for name, analysis in ANALYSES.items():
         try:
             table, figures = analysis(run, out)
@@ -55,7 +55,9 @@ def test_every_analysis_gives_a_table_and_figures(saved, text):
         assert isinstance(table, pd.DataFrame) and not table.empty, name
         assert all(isinstance(figure, Figure) for figure in figures), name
     assert out.written and all(path.exists() for path in out.written)
-    assert Output(saved, run.stem, save=False).table("nothing", table) is table and not saved.analysis("nothing_" + run.stem + ".csv").exists()
+    quiet = Output(saved.run_dir(run.stem), save=False)
+    assert quiet.table("nothing", table) is table and not quiet.table_path("nothing").exists()
+    assert all(path.parent.parent == saved.run_dir(run.stem) for path in out.written)
 
 
 def test_runs_side_by_side(saved):
@@ -63,7 +65,8 @@ def test_runs_side_by_side(saved):
         load_runs(saved, ["x3", "x3"])
     runs = load_runs(saved, ["subset=20", "x3"])
     assert len(set(runs.runs)) == 2 and len(runs.claimed) == 2 and list(runs.polls.columns) == list(runs.topic.options)
-    out = Output(saved, "pair")
+    out = comparison_output(saved, "pair", runs)
+    assert json.loads((saved.comparison_dir("pair") / "runs.json").read_text(encoding="utf-8")) == {label: run.stem for label, run in runs.runs.items()}
     for name, comparison in COMPARISONS.items():
         try:
             table, figures = comparison(runs, out)
@@ -72,7 +75,7 @@ def test_runs_side_by_side(saved):
             continue
         assert isinstance(table, pd.DataFrame) and not table.empty, name
         assert figures and all(isinstance(figure, Figure) for figure in figures), name
-    assert all(path.exists() and "_pair." in path.name for path in out.written)
+    assert all(path.exists() and path.parent.parent == saved.comparison_dir("pair") for path in out.written)
 
 
 def test_levels_of_a_grouping_column():
@@ -94,7 +97,7 @@ def test_runs_against_a_model_trained_on_the_answers(saved):
     assert list(ground.predicted) == ["fake-model"] and ground.outcomes[-1] == ground.topic.turnout[1]
     assert len(ground.answers) <= 20 and all(abs(shares.sum(axis=1) - 1).max() < 1e-9 for shares in ground.predicted.values())
     assert ground.sources[:2] == [SHARES, TRAINED] and len(ground.sources) == 5
-    out = Output(saved, "trained")
+    out = Output(saved.comparison_dir("trained"))
     for name, benchmark in BENCHMARKS.items():
         table, figures = benchmark(ground, out)
         assert isinstance(table, pd.DataFrame) and not table.empty, name
@@ -105,12 +108,13 @@ def test_runs_against_a_model_trained_on_the_answers(saved):
 
 
 def test_named_sets_of_runs(saved, tmp_path):
-    named = load_comparisons(paths.CONFIG_DIR / "comparisons.json")
-    assert named and all(chosen.name == name and chosen.runs for name, chosen in named.items())
+    named = load_comparisons("election_2021")
+    assert named and all(chosen.name == name and chosen.topic == "election_2021" and chosen.runs for name, chosen in named.items())
+    assert load_comparisons("election_2021", tmp_path) == {}
     runs = load_runs(saved, {"small": "subset=20", "repeated": "x3"})
     assert list(runs.runs) == ["small", "repeated"] and "small" in describe_runs(runs)
-    for wrong in ({"a": {"topic": "t"}}, {"a": {"topic": "t", "runs": {}}}, {"a": {"topic": "t", "runs": {"x": "s", "y": "s"}}}):
-        path = tmp_path / "comparisons.json"
-        path.write_text(json.dumps(wrong), encoding="utf-8")
+    (tmp_path / "t").mkdir()
+    for wrong in ({"a": ["s"]}, {"a": {"x": {"y": "s"}}}, {"a": {}}, {"a": {"x": "s", "y": "s"}}):
+        (tmp_path / "t" / "comparisons.json").write_text(json.dumps(wrong), encoding="utf-8")
         with pytest.raises(ValueError):
-            load_comparisons(path)
+            load_comparisons("t", tmp_path)

@@ -1,7 +1,7 @@
 """
 A framing: everything the model reads that is not the description, in one language.
 
-`config/topics/<topic>/<framing>.json` carries the system prompt, the labels the options are shown under, and the wording of the response
+`config/topics/<topic>/framings/<name>.json` carries the system prompt, the labels the options are shown under, and the wording of the response
 schema - class titles and field descriptions - which the provider sees in the JSON schema and
 which therefore are prompt content. A topic has one framing per language (`cs`, `en`) and may
 have more (`cs-terse`); the framing's `short` goes into the results stem.
@@ -41,11 +41,9 @@ from typing import Dict, List, Union
 
 from panel import paths
 
-from .plot import CONFIG_NAME as PLOT_CONFIG_NAME
-from .polls import CONFIG_NAME as POLLS_CONFIG_NAME
-from .positions import CONFIG_NAME as POSITIONS_CONFIG_NAME
-from .vocabulary import CONFIG_NAME as TOPIC_CONFIG_NAME, Topic
+from .vocabulary import Topic
 
+FRAMINGS_DIR = "framings"
 REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "labels", "schema"}
 OPTIONAL_KEYS = {"note"}
 TEXT_KEYS = {
@@ -102,7 +100,7 @@ class SchemaText:
 class Framing:
     """
     Attributes:
-        name: the file stem under the topic folder.
+        name: the file stem under the topic's `framings/`.
         topic: the topic it words.
         language: language code of every text here.
         short: the framing's part of a results stem.
@@ -124,9 +122,9 @@ class Framing:
 
 
 def framing_names(topic: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
-    """Every framing file beside a topic's `topic.json`, sorted."""
-    folder = Path(topics_dir) / topic
-    return sorted(path.stem for path in folder.glob("*.json") if path.name not in (TOPIC_CONFIG_NAME, PLOT_CONFIG_NAME, POLLS_CONFIG_NAME, POSITIONS_CONFIG_NAME))
+    """Every framing in a topic's `framings/`, sorted."""
+    folder = Path(topics_dir) / topic / FRAMINGS_DIR
+    return sorted(path.stem for path in folder.glob("*.json"))
 
 
 def _text(config: dict, block: str, path: Path) -> dict:
@@ -142,12 +140,12 @@ def load_framing(topic: Topic, name: str, topics_dir: Union[str, Path] = paths.T
     Read one framing of a topic.
 
     Raises:
-        FileNotFoundError: if the topic folder holds no framing of that name.
+        FileNotFoundError: if the topic's `framings/` holds no framing of that name.
         ValueError: on unknown or missing keys, a name or topic that disagrees with the file, a
             short that could not sit in a stem, a label for an unknown option, labels that are
             not unique after defaults, or schema text that disagrees with the topic on turnout.
     """
-    path = Path(topics_dir) / topic.name / f"{name}.json"
+    path = Path(topics_dir) / topic.name / FRAMINGS_DIR / f"{name}.json"
     if not path.exists():
         raise FileNotFoundError(f"no framing '{name}' for topic '{topic.name}' at {path}")
     config = json.loads(path.read_text(encoding="utf-8"))

@@ -5,9 +5,11 @@ Prepare a dataset from the command line.
     python prepare.py sod                           values and every description
     python prepare.py sod -d default                values and one description
     python prepare.py sod -d default --prompts-only keep the stored values, render again
+    python prepare.py sod --overwrite               replace tables saved runs were built from
 
-Naming the dataset on the command line asks nothing. Writes under `data/<dataset>/`, and says
-for each prompt table how many prompts are identical to another subject's.
+Naming the dataset on the command line asks nothing. Writes under `datasets/<dataset>/prepared/`, and says
+for each prompt table how many prompts are identical to another subject's. A table that a
+saved run was built from is not replaced by a different one without `--overwrite`.
 """
 import argparse
 
@@ -34,6 +36,7 @@ def main() -> None:
     parser.add_argument("dataset", nargs="?", help="a folder under datasets/; asked for when omitted")
     parser.add_argument("-d", "--descriptions", nargs="+", help="descriptions to render; all when omitted")
     parser.add_argument("--prompts-only", action="store_true", help="render over the stored values")
+    parser.add_argument("--overwrite", action="store_true", help="replace a table even if a saved run was built from it and it comes out different")
     args = parser.parse_args()
 
     name, descriptions, rebuild = args.dataset, args.descriptions, not args.prompts_only
@@ -42,7 +45,7 @@ def main() -> None:
         descriptions = pick("descriptions", list(load_dataset(name).descriptions), several=True)
         rebuild = input("rebuild the values table from the raw source? [Y/n]: ").strip().lower() not in ("n", "no")
 
-    for what, path in prepare(name, descriptions, rebuild).items():
+    for what, path in prepare(name, descriptions, rebuild, overwrite=args.overwrite).items():
         print(f"{what} -> {path}")
         if what != VALUES:
             count = count_prompts(name, what)

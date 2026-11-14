@@ -38,5 +38,5 @@
             "name": "Jiná strana"
         }
     },
-    "note": "Prepared, not yet run. reference is null because the repo has no 2025 actual-results CSV - drop one into data/ and declare it here with its key column and total row."
+    "note": "Prepared, not yet run. reference is null because the repo has no 2025 actual-results CSV - put one beside this file as reference.csv and declare it here with its key column and total row."
 }

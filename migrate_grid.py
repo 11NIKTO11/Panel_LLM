@@ -207,7 +207,7 @@ def migrate_colleague(old: Path, run: Delivered, store: ResultStore) -> str:
 
     key = (lambda subject: f"{subject}:1") if spec.repeats > 1 else str
     raw = {key(subject): {"prompt": None, "result": result(row)} for subject, row in frame.iterrows()}
-    copy = store.path("delivered") / run.file
+    copy = store.run_dir(stem) / store.DELIVERED_DIR / run.file
     record = {
         "stem": stem, "n": len(frame), "saved_at": None, "spec": spec.to_dict(),
         "dataset": {"name": dataset.name, "short": dataset.short, "language": dataset.language,
@@ -230,7 +230,6 @@ def migrate_colleague(old: Path, run: Delivered, store: ResultStore) -> str:
         },
     }
 
-    store.topic_dir.mkdir(parents=True, exist_ok=True)
     copy.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, copy)
     frame.to_csv(written.results_csv, index=True, encoding="utf-8")
