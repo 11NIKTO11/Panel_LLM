@@ -78,7 +78,7 @@ def intervals(kernels: KernelSet, out: Output, draws: int = 200, seed: int = 0, 
         frame = pd.DataFrame({ESTIMATE: estimates[label]})
         bounds = [interval(replicates[label][name], estimates[label][name], recentre=scheme == REPEATS) if len(replicates[label]) else (np.nan, np.nan) for name in frame.index]
         frame[LOW], frame[HIGH] = [low for low, _ in bounds], [high for _, high in bounds]
-        frame["interval"] = f"{scheme}, {draws}" if scheme else "none: one answer per cell"
+        frame["interval"] = f"{scheme}, {draws}" if scheme else (f"none: delivered means over {kernel.averaged} repeats" if kernel.averaged else "none: one answer per cell")
         rows[label] = frame
     table = out.table(NAME, pd.concat(rows, names=["kernel", "statistic"]))
     if reference is not None:
