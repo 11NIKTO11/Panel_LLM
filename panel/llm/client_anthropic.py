@@ -11,8 +11,23 @@ except Exception:  # pragma: no cover - optional dependency guard
     Anthropic = None
 
 
+def server_tools_used(response) -> dict:
+    """Server tool -> how many times the response used it (web searches, web fetches, ...); empty when none."""
+    counts = getattr(getattr(response, "usage", None), "server_tool_use", None)
+    if counts is None:
+        return {}
+    found = counts.model_dump() if hasattr(counts, "model_dump") else dict(counts)
+    return {name: count for name, count in found.items() if isinstance(count, (int, float)) and count}
+
+
 class AnthropicClient(BaseLLMClient):
-    """Claude on the API version the installed SDK sends, which takes no temperature."""
+    """
+    Claude on the API version the installed SDK sends, which takes no temperature.
+
+    A call offers no tools (`tools=[]`): the answer is the model's own, with no web search,
+    web fetch or code execution, which the API runs only when a request declares them. The
+    response's server-tool counts are checked all the same, and a call that used one fails.
+    """
     SHORT_NAME = "Anthropic"
     API_VERSION: Union[str, None] = None
 
@@ -49,12 +64,16 @@ class AnthropicClient(BaseLLMClient):
             model=model,
             max_tokens=16000,
             messages=[{"role": "user", "content": prompt}],
+            tools=[],
             output_format=response_format,
             **({"system": instructions} if instructions else {}),
             **({"output_config": {"effort": self.effort}} if self.effort else {}),
             **self._sampling(temperature),
         )
         self.last_model = getattr(response, "model", None)
+        used = server_tools_used(response)
+        if used:
+            raise ValueError(f"'{model}' used server tools although none were offered: {used}")
         if response.parsed_output is None:
             raise ValueError(f"no parsed output from '{model}': stop_reason={response.stop_reason}")
         return response.parsed_output

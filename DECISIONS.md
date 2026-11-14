@@ -945,3 +945,19 @@ the same way.
 - **Agreement's reference**: whether to add a smoother trained reference (pushforward's
   classic models) is open
 
+## 17. Pure model answers from the Anthropic clients (2026-11-14)
+
+- **No tools offered**: `AnthropicClient` and `AnthropicLegacyClient` send `tools=[]` on every
+  call. The API runs web search, web fetch or code execution only for a request that declares
+  them, so this states what was already true rather than changing it
+- **Checked per call**: a response whose `usage.server_tool_use` counts any use fails the call
+  (`server_tools_used`); the batch runner's retries and rerun rounds then fail the run loudly,
+  so a saved run cannot hold such an answer. The record is unchanged
+- **The schema stays `output_format` on `messages.parse`**: that is the SDK's typed helper, sent
+  on the wire as `output_config.format` beside `effort` (checked in the SDK source, 2.7.0). What
+  the API deprecated is `output_format` as a body field of `messages.create`, which is not used
+  - rejected: passing `output_config={"format": ...}` ourselves - the same request, without the
+    typed `parsed_output`
+- **OpenRouter**: offline too - no `plugins`, no `:online` suffix; not changed
+- `tests/test_llm.py` checks the request body and the refusal offline (the SDK's transport
+  replaced); that the API accepts `tools: []` is not verified live yet
