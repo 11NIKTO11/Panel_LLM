@@ -199,7 +199,7 @@ def images(
             ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
     fig.colorbar(image, ax=list(axes), shrink=0.6, label="probability")
     if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
     if note:
         fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     return fig

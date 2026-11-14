@@ -112,7 +112,7 @@ def _framed(ax) -> None:
 
 def _finish(fig: Figure, height: float, title: Union[str, None], note: Union[str, None]) -> Figure:
     if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
     if note:
         fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2, h_pad=1.6)

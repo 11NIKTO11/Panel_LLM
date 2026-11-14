@@ -60,7 +60,7 @@ def stacked_bars(
         loc="lower center", ncols=min(len(table.columns), 9), frameon=False, fontsize=9, bbox_to_anchor=(0.5, 0), handlelength=1, columnspacing=1.2,
     )
     if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
     if note:
         fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     fig.tight_layout(rect=(0, 0.45 / height, 1, 1 - (0.5 if note else 0.3) / height))
