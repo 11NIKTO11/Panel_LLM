@@ -1,4 +1,4 @@
-"""How values are spread over subjects: a violin per column, and histograms side by side."""
+"""How values are spread: a violin per column, histograms side by side, distributions overlaid per panel, and boxes with their points."""
 from typing import Mapping, Sequence, Union
 
 import matplotlib.ticker as mtick
@@ -100,3 +100,112 @@ def histograms(
         fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2)
     return fig
+
+
+def _framed(ax) -> None:
+    clean(ax)
+    ax.set_facecolor(PANEL)
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color(EDGE)
+
+
+def _finish(fig: Figure, height: float, title: Union[str, None], note: Union[str, None]) -> Figure:
+    if title:
+        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
+    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2, h_pad=1.6)
+    return fig
+
+
+def overlaid(
+    panels: Mapping[str, Mapping[str, np.ndarray]],
+    marks: Union[Mapping[str, Mapping[str, float]], None] = None,
+    bins: Union[np.ndarray, None] = None,
+    xlabel: Union[str, None] = None,
+    per_row: int = 3,
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
+    """
+    One panel per name, and in it a density histogram per series, overlaid, with vertical marks.
+
+    Args:
+        panels: panel -> series -> values; a series keeps its colour across panels.
+        marks: panel -> label -> where a vertical line goes; the label is written beside it.
+        bins: shared bin edges; 40 between 0 and 1 by default.
+        xlabel: what the values are.
+        per_row: panels in a row.
+        title: figure title.
+        note: a line under the title.
+    """
+    bins = np.linspace(0, 1, 41) if bins is None else bins
+    series = list(dict.fromkeys(name for found in panels.values() for name in found))
+    palette = dict(zip(series, [NEUTRAL, *SERIES]))
+    rows = -(-len(panels) // per_row)
+    height = 3.4 * rows + 0.6
+    fig = Figure(figsize=(4.4 * min(per_row, len(panels)) + 0.6, height), facecolor=SURFACE)
+    axes = fig.subplots(rows, min(per_row, len(panels)), squeeze=False).ravel()
+    for ax, (panel, found) in zip(axes, panels.items()):
+        _framed(ax)
+        for name, values in found.items():
+            values = np.asarray(values, dtype=float)
+            ax.hist(values[~np.isnan(values)], bins=bins, density=True, color=palette[name], alpha=0.55, label=name)
+        for depth, (label, at) in enumerate((marks or {}).get(panel, {}).items()):
+            ax.axvline(at, color=INK, linewidth=1, linestyle=("-", "--", ":", "-.")[depth % 4])
+            ax.annotate(f"{label} {at:.2f}", (at, 1), xycoords=("data", "axes fraction"), xytext=(4, -12 - 11 * depth), textcoords="offset points", fontsize=8, color=MUTED)
+        ax.set_title(panel, fontsize=10, color=INK, loc="left", fontweight="bold")
+        if xlabel:
+            ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
+        ax.legend(fontsize=8, frameon=False)
+    for ax in axes[len(panels):]:
+        ax.set_visible(False)
+    return _finish(fig, height, title, note)
+
+
+def strips(
+    panels: Mapping[str, Mapping[str, np.ndarray]],
+    marks: Union[Mapping[str, float], None] = None,
+    xlabel: Union[str, None] = None,
+    per_row: int = 3,
+    seed: int = 0,
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
+    """
+    One panel per name, and in it a horizontal box per group with its values as points over it.
+
+    Args:
+        panels: panel -> group -> values, groups drawn top to bottom in the given order.
+        marks: panel -> where a dashed reference line goes.
+        xlabel: what the values are.
+        per_row: panels in a row.
+        seed: of the points' vertical jitter.
+        title: figure title.
+        note: a line under the title.
+    """
+    random = np.random.default_rng(seed)
+    rows = -(-len(panels) // per_row)
+    longest = max(len(found) for found in panels.values())
+    height = (0.42 * longest + 1.4) * rows + 0.6
+    fig = Figure(figsize=(4.6 * min(per_row, len(panels)) + 1.2, height), facecolor=SURFACE)
+    axes = fig.subplots(rows, min(per_row, len(panels)), squeeze=False).ravel()
+    for ax, (panel, found) in zip(axes, panels.items()):
+        _framed(ax)
+        groups = list(found)
+        data = [np.asarray(found[group], dtype=float) for group in groups]
+        ax.boxplot(data, orientation="horizontal", widths=0.6, showfliers=False, patch_artist=True,
+                   boxprops={"facecolor": tint(SERIES[0], 0.25), "edgecolor": EDGE}, medianprops={"color": INK}, whiskerprops={"color": EDGE}, capprops={"color": EDGE})
+        for position, values in enumerate(data, start=1):
+            ax.scatter(values, position + random.normal(0, 0.07, len(values)), s=4, alpha=0.35, color=SERIES[0], linewidths=0)
+        if marks and panel in marks:
+            ax.axvline(marks[panel], color=INK, linewidth=1, linestyle="--")
+        ax.set_yticks(range(1, len(groups) + 1), wrap(groups, 22))
+        ax.invert_yaxis()
+        ax.set_title(panel, fontsize=10, color=INK, loc="left", fontweight="bold")
+        if xlabel:
+            ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
+    for ax in axes[len(panels):]:
+        ax.set_visible(False)
+    return _finish(fig, height, title, note)

@@ -1,4 +1,4 @@
-"""Matrices as heatmaps: a signed square one between the same things, and a grid of shares, rows by columns."""
+"""Matrices as heatmaps: a signed square one between the same things, a grid of shares, rows by columns, and wide matrices as images."""
 from typing import Mapping, Union
 
 import numpy as np
@@ -163,4 +163,43 @@ def grids(
     if note:
         fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
+    return fig
+
+
+def images(
+    matrices: Mapping[str, pd.DataFrame],
+    cmap: str = "magma",
+    xlabel: Union[str, None] = None,
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
+    """
+    Wide matrices as images, one under the other, a pixel per cell, on one colour range from 0 to 1.
+
+    Args:
+        matrices: name -> rows by many columns, values between 0 and 1.
+        cmap: the matplotlib colour range.
+        xlabel: what the columns are.
+        title: figure title.
+        note: a line under the title.
+    """
+    rows = max(len(matrix) for matrix in matrices.values())
+    height = (0.22 * rows + 0.9) * len(matrices) + 0.8
+    fig = Figure(figsize=(13, height), facecolor=SURFACE)
+    axes = fig.subplots(len(matrices), 1, squeeze=False)[:, 0]
+    for ax, (name, matrix) in zip(axes, matrices.items()):
+        image = ax.imshow(matrix.to_numpy(dtype=float), aspect="auto", interpolation="nearest", cmap=cmap, vmin=0, vmax=1)
+        ax.set_yticks(range(len(matrix)), [str(row) for row in matrix.index], fontsize=8)
+        ax.set_xticks([])
+        ax.set_title(name, fontsize=10, color=INK, loc="left", fontweight="bold")
+        ax.tick_params(length=0, colors=INK)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        if xlabel:
+            ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
+    fig.colorbar(image, ax=list(axes), shrink=0.6, label="probability")
+    if title:
+        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
     return fig
