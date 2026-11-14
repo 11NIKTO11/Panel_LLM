@@ -89,8 +89,9 @@ it (`panel/paths.py` anchors them on the package).
 | 3 | `python analyze.py <topic> <run>` | one saved run -> tables and figures |
 | 4 | `python compare.py <topic> <run> <run> ...` | several runs of a topic side by side |
 | 5 | `python benchmark.py <topic> <run> ...` | runs against a model trained on the subjects' own answers |
+| 6 | `python kernel.py <topic> <run> ...` | runs read as kernels, profiles -> answers: noise, effects, axes, populations |
 
-`analyze.ipynb`, `compare.ipynb` and `benchmark.ipynb` are steps 3 to 5 one block at a time. `run.py` replaced
+`analyze.ipynb`, `compare.ipynb`, `benchmark.ipynb` and `kernel.ipynb` are steps 3 to 6 one block at a time. `run.py` replaced
 `simulate.ipynb` and `analyze.py` replaced `panel_stats.ipynb`; both are gone. Nothing is defined in a
 notebook; the code is in `panel/`.
 
@@ -160,6 +161,8 @@ python analyze.py election_2021 <run> --only effects --predictors gender,age,reg
 python compare.py election_2021 <run> <run> --name haiku
 python compare.py --set haiku                        # a named set of config/comparisons.json
 python benchmark.py election_2021 <run> <run> --name haiku --predictors gender,age,region
+python kernel.py election_2021 gridsod_ gridsimple --name grids
+python kernel.py election_2021 <run> <run> --reference gpt-4o --draws 100
 ```
 
 A run is named by its stem or by any text only one stem contains. Tables go to
@@ -188,6 +191,26 @@ ridge logit trained on those claims (cross-validated) and the plain claimed shar
 (log-loss, Brier), `knowledge` (what the description bought; how much of the trained model's
 knowledge a run holds), `agreement` and `calibration`. It needs a full run to mean anything:
 on 200 subjects the trained model does not beat the claimed shares.
+
+`kernel.py` reads each run as a matrix from profiles to answers - a profile being the values its
+description reads - after `CoRe/llm_pushforward` (`DECISIONS.md` §16). A grid is a designed
+kernel, a survey run a sampled one, and where it matters the analysis says which it used:
+
+| analysis | what it gives |
+|---|---|
+| `noise` | two answers to the same profile against two random subjects: the noise floor |
+| `scales` | TV between profiles: Dobrushin δ, quantiles, each outcome's spread over the profiles |
+| `pairs` | profiles differing in one factor: what swapping it does, against the noise floor |
+| `variance` | main effects, interactions, noise, rest: exact for a grid, ridge out of sample otherwise |
+| `importance` | ε² of each factor alone, pooled and per outcome |
+| `axes` | SVD: how many directions, their patterns, which factor drives each |
+| `shapley` | the explained variance shared fairly among the factors, with intervals |
+| `electorates` | how alike the options' electorates are |
+| `populations` | `M q` for the own population, every profile once, the claims; one factor evened out |
+| `sensitivity` | the largest gain under any population shift and under a one-factor shift |
+| `surrogate` | the additive logit: additivity, the full product, independent factors |
+| `agreement` | runs against a reference profile by profile: TV, correlation, ratio of spreads |
+| `intervals` | 95 % intervals: half-samples of a survey run's profiles, resampled repeats of a grid |
 
 ### 2.3 Tests
 

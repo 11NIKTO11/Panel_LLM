@@ -852,3 +852,96 @@ trial folder first, then into `results/`; the two agreed byte for byte.
   at that cell
 - `migrate_grid.py` is spent once Martin has looked at the runs; `CoRe/_grid_separate`
   holds everything it read
+
+## 16. Runs read as kernels (2026-11-14)
+
+The analyses of `CoRe/llm_pushforward` ported as one slice, `panel/analysis/kernel/`, with
+`kernel.py` / `kernel.ipynb`. A run is read as a matrix `M`: a row per outcome (each option's
+share times P(taking part), and not taking part), a column per distinct profile. Named for the
+idea - a Markov kernel from profiles to answers - not for the grid, because a survey run reads
+the same way.
+
+### 16.1 Shape
+
+- **Profile**: the values of the columns the run's description reads; subjects with the same
+  values are one column, the mean of their answers. A missing value is a level, `(missing)`.
+- **Designed / sampled**: read off the kernel, not declared - designed when its profiles are
+  every combination of the factors' levels (a grid), sampled otherwise.
+- **Code**: pure math in `stats/` (`distributions`, `spectral`, `variance` incl. the exact
+  `factorial` split, `shapley`, `sensitivity`, `surrogate`, `replicates`); `kernel/matrix.py`
+  builds `Kernel` / `KernelSet` from a `RunSet`; one module per analysis,
+  `(kernels, out) -> (table, figures)`, registry `KERNEL_ANALYSES`
+- **Moved**: `outcome_shares` from `benchmark/ground.py` to `aggregate.py` (with `outcome_rows`,
+  per call), shared by both
+- **Not ported** (already here): MANOVA / PERMANOVA (`effects`), national, regional, violins,
+  party covariance, CHES maps, the scoring against claims (`benchmark`), output checks
+
+### 16.2 Decisions (settled before the port, as recommended)
+
+- **D1**: a stored description lists the columns its prompts were built from, `"reads"`
+  (`legacy` and `sod_legacy/default`: pushforward's ten; `delivered`: the grid's five);
+  `reads` on a rendered description is refused
+- **D2**: `"together"` in `dataset.json` names columns that share credit as one player in the
+  Shapley effects (`sod`, `sod_legacy`: geography = region + district); the default is one
+  player per factor
+- **D3**: populations start from the run's own subjects (`weights`), uniform over profiles as an
+  option (`sensitivity(uniform=True)`); for a grid they are the same
+- **D4**: Shapley runs in parallel (`joblib`), no cache, `draws` a parameter (20 by default)
+  - rejected: pushforward's CSV cache of replicates - outputs here are regenerable, a cache is
+    state to invalidate
+- **D5**: the surrogate fits a binary logit for two outcomes (the same softmax, the first
+  outcome's effects at zero)
+
+### 16.3 Choices made in the port
+
+- **Variance**: a designed kernel splits exactly (main effects, two-way interactions, the rest,
+  noise taken out of the rest); a sampled one by out-of-sample ridge R², as pushforward. Noise
+  is the noise variance of one answer over the answers a column averages (pushforward: of one
+  answer) - on the survey runs the two differ by under 0.001
+- **Uncertainty**, two sources (`matrix.scheme_of`):
+  - a sampled kernel: half-samples of its profiles (pushforward's scheme, paired across kernels
+    with the same profiles); percentile intervals, Shapley's re-centred on the estimate
+  - a designed kernel with repeats: its repeats resampled per subject; always re-centred - a
+    resampled cell mean is noisier than the mean of the repeats, which lowers every statistic
+    of the spread between cells (seen: Shapley's interval for interest missed its estimate)
+  - a designed kernel with one repeat, or delivered means: no interval, said so in the table
+  - rejected: the ordinary bootstrap over profiles - duplicates inflate ε² for many-level factors
+- **Pairwise quantiles in `intervals`** over 20,000 random pairs, so a replicate costs what
+  the estimate does; `scales` uses every pair
+- **Agreement**: profiles matched by their values, not their numbers (a run missing a subject
+  numbers its profiles differently); the reference is a kernel or `trained on claims`
+  (`benchmark`'s logit given the run's factors, grouped into the run's profiles)
+- **Notebook defaults**: three GPT legacy runs (reference gpt-4o) and `grid_sod`, so every block
+  has something to work on offline
+
+### 16.4 Checked
+
+- **Against pushforward** (`tests/fixtures/pushforward.json`, `tests/test_kernel.py`): its
+  prediction files are the legacy runs (an unlisted party empty there, 0 here; it reads empty
+  as 0), and `sod_legacy`'s values are its `clean_data.csv`; profiles 3854, one to one
+  - exact: noise floor, Dobrushin δ, q99, mean TV to the mean column, effective number of
+    axes, minimal pairs (468, 361 of them age), Shapley effects and those of the axes (1e-6)
+  - to 0.002: variance shares (district left out of the design, as pushforward did)
+  - its cached `results/shapley.csv` was written by an earlier version of its code: its code
+    today gives our numbers, which the fixture holds (up to 0.002 from the CSV)
+- **Agreement does not reproduce pushforward**, on purpose: its "human kernel" was its best
+  classic model, ours `benchmark`'s logit. The std ratio depends on how smooth the reference
+  is (gpt-4o: 1.46 against pushforward's, 0.89 against ours) - read "stereotype
+  amplification" against a named reference only
+- **On the grids**: minimal-pair counts are what the design says; the exact split adds up; the
+  colleague's grid has no noise floor (means only), `grid_simple` and `grid_sod45` none either
+  (one repeat)
+
+### 16.5 Open
+
+- **Survey weights over grid cells**: mapping SoD's values onto each grid's levels (income cut
+  points still open, §6); then `populations` gives a grid's national answer against 2021
+- **Agreement across datasets**: `grid_simple` against `grid_colleague` (one design, two
+  vocabularies), `grid_sod` against `grid_sod45`, the trained model at grid cells - all need
+  the same level mapping
+- **Repeats** for `grid_sod45` and `grid_simple`, for a noise floor; Martin sends runs
+- **The colleague's joint report** (election x media fees over the same profiles) crosses two
+  topics; not ported
+- **Agreement's reference**: whether to add a smoother trained reference (pushforward's
+  classic models) is open
+

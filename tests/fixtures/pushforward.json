@@ -1,0 +1,255 @@
+{
+  "note": "Numbers of CoRe/llm_pushforward for the four GPT runs it read, which are the legacy runs sod_legacy_cslegacy_legacy_OpenAI_<model>_Prob_t=0.0; the kernel analyses reproduce them. scorecard: its results/scorecard.csv (commit 95d7693). shapley and shapley_axes: its shapley_values / player_blocks / svd run on 2026-11-14 at 95d7693 - its cached results/shapley.csv was written by an earlier version of its code and differs from what that code gives today by up to 0.002.",
+  "scorecard": {
+    "gpt-4.1": {
+      "national MAE vs election (pp)": 3.3687466538877144,
+      "turnout error (pp)": 21.01046391752578,
+      "regional MAE vs election (pp, mean)": 3.851822280859888,
+      "noise floor (TV)": 0.05013242714996448,
+      "mean TV to mean column": 0.3033082969101686,
+      "delta (Dobrushin)": 0.9208999999999999,
+      "delta_robust (q99)": 0.8087000250816345,
+      "effective number of axes": 2.8187382150560145,
+      "var explained by properties (main+inter)": 0.8892142875938017,
+      "var: noise": 0.02262056210518791,
+      "mean TV to human kernel": 0.26343329431626594,
+      "median std ratio vs human kernel": 1.9256280843668885,
+      "log-loss on real votes": 2.0527427097416324,
+      "knowledge ratio": 0.7359768014045406
+    },
+    "gpt-4o": {
+      "national MAE vs election (pp)": 2.0308489195109307,
+      "turnout error (pp)": 7.841907216494848,
+      "regional MAE vs election (pp, mean)": 2.6703281954827425,
+      "noise floor (TV)": 0.057636904761904764,
+      "mean TV to mean column": 0.21808586112348544,
+      "delta (Dobrushin)": 0.8085,
+      "delta_robust (q99)": 0.6570000052452087,
+      "effective number of axes": 2.6722695475658074,
+      "var explained by properties (main+inter)": 0.8562227872940915,
+      "var: noise": 0.06326034427145759,
+      "mean TV to human kernel": 0.19993571085479597,
+      "median std ratio vs human kernel": 1.4611491380343669,
+      "log-loss on real votes": 1.9292749766307584,
+      "knowledge ratio": 0.7051754805983864
+    },
+    "gpt-4o-mini": {
+      "national MAE vs election (pp)": 1.5480337838901688,
+      "turnout error (pp)": 8.063556701030928,
+      "regional MAE vs election (pp, mean)": 1.973268495602804,
+      "noise floor (TV)": 0.08176681857245903,
+      "mean TV to mean column": 0.3002737734914266,
+      "delta (Dobrushin)": 1.0,
+      "delta_robust (q99)": 1.0,
+      "effective number of axes": 1.6931170427334903,
+      "var explained by properties (main+inter)": 0.7779577717456989,
+      "var: noise": 0.03925002812679007,
+      "mean TV to human kernel": 0.27423377019078143,
+      "median std ratio vs human kernel": 2.1608591687189245,
+      "log-loss on real votes": 2.1935216200677896,
+      "knowledge ratio": 0.5406372953298094
+    },
+    "gpt-4.1-nano": {
+      "national MAE vs election (pp)": 2.7814362904702152,
+      "turnout error (pp)": -37.86552631578948,
+      "regional MAE vs election (pp, mean)": 3.38655684982972,
+      "noise floor (TV)": 0.24795999999999999,
+      "mean TV to mean column": 0.3622351877012707,
+      "delta (Dobrushin)": 1.0,
+      "delta_robust (q99)": 1.0,
+      "effective number of axes": 1.0610823487364751,
+      "var explained by properties (main+inter)": 0.46276182886742034,
+      "var: noise": 0.5372381711325797,
+      "mean TV to human kernel": 0.5949366550676026,
+      "median std ratio vs human kernel": 2.5850464428245465,
+      "log-loss on real votes": 4.042234520197896,
+      "knowledge ratio": 0.15442161853108446
+    }
+  },
+  "shapley": {
+    "gpt-4.1": {
+      "effects": {
+        "gender": 0.013809202317467514,
+        "age": 0.047152788268425366,
+        "education": 0.33244293075691517,
+        "geography": 0.0777653855126833,
+        "town size": 0.04736740630913989,
+        "employment": 0.045037034798041754,
+        "income": 0.050920528328068024,
+        "living standard": 0.046826153074363164,
+        "interest in politics": 0.1518414450588337
+      },
+      "explained": 0.813162874423938
+    },
+    "gpt-4o": {
+      "effects": {
+        "gender": 0.02487948851401011,
+        "age": 0.038204087006701686,
+        "education": 0.1353007001289899,
+        "geography": 0.04714165541040404,
+        "town size": 0.024612250324829117,
+        "employment": 0.04266136377939758,
+        "income": 0.04121552670876436,
+        "living standard": 0.045234688585151304,
+        "interest in politics": 0.42067326673546895
+      },
+      "explained": 0.8199230271937171
+    },
+    "gpt-4o-mini": {
+      "effects": {
+        "gender": 0.0638534427337104,
+        "age": 0.007025128962765262,
+        "education": 0.010797453429144892,
+        "geography": 0.0005492920852230319,
+        "town size": 0.002510623900894515,
+        "employment": 0.025142154611109285,
+        "income": 0.02479042286549447,
+        "living standard": 0.04087005324705748,
+        "interest in politics": 0.5281393175534136
+      },
+      "explained": 0.7036778893888128
+    },
+    "gpt-4.1-nano": {
+      "effects": {
+        "gender": 0.0154367716880821,
+        "age": 0.006233371486633503,
+        "education": 0.036714352742450676,
+        "geography": 0.0026610345349234637,
+        "town size": 0.00203682222117225,
+        "employment": 0.015273233737045791,
+        "income": 0.04260972397172992,
+        "living standard": 0.03243193534796647,
+        "interest in politics": 0.2436704409490717
+      },
+      "explained": 0.39706768667907577
+    }
+  },
+  "shapley_axes": {
+    "gpt-4.1": {
+      "1": {
+        "gender": 0.0016830646760209996,
+        "age": 0.023477734499866374,
+        "education": 0.48816145386252474,
+        "geography": 0.1085465115639937,
+        "town size": 0.06798542976115565,
+        "employment": 0.031097296083857258,
+        "income": 0.06170582617626404,
+        "living standard": 0.05412892854742985,
+        "interest in politics": 0.038941409438586365
+      },
+      "2": {
+        "gender": 0.03782247466186896,
+        "age": 0.09172710439039623,
+        "education": 0.011819915556015198,
+        "geography": 0.002316415302399405,
+        "town size": 0.0016344727866721568,
+        "employment": 0.06320424219991873,
+        "income": 0.02767640115316564,
+        "living standard": 0.021281052694736128,
+        "interest in politics": 0.6155889566203404
+      }
+    },
+    "gpt-4o": {
+      "1": {
+        "gender": 0.02509710290952083,
+        "age": 0.0122216602506159,
+        "education": 0.1056871694228353,
+        "geography": 0.02234231721454873,
+        "town size": 0.018891380897779825,
+        "employment": 0.03898644941273541,
+        "income": 0.050299840625316644,
+        "living standard": 0.05061101203066476,
+        "interest in politics": 0.5813547017326357
+      },
+      "2": {
+        "gender": 0.019313799519174814,
+        "age": 0.09480921012050998,
+        "education": 0.26331678944466164,
+        "geography": 0.12540311308880694,
+        "town size": 0.047549583793344743,
+        "employment": 0.04969156801826813,
+        "income": 0.02498384684631171,
+        "living standard": 0.03900443288909024,
+        "interest in politics": 0.12058250540774147
+      }
+    },
+    "gpt-4o-mini": {
+      "1": {
+        "gender": 0.06965570869236337,
+        "age": 0.005950457378578022,
+        "education": 0.004835997615519834,
+        "geography": -0.0016118913309559567,
+        "town size": 0.0022283326726124735,
+        "employment": 0.02590003225013018,
+        "income": 0.025029615580175257,
+        "living standard": 0.03524210213588647,
+        "interest in politics": 0.5866280941081222
+      },
+      "2": {
+        "gender": 0.020061600636884017,
+        "age": 0.011879094385680135,
+        "education": 0.11914094119013532,
+        "geography": 0.04092152080629038,
+        "town size": 0.00554047576554005,
+        "employment": 0.017058687947171525,
+        "income": 0.046657477583094985,
+        "living standard": 0.16149377280684496,
+        "interest in politics": 0.07076654442396231
+      }
+    },
+    "gpt-4.1-nano": {
+      "1": {
+        "gender": 0.015535683859022018,
+        "age": 0.006285862096285032,
+        "education": 0.03701595739393983,
+        "geography": 0.0026667150374546944,
+        "town size": 0.0020465344577381924,
+        "employment": 0.015394681304820693,
+        "income": 0.04292780185255397,
+        "living standard": 0.0326600148016707,
+        "interest in politics": 0.24552001617256758
+      },
+      "2": {
+        "gender": 0.005571850439213835,
+        "age": -0.00017403338423631874,
+        "education": 8.549602892593892e-05,
+        "geography": 0.005542680927816147,
+        "town size": 4.895563000314511e-05,
+        "employment": 0.0008668885003710667,
+        "income": 0.0056282414856866836,
+        "living standard": 0.0011781861332965913,
+        "interest in politics": 0.010508874336229533
+      }
+    }
+  },
+  "players": {
+    "gender": [
+      "gender"
+    ],
+    "age": [
+      "age"
+    ],
+    "education": [
+      "education_level"
+    ],
+    "geography": [
+      "region",
+      "district"
+    ],
+    "town size": [
+      "town_size"
+    ],
+    "employment": [
+      "employment_status"
+    ],
+    "income": [
+      "income_range"
+    ],
+    "living standard": [
+      "living_standard"
+    ],
+    "interest in politics": [
+      "interest_in_politics"
+    ]
+  }
+}
