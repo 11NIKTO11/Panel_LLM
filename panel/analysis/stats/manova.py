@@ -10,12 +10,17 @@ Pillai's trace grows with the number of columns a predictor has, so two predicto
 not compare. What does is the trace divided by its largest possible value, `s = min(k-1,
 hypothesis df)`: the multivariate partial eta squared, the share of the variation left over
 by the other predictors that this one accounts for, between 0 and 1.
+
+Two parts leave one coordinate, and MANOVA on one variable is ANOVA, which statsmodels'
+`MANOVA` refuses: the same hypotheses are then F-tested on the least-squares fit, and the trace
+is the partial R squared, `qF / (qF + residual df)` - what Pillai's trace is for one variable.
 """
-from typing import Mapping, Sequence, Union
+from typing import Dict, List, Mapping, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from statsmodels.multivariate.manova import MANOVA
+from statsmodels.regression.linear_model import OLS
 
 from .compositional import DELTA, ilr
 from .design import block
@@ -61,14 +66,25 @@ def manova(
         contrast[np.arange(columns.shape[1]), start + np.arange(columns.shape[1])] = 1.0
         hypotheses.append((column, contrast, None))
         start += columns.shape[1]
-    tests = MANOVA(coordinates, design).mv_test(hypotheses)
+    tests = _tests(coordinates, design, hypotheses)
 
     rows = {}
     for column, columns in blocks.items():
-        found = tests.results[column]["stat"]
-        value = float(found.loc[STATISTIC, "Value"])
-        rows[column] = {
-            DF: columns.shape[1], PILLAI: value, ETA: value / min(coordinates.shape[1], columns.shape[1]),
-            F: float(found.loc[STATISTIC, "F Value"]), P: float(found.loc[STATISTIC, "Pr > F"]),
-        }
+        value, ratio, chance = tests[column]
+        rows[column] = {DF: columns.shape[1], PILLAI: value, ETA: value / min(coordinates.shape[1], columns.shape[1]), F: ratio, P: chance}
     return pd.DataFrame(rows).T.astype({DF: int})
+
+
+def _tests(coordinates: np.ndarray, design: np.ndarray, hypotheses: List[tuple]) -> Dict[str, Tuple[float, float, float]]:
+    """Hypothesis -> Pillai's trace, its F and p; by ANOVA for a single coordinate (module docstring)."""
+    if coordinates.shape[1] > 1:
+        tests = MANOVA(coordinates, design).mv_test(hypotheses)
+        found = {name: tests.results[name]["stat"].loc[STATISTIC] for name, _, _ in hypotheses}
+        return {name: (float(row["Value"]), float(row["F Value"]), float(row["Pr > F"])) for name, row in found.items()}
+    fitted = OLS(coordinates[:, 0], design).fit()
+    out = {}
+    for name, contrast, _ in hypotheses:
+        test = fitted.f_test(contrast)
+        ratio, q = float(np.squeeze(test.fvalue)), contrast.shape[0]
+        out[name] = (q * ratio / (q * ratio + fitted.df_resid), ratio, float(test.pvalue))
+    return out

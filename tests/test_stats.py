@@ -61,6 +61,18 @@ def test_manova_finds_the_predictor_that_matters():
         manova(subjects.head(6), shares.head(6), ["group", "number"])
 
 
+def test_manova_of_two_parts_is_the_one_way_anova():
+    subjects, shares = synthetic()
+    two = shares[["w"]].assign(rest=1 - shares["w"])
+    table = manova(subjects, two, ["group"])
+    coordinate = pd.Series(ilr(two.to_numpy())[:, 0])
+    between = coordinate.groupby(subjects["group"]).transform("mean")
+    explained, left = ((between - coordinate.mean()) ** 2).sum(), ((coordinate - between) ** 2).sum()
+    assert table.loc["group", ETA] == pytest.approx(explained / (explained + left))
+    assert table.loc["group", "F"] == pytest.approx((explained / 3) / (left / (len(coordinate) - 4)))
+    assert table.loc["group", P] < 0.001 and table.loc["group", ETA] == table.loc["group", PILLAI]
+
+
 def test_permanova_matches_the_between_group_sums_of_squares():
     subjects, shares = synthetic()
     points = np.sqrt(shares.to_numpy()) / np.sqrt(2)
