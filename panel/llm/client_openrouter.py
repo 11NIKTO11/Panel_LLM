@@ -6,7 +6,7 @@ import requests
 from pydantic import BaseModel
 
 from .base import ANTHROPIC, OPENAI, BaseLLMClient, detect_provider
-from .schema_compat import move_ref_descriptions, remove_min_max, set_additional_properties_false
+from .schema_compat import bounds_as_text, move_ref_descriptions, set_additional_properties_false
 
 
 class OpenRouterClient(BaseLLMClient):
@@ -33,14 +33,7 @@ class OpenRouterClient(BaseLLMClient):
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:
         provider, model_id = self._route(model)
-        response_format_json = response_format.model_json_schema()
-
-        if provider == OPENAI:
-            response_format_json = set_additional_properties_false(response_format_json)
-            response_format_json = move_ref_descriptions(response_format_json)
-        elif provider == ANTHROPIC:
-            response_format_json = set_additional_properties_false(response_format_json)
-            response_format_json = remove_min_max(response_format_json)
+        response_format_json = self.schema_sent(model, response_format)
 
         response = requests.post(
             self.url,
@@ -77,6 +70,16 @@ class OpenRouterClient(BaseLLMClient):
             return response_format(**parsed)
         except Exception:
             raise ValueError(f"Failed to parse response: {data}")
+
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
+        """The model's schema with the fix-ups the routed provider's strict mode needs; nothing it says is left out."""
+        provider, _ = self._route(model)
+        schema = response_format.model_json_schema()
+        if provider == OPENAI:
+            return move_ref_descriptions(set_additional_properties_false(schema))
+        if provider == ANTHROPIC:
+            return bounds_as_text(set_additional_properties_false(schema))
+        return schema
 
     def _route(self, model: str) -> Tuple[str, str]:
         """Split a model name into (provider, model_id); accepts full 'provider/model' ids as-is."""

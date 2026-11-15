@@ -14,19 +14,21 @@ rename orphans what is saved. None of them names a topic: the classes are genera
 the options are is the framing's text.
 
 Until 2026-11-10 the classes were `VotingProbabilities` / `VotingPick`, the shorts `VProb` /
-`VPick` and the list `parties`. The legacy runs are saved that way: their stems keep `VProb`
-and `VPick`, and `options` still reads a saved `parties`.
+`VPick` and the list `parties`. No saved run is of that shape any more: the legacy runs were
+migrated to today's (`DECISIONS.md` §10), and a saved `parties` is no longer read.
 `to_series()` writes a results row keyed by option id, whatever label the model saw.
+
+The turnout field carries no description of its own: a description beside a `$ref` is dropped by
+some providers' SDKs and inlined by others, so the framing's `turnout.field` text follows
+`turnout.description` in the turnout model's own description, where every provider reads it.
 """
 from typing import ClassVar, Dict, List, Literal, Tuple, Type, Union
 
 import pandas as pd
-from pydantic import AliasChoices, BaseModel, Field, create_model
+from pydantic import BaseModel, Field, create_model
 
 from .framing import Framing
 from .vocabulary import Topic
-
-LEGACY_OPTIONS = "parties"
 
 
 class TopicResponse(BaseModel):
@@ -103,15 +105,13 @@ def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[Probabili
             text.turnout.title,
             voted=(float, Field(ge=0, le=1, description=text.turnout.voted)),
             not_voted=(float, Field(ge=0, le=1, description=text.turnout.not_voted)),
-            __doc__=text.turnout.description,
+            __doc__=f"{text.turnout.description}\n\n{text.turnout.field}",
         )
-        turnout_field["voted_or_not"] = (turnout_model, Field(description=text.turnout.field))
+        turnout_field["voted_or_not"] = (turnout_model, ...)
 
     probabilities = create_model(
         "Probabilities", __base__=ProbabilityResponse, **turnout_field,
-        options=(List[option_model], Field(
-            description=text.probabilities.options, validation_alias=AliasChoices("options", LEGACY_OPTIONS),
-        )),
+        options=(List[option_model], Field(description=text.probabilities.options)),
         __doc__=text.probabilities.description,
     )
     pick = create_model(

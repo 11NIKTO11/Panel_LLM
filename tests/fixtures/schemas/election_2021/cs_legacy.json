@@ -36,7 +36,7 @@
         "type": "object"
       },
       "VotedProbability": {
-        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.\n\nPravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že respondent volil.",
@@ -64,8 +64,7 @@
     "description": "Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/VotedProbability",
-        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
+        "$ref": "#/$defs/VotedProbability"
       },
       "options": {
         "description": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0.",
@@ -86,7 +85,7 @@
   "Pick": {
     "$defs": {
       "VotedProbability": {
-        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.\n\nPravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že respondent volil.",
@@ -114,8 +113,7 @@
     "description": "Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/VotedProbability",
-        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
+        "$ref": "#/$defs/VotedProbability"
       },
       "choice": {
         "description": "Zhodnoť poskytnutý sociodemografický profil respondenta a na jeho základě urči nejpravděpodobnější politickou stranu, které odevzdal svůj hlas.",

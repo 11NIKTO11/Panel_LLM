@@ -24,8 +24,10 @@ class BaseLLMClient:
     """
     One structured call per provider. `last_model` is the model id the provider reported for
     the most recent call, when it reports one, so a run record can pin an alias to a version.
+    `TAKES_EFFORT` says whether the client is constructed with an `effort`.
     """
     last_model: Union[str, None] = None
+    TAKES_EFFORT: bool = False
 
     def call_llm(
         self,
@@ -46,3 +48,7 @@ class BaseLLMClient:
             instructions: system prompt, if the caller frames the task with one.
         """
         raise NotImplementedError
+
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
+        """The JSON schema a call for `model` sends for `response_format`: the model's own unless a client rewrites it."""
+        return response_format.model_json_schema()

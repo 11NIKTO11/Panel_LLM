@@ -36,7 +36,7 @@
         "type": "object"
       },
       "TurnoutProbability": {
-        "description": "The probability that the respondent voted, and that they did not.",
+        "description": "The probability that the respondent voted, and that they did not.\n\nThe probabilities of voting and of not voting. They must sum to 1.0.",
         "properties": {
           "voted": {
             "description": "The probability that the respondent voted.",
@@ -64,8 +64,7 @@
     "description": "Structured output: a probability distribution over the offered parties.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "The probabilities of voting and of not voting. They must sum to 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "options": {
         "description": "The offered parties, each with the probability that the respondent voted for it. The probabilities must sum to 1.0.",
@@ -86,7 +85,7 @@
   "Pick": {
     "$defs": {
       "TurnoutProbability": {
-        "description": "The probability that the respondent voted, and that they did not.",
+        "description": "The probability that the respondent voted, and that they did not.\n\nThe probabilities of voting and of not voting. They must sum to 1.0.",
         "properties": {
           "voted": {
             "description": "The probability that the respondent voted.",
@@ -114,8 +113,7 @@
     "description": "Simplified output: one chosen party.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "The probabilities of voting and of not voting. They must sum to 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "choice": {
         "description": "The party the respondent most likely voted for.",

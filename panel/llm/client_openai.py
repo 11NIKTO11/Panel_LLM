@@ -7,8 +7,9 @@ from .base import BaseLLMClient
 
 try:
     from openai import OpenAI
+    from openai.lib._pydantic import to_strict_json_schema
 except Exception:  # pragma: no cover - optional dependency guard
-    OpenAI = None
+    OpenAI = to_strict_json_schema = None
 
 
 class OpenAIClient(BaseLLMClient):
@@ -21,6 +22,10 @@ class OpenAIClient(BaseLLMClient):
         if not key:
             raise ValueError("OPENAI_API_KEY must be set for OpenAI models.")
         self.client = OpenAI(api_key=key)
+
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
+        """The schema as the SDK's `responses.parse` rewrites it for strict mode: closed objects, every property required."""
+        return to_strict_json_schema(response_format)
 
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:

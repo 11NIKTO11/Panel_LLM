@@ -15,7 +15,7 @@ PAIRS = [(topic, framing) for topic in topic_names(TOPICS_DIR) for framing in fr
 
 def generated(topic_name: str, framing_name: str) -> dict:
     topic = load_topic(topic_name, TOPICS_DIR)
-    return schema_snapshot(*make_response_models(topic, load_framing(topic, framing_name, TOPICS_DIR)))
+    return schema_snapshot(*make_response_models(topic, load_framing(topic, framing_name)))
 
 
 @pytest.mark.parametrize(("topic_name", "framing_name"), PAIRS, ids=[f"{topic}/{framing}" for topic, framing in PAIRS])
@@ -35,7 +35,21 @@ def test_grid_framing_words_the_schema_the_grid_runs_were_sent():
     sent = json.dumps(load_fixture("grid_schema_sent"), ensure_ascii=False)
     for old, new in renamed.items():
         sent = sent.replace(f'"{old}"', f'"{new}"')
-    assert json.loads(sent) == generated("election_2021", "cs_grid")
+    sent = json.loads(sent)
+    for schema in sent.values():
+        turnout = schema["$defs"]["TurnoutProbability"]
+        turnout["description"] += "\n\n" + schema["properties"]["voted_or_not"].pop("description")
+    assert sent == generated("election_2021", "cs_grid")
+
+
+@pytest.mark.parametrize(("topic_name", "framing_name"), PAIRS, ids=[f"{topic}/{framing}" for topic, framing in PAIRS])
+def test_no_description_stands_beside_a_ref(topic_name, framing_name):
+    def beside(node) -> bool:
+        if isinstance(node, dict):
+            return ("$ref" in node and len(node) > 1) or any(beside(value) for value in node.values())
+        return isinstance(node, list) and any(beside(value) for value in node)
+
+    assert not beside(generated(topic_name, framing_name))
 
 
 def test_topic_loads_all():
@@ -44,7 +58,7 @@ def test_topic_loads_all():
     for topic in topics:
         assert all(option.isascii() for option in topic.options)
         assert topic.columns == list(topic.turnout or ()) + list(topic.options)
-        framings = [load_framing(topic, name, TOPICS_DIR) for name in framing_names(topic.name, TOPICS_DIR)]
+        framings = [load_framing(topic, name) for name in framing_names(topic.name, TOPICS_DIR)]
         assert framings, topic.name
         for framing in framings:
             assert set(framing.labels) == set(topic.options)
@@ -60,7 +74,7 @@ def test_rename_maps_names_and_aliases():
 
 def test_to_series_is_keyed_by_id():
     topic = load_topic("election_2021", TOPICS_DIR)
-    framing = load_framing(topic, "cs", TOPICS_DIR)
+    framing = load_framing(topic, "cs")
     probabilities, pick = make_response_models(topic, framing)
     first = topic.options[0]
     row = probabilities(voted_or_not={"voted": 0.7, "not_voted": 0.3}, options=[{"name": topic.names[first], "probability": 1.0}]).to_series()
@@ -77,4 +91,4 @@ def test_framing_rejects_bad_labels(tmp_path, bad_labels):
     config["labels"] = bad_labels
     path.write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(ValueError):
-        load_framing(load_topic("election_2021", tmp_path), "cs", tmp_path)
+        load_framing(load_topic("election_2021", tmp_path), "cs")

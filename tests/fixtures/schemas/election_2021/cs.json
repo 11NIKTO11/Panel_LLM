@@ -36,7 +36,7 @@
         "type": "object"
       },
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.\n\nPravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
@@ -64,8 +64,7 @@
     "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "options": {
         "description": "Seznam nabízených stran s pravděpodobností, že je respondent volil. Součet pravděpodobností musí být 1.0.",
@@ -86,7 +85,7 @@
   "Pick": {
     "$defs": {
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.\n\nPravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
@@ -114,8 +113,7 @@
     "description": "Zjednodušený výstup: jedna vybraná strana.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "choice": {
         "description": "Strana, kterou respondent nejpravděpodobněji volil.",

@@ -36,7 +36,7 @@
         "type": "object"
       },
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.\n\nPravděpodobnost účasti a neúčasti. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že se respondent zúčastnil.",
@@ -64,8 +64,7 @@
     "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené možnosti.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "options": {
         "description": "Seznam nabízených možností s pravděpodobnostmi. Součet musí být 1.0.",
@@ -86,7 +85,7 @@
   "Pick": {
     "$defs": {
       "TurnoutProbability": {
-        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.",
+        "description": "Pravděpodobnost, že se respondent zúčastnil, a že se nezúčastnil.\n\nPravděpodobnost účasti a neúčasti. Součet musí být 1.0.",
         "properties": {
           "voted": {
             "description": "Pravděpodobnost, že se respondent zúčastnil.",
@@ -114,8 +113,7 @@
     "description": "Zjednodušený výstup: jedna vybraná možnost.",
     "properties": {
       "voted_or_not": {
-        "$ref": "#/$defs/TurnoutProbability",
-        "description": "Pravděpodobnost účasti a neúčasti. Součet musí být 1.0."
+        "$ref": "#/$defs/TurnoutProbability"
       },
       "choice": {
         "description": "Nejpravděpodobnější možnost pro tento profil.",

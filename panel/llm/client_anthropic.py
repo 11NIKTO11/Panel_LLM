@@ -6,9 +6,9 @@ from pydantic import BaseModel
 from .base import BaseLLMClient
 
 try:
-    from anthropic import Anthropic
+    from anthropic import Anthropic, transform_schema
 except Exception:  # pragma: no cover - optional dependency guard
-    Anthropic = None
+    Anthropic = transform_schema = None
 
 
 def server_tools_used(response) -> dict:
@@ -30,6 +30,7 @@ class AnthropicClient(BaseLLMClient):
     """
     SHORT_NAME = "Anthropic"
     API_VERSION: Union[str, None] = None
+    TAKES_EFFORT = True
 
     def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None):
         """
@@ -45,6 +46,10 @@ class AnthropicClient(BaseLLMClient):
         headers = {"anthropic-version": self.API_VERSION} if self.API_VERSION else None
         self.client = Anthropic(api_key=key, default_headers=headers)
         self.effort = effort
+
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
+        """The schema as the SDK's `messages.parse` rewrites it: closed objects, number bounds moved into the descriptions."""
+        return transform_schema(response_format)
 
     def _sampling(self, temperature: Union[float, None]) -> dict:
         """
