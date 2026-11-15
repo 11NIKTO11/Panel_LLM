@@ -40,8 +40,9 @@ def spreads(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
     found = {}
     for label, run in runs.runs.items():
+        areas = ordered(run)
         answers = subject_answers(run.normalized, run.topic)[run.options]
-        within = answers.groupby(run.subjects.loc[answers.index, run.dataset.area]).std().reindex(ordered(run))
+        within = answers.groupby(run.subjects.loc[answers.index, run.dataset.area]).std().reindex(areas)
         if within.notna().any().any():
             found[label] = within
     if not found:

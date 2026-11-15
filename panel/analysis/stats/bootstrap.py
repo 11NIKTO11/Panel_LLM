@@ -12,7 +12,7 @@ import pandas as pd
 LOW, HIGH = "low", "high"
 
 
-def interval(
+def intervals(
     frame: pd.DataFrame,
     statistic: Callable[[pd.DataFrame], pd.Series],
     draws: int = 1000,

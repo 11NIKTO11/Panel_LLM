@@ -11,16 +11,16 @@ The record names the run's topic and dataset, so a stem is enough. Every analysi
 
 `subjects` is the run's subjects and not the whole values table on purpose: a run over a
 sample is compared with what that sample claimed. `values` holds the whole table.
-
-Legacy runs (keyed by row position, built from another table) are not read here.
 """
-import hashlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Union
 
 import pandas as pd
 
+from panel import paths
 from panel.dataset import Claims, Dataset, load_claims, load_dataset, read_values
+from panel.digest import recorded, sha256
 from panel.run import ResultStore, RunSpec
 from panel.run.resolve import REPEAT
 from panel.topic import PlotStyle, Positions, Topic, load_plot_style, load_positions, load_topic
@@ -77,6 +77,11 @@ class SavedRun:
         return {**{column: column for column in self.topic.columns}, **self.style.labels}
 
     @property
+    def title(self) -> str:
+        """What the run's figures are headed: the model and the topic."""
+        return f"{self.spec.model} on {self.topic.name}"
+
+    @property
     def total(self) -> Union[str, None]:
         """The reference row that is the whole, or None without a reference."""
         return self.topic.reference.total if self.topic.reference else None
@@ -98,7 +103,10 @@ def find_stem(store: ResultStore, text: str) -> str:
     return found[0]
 
 
-def load_run(store: ResultStore, stem: str, styled: bool = True, weighted: bool = True) -> SavedRun:
+def load_run(
+    store: ResultStore, stem: str, styled: bool = True, weighted: bool = True,
+    datasets_dir: Union[str, Path] = paths.DATASETS_DIR, topics_dir: Union[str, Path] = paths.TOPICS_DIR,
+) -> SavedRun:
     """
     Read one saved run and what it is compared against.
 
@@ -109,20 +117,18 @@ def load_run(store: ResultStore, stem: str, styled: bool = True, weighted: bool 
             native names.
         weighted: weight each answer's option shares by its probability of voting when
             they are summed into a predicted distribution.
+        datasets_dir, topics_dir: where the run's dataset and topic are declared.
 
     Raises:
         FileNotFoundError: if the run, its normalized table or the dataset's values are missing.
-        ValueError: on a legacy run, values rebuilt since the run was sent, saved rows that
+        ValueError: on values rebuilt since the run was sent, saved rows that
             are not the subjects the record lists, or a subject's area missing from the reference.
     """
     record = store.record(stem)
-    if "description" not in record["spec"]:
-        raise ValueError(f"'{stem}' is a legacy run; it is keyed by row position and is not read here")
     spec = RunSpec.from_dict(record["spec"])
-    topic, dataset = load_topic(spec.topic), load_dataset(spec.dataset)
+    topic, dataset = load_topic(spec.topic, topics_dir), load_dataset(spec.dataset, datasets_dir)
 
-    digest = hashlib.sha256(dataset.values_path.read_bytes()).hexdigest()
-    if digest != record["dataset"]["values_sha256"]:
+    if sha256(dataset.values_path) != recorded(record["dataset"])["values"]:
         raise ValueError(f"{dataset.values_path} was rebuilt after '{stem}' was sent; its subjects can no longer be trusted to match")
     values = read_values(dataset)
 

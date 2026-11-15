@@ -9,15 +9,14 @@ from typing import List, Tuple
 import pandas as pd
 from matplotlib.figure import Figure
 
-from ..area import PERCENT, SUBJECTS, area, slug
-from ..distance import TURNOUT, shown
-from ..metrics import CORRELATION
+from ..area import NAME as SINGLE, PERCENT, SUBJECTS, column, compute as area, slug
+from ..estimate import bounds, high, low
 from ..output import Output
 from ..plots.curves import line_panels
 from ..plots.matrices import grid
 from ..plots.style import EFFECTS, ERRORS, SECONDARY, colors
-from ..saved import NotApplicable
-from ..sources import ACTUAL, CLAIMED, PREDICTED
+from ..sources import ACTUAL, CLAIMED, PREDICTED, TURNOUT, shown
+from ..stats.metrics import CORRELATION
 from .loaded import RunSet
 
 NAME = "runs_areas"
@@ -42,18 +41,16 @@ def areas(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     Raises:
         NotApplicable: if a run has no area column or the topic no reference.
     """
-    quiet = Output(out.folder, save=False)
-    own = {label: area(run, quiet)[0] for label, run in runs.runs.items()}
-    stands = {label: next(name for name, other in runs.runs.items() if other is run) for label, run in runs.claimed.items()}
+    own = {label: area(run)[SINGLE] for label, run in runs.runs.items()}
+    stands = runs.stands
     first = next(iter(own.values()))
-    held = {column.split(": ")[0] for column in first.columns if column.endswith(f": {PREDICTED} vs {ACTUAL}")}
-    metrics = [metric for metric in shown(True) if metric in held]
+    metrics = [metric for metric in shown(True) if column(metric, PREDICTED, ACTUAL) in first.columns]
 
     def rows(found: pd.DataFrame, source: str) -> pd.DataFrame:
         picked = {SUBJECTS: found[SUBJECTS]}
         for metric in metrics:
-            for end in ("", "_low", "_high"):
-                picked[f"{metric}{end}"] = found[f"{metric}: {source} vs {ACTUAL}{end}"]
+            for mine, theirs in zip(bounds(metric), bounds(column(metric, source, ACTUAL))):
+                picked[mine] = found[theirs]
         return pd.DataFrame(picked)
 
     parts = {**{label: rows(own[name], CLAIMED) for label, name in stands.items()}, **{label: rows(found, PREDICTED) for label, found in own.items()}}
@@ -64,13 +61,13 @@ def areas(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     same = len({frozenset(run.subjects.index) for run in runs.runs.values()}) == 1
     names = {name: f"{name}  (n={int(first.loc[name, SUBJECTS])})" if same else name for name in order}
 
-    def wide(column: str) -> pd.DataFrame:
-        return table[column].unstack(SOURCE).reindex(index=order, columns=list(parts)).rename(index=names)
+    def wide(held: str) -> pd.DataFrame:
+        return table[held].unstack(SOURCE).reindex(index=order, columns=list(parts)).rename(index=names)
 
     def edges(metric: str) -> pd.DataFrame:
         scale, decimals = (100, 1) if metric in PERCENT else (1, 3)
-        low, high = ((wide(f"{metric}{end}") * scale).round(decimals).astype(str) for end in ("_low", "_high"))
-        return "(" + low + " - " + high + ")"
+        ends = ((wide(end(metric)) * scale).round(decimals).astype(str) for end in (low, high))
+        return "(" + next(ends) + " - " + next(ends) + ")"
 
     key = next(iter(runs.runs.values())).dataset.area
     figures = [

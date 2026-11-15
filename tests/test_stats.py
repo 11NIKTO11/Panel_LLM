@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from panel.analysis.levels import banded, members
 from panel.analysis.stats import classifier, mapping, permanova
 from panel.analysis.stats.distributions import pairwise_tv, tv
 from panel.analysis.stats.sensitivity import sensitivity
@@ -13,6 +14,7 @@ from panel.analysis.stats.variance import cv_r2, eps2, factorial, loo_r2
 from panel.analysis.stats.compositional import helmert_basis, ilr, replace_zeros
 from panel.analysis.stats.design import block, indicators
 from panel.analysis.stats.manova import DF, ETA, P, PILLAI, manova
+from panel.dataset import Levels
 
 RNG = np.random.default_rng(0)
 
@@ -135,10 +137,16 @@ def test_indicators_keep_every_level():
     assert indicators(subjects["group"]).shape == (120, 4)
     assert indicators(subjects["held"], "; ").shape == (120, 3)
     assert indicators(pd.Series(["a", None, "b"], name="gaps")).shape == (3, 3)
-    banded = indicators(pd.Series([20, 30, 70], name="age"), bands={"young": 25, "old": 99})
-    np.testing.assert_allclose(banded, [[1, 0], [0, 1], [0, 1]])
-    with pytest.raises(ValueError):
-        indicators(pd.Series([20, 120], name="age"), bands={"young": 25, "old": 99})
+    bands = Levels(bands={"young": 25, "middle": 60, "old": 99}, order=(), several=None)
+    ages = pd.Series([20, 30, 70], name="age")
+    np.testing.assert_allclose(indicators(banded(ages, bands)), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    np.testing.assert_allclose(indicators(banded(ages.iloc[[0, 2]], bands)), [[1, 0, 0], [0, 0, 1]])
+    assert indicators(ages).shape == (3, 1) and banded(ages).equals(ages) and banded(subjects["group"], bands).equals(subjects["group"])
+    assert list(members(ages, bands)) == ["young", "middle", "old"]
+    with pytest.raises(ValueError, match="last band"):
+        banded(pd.Series([20, 120], name="age"), bands)
+    with pytest.raises(ValueError, match="missing"):
+        indicators(banded(pd.Series([20, None], name="age"), bands))
 
 
 def test_a_trained_model_finds_what_decides_the_answer():

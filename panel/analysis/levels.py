@@ -6,12 +6,32 @@ A grouping column read as levels, the way its dataset declares (`panel.dataset.L
 - `several`: a cell may hold several answers, and the subject belongs to each of them, so
   the levels' subjects add up to more than the subjects;
 - no declaration: the column's values, the largest group first.
+
+`banded` is the one place a numeric column is cut into its bands; `members` is the one place a
+declared order is held against the values.
 """
 from typing import Dict, Union
 
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 
 from panel.dataset import Levels
+
+
+def banded(values: pd.Series, levels: Union[Levels, None] = None) -> pd.Series:
+    """
+    A numeric column cut into the bands its dataset declares, as a categorical in the bands'
+    order; any other column, and a numeric one without bands, as it is. A missing value stays missing.
+
+    Raises:
+        ValueError: on a value above the last band.
+    """
+    if not (levels and levels.bands and is_numeric_dtype(values)):
+        return values
+    labels, tops = list(levels.bands), list(levels.bands.values())
+    if (values > tops[-1]).any():
+        raise ValueError(f"'{values.name}' has values above its last band, {tops[-1]}")
+    return pd.cut(values, [float("-inf"), *tops], labels=labels)
 
 
 def members(values: pd.Series, levels: Union[Levels, None] = None) -> Dict[str, pd.Index]:
@@ -30,11 +50,8 @@ def members(values: pd.Series, levels: Union[Levels, None] = None) -> Dict[str, 
         held = values.str.split(levels.several, regex=False).explode()
         return {name: held.index[held == name] for name in held.value_counts().index}
     if levels and levels.bands:
-        labels, tops = list(levels.bands), list(levels.bands.values())
-        if (values > tops[-1]).any():
-            raise ValueError(f"'{values.name}' has values above its last band, {tops[-1]}")
-        cut = pd.cut(values, [float("-inf"), *tops], labels=labels)
-        return {name: cut.index[cut == name] for name in labels if (cut == name).any()}
+        cut = banded(values, levels)
+        return {name: cut.index[cut == name] for name in levels.bands if (cut == name).any()}
     if levels and levels.order:
         unknown = sorted(set(values) - set(levels.order))
         if unknown:

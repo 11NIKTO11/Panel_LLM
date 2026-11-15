@@ -8,7 +8,7 @@ from typing import List, Sequence, Tuple, Union
 import pandas as pd
 from matplotlib.figure import Figure
 
-from ..effects import ETA, MANOVA_P, PERMANOVA_P, PILLAI, R2, chance, effects as single
+from ..effects import ETA, MANOVA_P, NAME as SINGLE, PERMANOVA_P, PILLAI, R2, chance, compute as single
 from ..output import Output
 from ..plots.matrices import grid
 from ..plots.style import EFFECTS
@@ -37,8 +37,7 @@ def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = 
     Raises:
         NotApplicable: if a run has nothing to test.
     """
-    quiet = Output(out.folder, save=False)
-    own = {label: single(run, quiet, predictors, delta=delta)[0] for label, run in runs.runs.items()}
+    own = {label: single(run, predictors, delta=delta)[SINGLE] for label, run in runs.runs.items()}
     table = pd.concat(own, names=[RUN, COLUMN])
     out.table(NAME, table)
 

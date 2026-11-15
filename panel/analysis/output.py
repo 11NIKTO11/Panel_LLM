@@ -6,9 +6,13 @@ serves a script that saves everything and a notebook that only looks. An output 
 one folder of the results - a run's, or a named comparison's (`ResultStore.run_dir`,
 `comparison_dir`): tables to `<folder>/analysis/<name>.csv`, figures to
 `<folder>/plots/<name>.png`; both are regenerable.
+
+An analysis is two halves - `compute(run, ...)` makes its tables, `draw(run, tables, ...)` its
+figures - and a public function that hands both to an output through `save`. Whoever wants the
+numbers alone, as a comparison of runs does, calls `compute` and no output is involved.
 """
 from pathlib import Path
-from typing import Union
+from typing import List, Mapping, Tuple, Union
 
 import pandas as pd
 from matplotlib.figure import Figure
@@ -58,3 +62,14 @@ class Output:
             figure.savefig(path, dpi=self.dpi, bbox_inches="tight")
             self.written.append(path)
         return figure
+
+
+def save(out: Output, tables: Mapping[str, pd.DataFrame], figures: Mapping[str, Figure]) -> Tuple[pd.DataFrame, List[Figure]]:
+    """
+    Hand an analysis's tables and figures to an output, each under its name.
+
+    Returns:
+        The first table - the analysis's main one - and the figures, in their order.
+    """
+    written = [out.table(name, table) for name, table in tables.items()]
+    return written[0], [out.figure(name, figure) for name, figure in figures.items()]

@@ -9,9 +9,10 @@ One is left out each time because, with the intercept, it is what the others are
 
 A penalised model needs no level left out: `indicators` keeps every level, a missing answer
 being one more; `with_interactions` adds the products of every two predictors' indicators.
+A numeric predictor that should enter by bands comes in already cut, as a categorical.
 """
 import itertools
-from typing import Mapping, Sequence, Union
+from typing import Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -42,28 +43,24 @@ def block(values: pd.Series, several: Union[str, None] = None) -> np.ndarray:
     return columns
 
 
-def indicators(values: pd.Series, several: Union[str, None] = None, bands: Union[Mapping[str, float], None] = None, missing: str = "(missing)") -> np.ndarray:
+def indicators(values: pd.Series, several: Union[str, None] = None, missing: str = "(missing)") -> np.ndarray:
     """
     One predictor as an indicator per level, none left out.
 
     Args:
-        values: the predictor; a missing value is a level of its own.
+        values: the predictor. A numeric one stays one column; a categorical gets a column per
+            category, in their order, held or not; in any other a missing value is a level of its own.
         several: the separator of a cell holding several answers, or None.
-        bands: label -> the highest value it holds, for a numeric predictor; without them a
-            numeric predictor stays one column.
         missing: the name of the level a missing value is at.
 
     Raises:
-        ValueError: on a numeric predictor with a missing value, or a value above the last band.
+        ValueError: on a numeric or categorical predictor with a missing value.
     """
-    if is_numeric_dtype(values):
+    categorical = isinstance(values.dtype, pd.CategoricalDtype)
+    if categorical or is_numeric_dtype(values):
         if values.isna().any():
             raise ValueError(f"numeric predictor '{values.name}' has missing values")
-        if not bands:
-            return values.to_numpy(dtype=float)[:, None]
-        if (values > list(bands.values())[-1]).any():
-            raise ValueError(f"'{values.name}' has values above its last band")
-        return pd.get_dummies(pd.cut(values, [float("-inf"), *bands.values()], labels=list(bands)), dtype=float).to_numpy()
+        return pd.get_dummies(values, dtype=float).to_numpy() if categorical else values.to_numpy(dtype=float)[:, None]
     values = values.fillna(missing)
     return (values.str.get_dummies(several) if several else pd.get_dummies(values)).to_numpy(dtype=float)
 

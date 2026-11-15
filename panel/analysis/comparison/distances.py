@@ -14,12 +14,13 @@ from typing import List, Tuple
 import pandas as pd
 from matplotlib.figure import Figure
 
-from ..distance import TURNOUT, distance, shown
-from ..metrics import MAE, RMSE, distances as measure
+from ..distance import NAME as DISTANCE, compute as distance
+from ..estimate import high, low
 from ..output import Output
 from ..plots.intervals import interval_panels
 from ..saved import NotApplicable
-from ..sources import ACTUAL, CLAIMED, PREDICTED, estimated, frame
+from ..sources import ACTUAL, CLAIMED, PREDICTED, TURNOUT, estimated, frame, shown, versus
+from ..stats.metrics import MAE, RMSE, distances as measure
 from .loaded import RunSet
 
 NAME = "runs_distances"
@@ -28,7 +29,7 @@ AGAINST, SOURCE = "against", "source"
 
 def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Every metric of `metrics` for each source against the actual result and against the claimed.
+    Every metric of `stats.metrics` for each source against the actual result and against the claimed.
 
     Args:
         runs: the runs to compare.
@@ -44,23 +45,21 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
         NotApplicable: if the topic has neither a reference nor claims.
     """
     topic, options = runs.topic, list(runs.topic.options)
-    quiet = Output(out.folder, save=False)
     own = {}
     for label, run in runs.runs.items():
         try:
-            own[label] = distance(run, quiet)[0]
+            own[label] = distance(run)[DISTANCE]
         except NotApplicable:
             raise NotApplicable(f"'{topic.name}' has neither claims nor a reference; there is nothing to measure a distance to")
 
     rows = {}
     for label, found in own.items():
         for reference in (ACTUAL, CLAIMED):
-            if f"{PREDICTED} vs {reference}" in found.index:
-                rows[(reference, label)] = found.loc[f"{PREDICTED} vs {reference}"]
-    for label, run in runs.claimed.items():
-        found = own[next(name for name, other in runs.runs.items() if other is run)]
-        if f"{CLAIMED} vs {ACTUAL}" in found.index:
-            rows[(ACTUAL, label)] = found.loc[f"{CLAIMED} vs {ACTUAL}"]
+            if versus(PREDICTED, reference) in found.index:
+                rows[(reference, label)] = found.loc[versus(PREDICTED, reference)]
+    for label, name in runs.stands.items():
+        if versus(CLAIMED, ACTUAL) in own[name].index:
+            rows[(ACTUAL, label)] = own[name].loc[versus(CLAIMED, ACTUAL)]
     first = next(iter(runs.runs.values()))
     if first.reference is not None:
         actual = first.reference.loc[first.total, options].to_numpy(dtype=float)
@@ -72,7 +71,7 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
         for poll, row in runs.polls.iterrows():
             rows[(CLAIMED, poll)] = pd.Series(measure(claimed, row.to_numpy(dtype=float)))
     metrics = shown(bool(topic.turnout))
-    columns = metrics + [f"{metric}{end}" for metric in metrics for end in ("_low", "_high")]
+    columns = metrics + [end(metric) for metric in metrics for end in (low, high)]
     table = pd.DataFrame(rows).T.rename_axis([AGAINST, SOURCE]).astype(float).reindex(columns=columns)
     order = []
     for reference in (ACTUAL, CLAIMED):

@@ -11,14 +11,14 @@ The fit has many freedoms and few points, so the correlation alone flatters; the
 what to read. The colleague's analysis from `llm_pushforward` (`ches_comparison`), its
 correlation distance.
 """
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
 from .aggregate import subject_answers
-from .output import Output
+from .output import Output, save
 from .plots.maps import maps
 from .saved import NotApplicable, SavedRun
 from .stats.mapping import mantel, mds, procrustes, procrustes_test
@@ -39,21 +39,19 @@ def option_distances(run: SavedRun, options: List[str]) -> pd.DataFrame:
     return np.sqrt((2 * (1 - shares.corr())).clip(lower=0))
 
 
-def compass(run: SavedRun, out: Output, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
+def compute(run: SavedRun, seed: int = 0) -> Dict[str, pd.DataFrame]:
     """
     The model's map of the options laid onto the experts' plane, and how well they agree.
 
     Args:
         run: the saved run.
-        out: takes the table and the figure, both named `compass`, and a second table
-            `compass_fit`: the map's stress, the Procrustes correlation, and the Spearman
-            correlation of the model's distances with the experts' in the plane and over
-            all items, each with its exact permutation p-value.
         seed: of the MDS starts.
 
     Returns:
-        The table - one row per rated option: where the model's map puts it in the plane
-        and where the experts do - and its figure.
+        `compass` - one row per rated option: where the model's map puts it in the plane and
+        where the experts do - and `compass_fit`, one row: the map's stress, the Procrustes
+        correlation, and the Spearman correlation of the model's distances with the experts'
+        in the plane and over all items, each with its exact permutation p-value.
 
     Raises:
         NotApplicable: if the topic has no expert positions.
@@ -69,16 +67,44 @@ def compass(run: SavedRun, out: Output, seed: int = 0) -> Tuple[pd.DataFrame, Li
     r, r_p = procrustes_test(plane, points)
     flat, flat_p = mantel(distances, _between(plane))
     full, full_p = mantel(distances, _between(positions.standardized.to_numpy()))
-
     table = pd.DataFrame(fitted, index=options, columns=[f"model {x}", f"model {y}"]).join(positions.plane.add_prefix("experts "))
-    out.table(FIT, pd.DataFrame({run.stem: {STRESS: stress, R: r, R_P: r_p, PLANE: flat, PLANE_P: flat_p, ITEMS: full, ITEMS_P: full_p}}).T)
-    out.table(NAME, table)
+    fit = pd.DataFrame({run.stem: {STRESS: stress, R: r, R_P: r_p, PLANE: flat, PLANE_P: flat_p, ITEMS: full, ITEMS_P: full_p}}).T
+    return {NAME: table, FIT: fit}
 
+
+def placed(tables: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Where the model's map puts each rated option in the experts' plane: the first two columns of `compass`."""
+    return tables[NAME].iloc[:, :2]
+
+
+def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
+    """The model's map and the experts' positions in one plane, as `compass`."""
+    positions, fit = run.positions, tables[FIT].iloc[0]
+    x, y = positions.axes
     figure = maps(
-        {f"Procrustes r = {r:.2f} (p = {r_p:.3f})": pd.DataFrame(fitted, index=options)}, positions.plane, (0, 10),
+        {f"Procrustes r = {fit[R]:.2f} (p = {fit[R_P]:.3f})": placed(tables)}, positions.plane, positions.scale,
         positions.labels[x], positions.labels[y], ("the model's map,\nlaid onto the plane", "experts"),
         run.style.colors, run.labels,
-        title=f"{run.spec.model} on {run.topic.name}: the model's map of the options",
-        note=f"MDS of the options' correlation distances over {len(run.subjects)} subjects (stress {stress:.2f}),\nshifted, turned and rescaled to fit the experts' positions",
+        title=f"{run.title}: the model's map of the options",
+        note=f"MDS of the options' correlation distances over {len(run.subjects)} subjects (stress {fit[STRESS]:.2f}),\nshifted, turned and rescaled to fit the experts' positions",
     )
-    return table, [out.figure(NAME, figure)]
+    return {NAME: figure}
+
+
+def compass(run: SavedRun, out: Output, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
+    """
+    The model's map of the options laid onto the experts' plane, and how well they agree.
+
+    Args:
+        run: the saved run.
+        out: takes the table and the figure, both named `compass`, and a second table `compass_fit`.
+        seed: of the MDS starts.
+
+    Returns:
+        The `compass` table of `compute` and its figure.
+
+    Raises:
+        NotApplicable: if the topic has no expert positions.
+    """
+    tables = compute(run, seed)
+    return save(out, tables, draw(run, tables))
