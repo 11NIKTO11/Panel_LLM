@@ -19,7 +19,8 @@ from typing import Callable, List, Sequence, Tuple
 import pandas as pd
 from matplotlib.figure import Figure
 
-from ..bootstrap import HIGH, LOW, interval
+from ..stats.bootstrap import HIGH, LOW, intervals
+from ..estimate import ENDS, high, low
 from ..output import Output
 from ..plots.intervals import interval_panels
 from .ground import LOG_LOSS, MEASURES, SHARES, TRAINED, Ground, averaged, reread
@@ -31,10 +32,10 @@ SOURCE, RUN = "source", "run"
 
 def measured(losses: pd.DataFrame, statistic: Callable[[pd.DataFrame], pd.Series], rows: Sequence[str], measures: Sequence[str], axis: str, draws: int, seed: int) -> pd.DataFrame:
     """A statistic keyed by (row, measure) as a table: a column per measure, with `_low` and `_high`."""
-    edges = interval(losses, statistic, draws, seed)
-    found = pd.concat({"": statistic(losses), "_low": edges[LOW], "_high": edges[HIGH]}, axis=1).unstack(level=1)
+    edges = intervals(losses, statistic, draws, seed)
+    found = pd.concat(dict(zip(("", *ENDS), (statistic(losses), edges[LOW], edges[HIGH]))), axis=1).unstack(level=1)
     found.columns = [f"{measure}{end}" for end, measure in found.columns]
-    return found.loc[list(rows), [f"{measure}{end}" for end in ("", "_low", "_high") for measure in measures]].rename_axis(axis)
+    return found.loc[list(rows), [f"{measure}{end}" for end in ("", *ENDS) for measure in measures]].rename_axis(axis)
 
 
 def scores(ground: Ground, out: Output, draws: int = 1000, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
@@ -88,7 +89,7 @@ def knowledge(ground: Ground, out: Output, draws: int = 1000, seed: int = 0) -> 
         return pd.Series(found)
 
     table = measured(ground.losses, statistic, labels, (GAIN, RATIO), RUN, draws, seed)
-    table.loc[table[RATIO].isna(), [f"{RATIO}_low", f"{RATIO}_high"]] = float("nan")
+    table.loc[table[RATIO].isna(), [low(RATIO), high(RATIO)]] = float("nan")
     out.table(KNOWLEDGE, table)
     figure = interval_panels(
         table, [GAIN, RATIO], same_scale=False,

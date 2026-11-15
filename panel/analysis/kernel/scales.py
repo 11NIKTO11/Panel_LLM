@@ -25,7 +25,7 @@ from .matrix import KernelSet
 from .noise import noise_floor
 
 NAME, OUTCOMES = "kernel_scales", "kernel_scales_outcomes"
-DELTA, ROBUST = "Dobrushin δ", "q99 pairwise TV"
+DOBRUSHIN, ROBUST = "Dobrushin δ", "q99 pairwise TV"
 
 
 def scales(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
@@ -53,7 +53,7 @@ def scales(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]
         entropy = -(columns * np.log2(np.where(columns > 0, columns, 1))).sum(axis=1)
         floor = noise_floor(kernel).floor
         rows[label] = {
-            DELTA: largest, "q50 pairwise TV": quantiles[0], "q90 pairwise TV": quantiles[1], ROBUST: quantiles[2],
+            DOBRUSHIN: largest, "q50 pairwise TV": quantiles[0], "q90 pairwise TV": quantiles[1], ROBUST: quantiles[2],
             "mean pairwise TV": float(distances.mean()), "mean TV from the mean answer": float(from_mean.mean()),
             "largest TV from the mean answer": float(from_mean.max()), "noise floor": floor,
             "mean entropy (bits)": float(entropy.mean()), "mean largest probability": float(columns.max(axis=1).mean()),

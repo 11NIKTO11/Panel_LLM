@@ -23,6 +23,7 @@ from ..output import Output
 from ..plots.stacked import stacked_bars
 from ..stats.design import with_interactions
 from ..stats.variance import cv_r2, factorial
+from .factors import design
 from .matrix import PROFILE, Kernel, KernelSet
 from .noise import noise_floor
 
@@ -58,13 +59,13 @@ def decompose(kernel: Kernel, factors: Union[Sequence[str], None] = None) -> pd.
         split = factorial(values, kernel.factors[columns])
         total = split["total"]
         main = sum(split[column] for column in columns)
-        pairs = sum(value for name, value in split.items() if " x " in name)
+        pairs = sum((value for name, value in split.items() if " x " in name), np.zeros_like(total))
         rest = split["rest"]
         noise_ss = np.minimum(noise * total, rest)
         parts = np.column_stack([main, pairs, noise_ss, rest - noise_ss])
         parts = np.vstack([parts, parts.sum(axis=0)])
         return pd.DataFrame(parts / parts.sum(axis=1, keepdims=True), index=outcomes, columns=list(PARTS))
-    blocks = list(kernel.design(columns).values())
+    blocks = list(design(kernel, columns).values())
     main, main_pooled = cv_r2(np.hstack(blocks), values)
     joint, joint_pooled = cv_r2(with_interactions(blocks), values)
     main, joint = np.append(main, main_pooled), np.append(joint, joint_pooled)

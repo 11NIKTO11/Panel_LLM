@@ -16,6 +16,7 @@ from matplotlib.figure import Figure
 from ..output import Output
 from ..plots.curves import curves
 from ..plots.matrices import grid, images
+from ..plots.style import AGREEMENT, SHIFTS
 from ..stats.spectral import centred_svd, soft_ranks
 from ..stats.variance import eps2
 from .matrix import KernelSet
@@ -55,12 +56,12 @@ def axes(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
                                        title=f"{kernels.topic.name}: how many directions the profiles move the answer in",
                                        note="share of each axis of the centred kernel; the last, always zero, is left out"))]
     for number, (label, frame) in enumerate(loadings.items(), start=1):
-        figures.append(out.figure(f"{LOADINGS}_{number}", grid(frame.rename(index=kernels.labels), decimals=1, signed=True, cmap="Oranges",
+        figures.append(out.figure(f"{LOADINGS}_{number}", grid(frame.rename(index=kernels.labels), decimals=1, signed=True, cmap=SHIFTS,
                                                             title=f"{label}: the patterns of the first three axes",
                                                             note="change of each outcome's probability, pp, for a profile one standard deviation along the axis")))
     together = pd.concat({label: frame for label, frame in drivers.items()}, axis=1)
     together.columns = [f"{label}\n{axis}" for label, axis in together.columns]
-    figures.append(out.figure(DRIVERS, grid(together.clip(lower=0), decimals=2, cmap="Greens", title=f"{kernels.topic.name}: what drives each axis",
+    figures.append(out.figure(DRIVERS, grid(together.clip(lower=0), decimals=2, cmap=AGREEMENT, title=f"{kernels.topic.name}: what drives each axis",
                                             note="ε² of each factor for the profiles' scores on the axis; empty where a kernel has no such factor")))
     figures.append(out.figure(MATRIX, images(sorted_matrices, xlabel="profiles, sorted by their score on axis 1",
                                              title=f"{kernels.topic.name}: the kernels, a pixel column per profile")))

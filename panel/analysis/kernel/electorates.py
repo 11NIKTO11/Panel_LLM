@@ -16,6 +16,7 @@ from matplotlib.figure import Figure
 
 from ..output import Output
 from ..plots.matrices import grid
+from ..plots.style import DISTANCES
 from ..saved import NotApplicable
 from ..stats.distributions import tv
 from .matrix import KernelSet
@@ -48,7 +49,7 @@ def electorates(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Fig
         found[label] = pd.DataFrame(distances, index=options, columns=options)
     table = out.table(NAME, pd.concat(found, names=["kernel", "option"]))
     figures = [
-        out.figure(f"{NAME}_{number}", grid(frame.rename(index=kernels.labels, columns=kernels.labels), decimals=2, cmap="Purples",
+        out.figure(f"{NAME}_{number}", grid(frame.rename(index=kernels.labels, columns=kernels.labels), decimals=2, cmap=DISTANCES,
                                            title=f"{label}: how alike the options' electorates are",
                                            note="TV between two options' electorates, factor by factor, averaged over the factors; 0 = the same make-up"))
         for number, (label, frame) in enumerate(found.items(), start=1)

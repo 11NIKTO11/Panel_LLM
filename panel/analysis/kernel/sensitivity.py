@@ -19,6 +19,7 @@ from matplotlib.figure import Figure
 
 from ..output import Output
 from ..plots.matrices import grid
+from ..plots.style import SHIFTS
 from ..stats.sensitivity import sensitivity as largest_gain
 from .matrix import Kernel, KernelSet
 
@@ -78,7 +79,7 @@ def sensitivity(kernels: KernelSet, out: Output, share: float = 0.1, uniform: bo
     out.table(FACTORS, pd.concat(factors, names=["kernel", "outcome"]))
     start = "every profile once" if uniform else "the run's own population"
     figures = [
-        out.figure(f"{FACTORS}_{number}", grid(frame.rename(index=kernels.labels), decimals=1, scale=100, cmap="Oranges",
+        out.figure(f"{FACTORS}_{number}", grid(frame.rename(index=kernels.labels), decimals=1, scale=100, cmap=SHIFTS,
                                               title=f"{label}: what shifting one factor by {share:g} can gain each outcome",
                                               note=f"largest gain, percentage points, when one factor's distribution moves by TV {share:g} from {start}"))
         for number, (label, frame) in enumerate(factors.items(), start=1) if len(frame.columns)

@@ -9,6 +9,7 @@ import pytest
 from panel.analysis import Output
 from panel.analysis.comparison import load_runs
 from panel.analysis.kernel import KERNEL_ANALYSES, load_kernels, push
+from panel.analysis.kernel.factors import players
 from panel.analysis.kernel.noise import noise_floor
 from panel.analysis.kernel.pairs import FACTOR, minimal_pairs
 from panel.analysis.kernel.variance import INTERACTIONS, MAIN, NOISE, POOLED, decompose
@@ -37,6 +38,17 @@ def grids(store):
 @pytest.fixture(scope="module")
 def legacy(store):
     return load_kernels(load_runs(store, LEGACY))
+
+
+def test_a_kernel_of_one_factor_splits_its_variance_and_fits_a_surrogate(store):
+    stem = "regions_citizen_cs_neutral_Anthropic_claude-haiku-5-5_Prob_t=default_e=low_x3"
+    require(store.paths(stem).record)
+    kernels = load_kernels(load_runs(store, [stem]))
+    kernel = next(iter(kernels.kernels.values()))
+    assert kernel.designed and kernel.factors.shape[1] == 1
+    for name in ("variance", "surrogate"):
+        table, _ = KERNEL_ANALYSES[name](kernels, Output(None, save=False))
+        assert not table.empty, name
 
 
 def test_a_grid_is_a_designed_kernel(grids):
@@ -95,7 +107,7 @@ def test_variance_and_axes_reproduce_pushforward(model, legacy):
 def test_shapley_reproduces_pushforward(legacy):
     model = "gpt-4o"
     kernel, expected = legacy.kernels[model], PUSHFORWARD["shapley"][model]
-    named = {name: next(column for column in kernel.players() if set(columns) == set(kernel.run.dataset.together.get(column, (column,))))
+    named = {name: next(column for column in players(kernel) if set(columns) == set(kernel.run.dataset.together.get(column, (column,))))
              for name, columns in PUSHFORWARD["players"].items()}
     table, _ = KERNEL_ANALYSES["shapley"](type(legacy)(legacy.topic, {model: kernel}, legacy.style), Output(None, save=False), draws=0)
     found = table.loc[model]

@@ -22,10 +22,10 @@ from matplotlib.figure import Figure
 from panel.run.resolve import REPEAT, SUBJECT
 
 from ..benchmark.ground import TRAINED, load_ground
-from ..comparison import RunSet
 from ..output import Output
 from ..plots.distributions import overlaid
 from ..plots.matrices import grid
+from ..plots.style import AGREEMENT, SHIFTS
 from ..saved import NotApplicable
 from ..stats.distributions import tv
 from .matrix import PROFILE, Kernel, KernelSet, assembled
@@ -42,13 +42,11 @@ def trained_kernel(kernels: KernelSet) -> Kernel:
         NotApplicable: if the runs are of different datasets or theirs has no answers to the topic.
     """
     first = next(iter(kernels.kernels.values()))
-    runs = RunSet(topic=kernels.topic, runs={label: kernel.run for label, kernel in kernels.kernels.items()}, polls=pd.DataFrame(), style=kernels.style)
-    trained = load_ground(runs, predictors=list(first.factors.columns)).trained
+    trained = load_ground({label: kernel.run for label, kernel in kernels.kernels.items()}, predictors=list(first.factors.columns)).trained
     profiles = first.calls.drop_duplicates(SUBJECT).set_index(SUBJECT)[PROFILE]
     calls = trained.reindex(columns=first.outcomes).assign(**{PROFILE: profiles.reindex(trained.index).to_numpy(), REPEAT: 1})
     calls = calls.rename_axis(SUBJECT).reset_index()[[PROFILE, SUBJECT, REPEAT, *first.outcomes]]
-    found = assembled(first, calls, first.factors, designed=False)
-    return Kernel(label=TRAINED, run=first.run, matrix=found.matrix, factors=found.factors, weights=found.weights, calls=calls, designed=False)
+    return assembled(TRAINED, first.run, calls, first.factors, designed=False)
 
 
 def _by_values(kernel: Kernel) -> pd.DataFrame:
@@ -117,10 +115,10 @@ def agreement(kernels: KernelSet, out: Output, reference: Union[str, None] = Non
     figures = [
         out.figure(NAME, overlaid({f"against {reference}": distances}, xlabel="TV between the two answers to the same profile",
                                   title=f"{kernels.topic.name}: how far each kernel is from {reference}, profile by profile")),
-        out.figure(f"{OUTCOMES}_correlation", grid(correlations, decimals=2, signed=True, cmap="Greens",
+        out.figure(f"{OUTCOMES}_correlation", grid(correlations, decimals=2, signed=True, cmap=AGREEMENT,
                                                   title=f"{kernels.topic.name}: does each kernel move an outcome for the same profiles as {reference}?",
                                                   note="Pearson correlation over the shared profiles")),
-        out.figure(f"{OUTCOMES}_ratio", grid(ratios, decimals=1, signed=True, cmap="Oranges",
+        out.figure(f"{OUTCOMES}_ratio", grid(ratios, decimals=1, signed=True, cmap=SHIFTS,
                                             title=f"{kernels.topic.name}: how much more each kernel spreads an outcome than {reference}",
                                             note="log2 of the ratio of standard deviations over the shared profiles: +1 is twice the spread, -1 half")),
     ]

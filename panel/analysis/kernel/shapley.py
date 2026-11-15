@@ -8,7 +8,7 @@ of a sampled kernel - region and district, income and living standard - are coun
 Shapley effects add up to what all explain together. Columns a dataset declares `together`
 are one player. On a designed kernel the factors are independent and the two nearly agree.
 
-Intervals by the kernel's replicates (`matrix.scheme_of`): half-samples of a sampled kernel's
+Intervals by the kernel's replicates (`replicates.scheme_of`): half-samples of a sampled kernel's
 profiles, resampled repeats of a designed one, none without either. Both are re-centred on the
 full estimate: an out-of-sample R² is lower on half the profiles, and lower again on cell means
 of repeats drawn with replacement, which are noisier than the means of the repeats themselves.
@@ -20,15 +20,19 @@ import pandas as pd
 from joblib import Parallel, delayed
 from matplotlib.figure import Figure
 
+from ..estimate import high, low
 from ..output import Output
 from ..plots.intervals import interval_panels
 from ..stats.replicates import interval
 from ..stats.shapley import shapley_values
 from ..stats.spectral import centred_svd
-from .matrix import HALVES, REPEATS, KernelSet, replica_positions, scheme_of
+from .factors import players as factor_players
+from .matrix import KernelSet
+from .replicates import replica_answers, scheme_of
 
 NAME = "kernel_shapley"
-EFFECT, LOW, HIGH, SHARE, EXPLAINED = "effect", "effect_low", "effect_high", "share of explained", "explained by all"
+EFFECT, SHARE, EXPLAINED = "effect", "share of explained", "explained by all"
+LOW, HIGH = low(EFFECT), high(EFFECT)
 AXES = 2
 
 
@@ -55,15 +59,9 @@ def shapley(kernels: KernelSet, out: Output, draws: int = 20, seed: int = 0, job
     """
     rows, panels = {}, {}
     for label, kernel in kernels.kernels.items():
-        players, values = kernel.players(), kernel.matrix.to_numpy().T
+        players, values = factor_players(kernel), kernel.matrix.to_numpy().T
         scheme = scheme_of(kernel) if draws else None
-        if scheme == HALVES:
-            tasks = [({name: block[keep] for name, block in players.items()}, values[keep]) for keep in replica_positions(kernel, draws, seed)]
-        elif scheme == REPEATS:
-            random = np.random.default_rng(seed)
-            tasks = [(players, kernel.resampled(random).matrix.to_numpy().T) for _ in range(draws)]
-        else:
-            tasks = []
+        tasks = [({name: block[rows] for name, block in players.items()}, answers) for rows, answers in replica_answers(kernel, draws, seed)] if draws else []
         found = Parallel(n_jobs=jobs)(delayed(_effects)(*task) for task in [(players, values), *tasks])
         full, replicates = found[0], pd.DataFrame(found[1:])
         _, _, right = centred_svd(kernel.matrix.to_numpy())

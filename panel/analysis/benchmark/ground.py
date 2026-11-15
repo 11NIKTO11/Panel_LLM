@@ -11,7 +11,7 @@ Only subjects that every named run answered and whose own answer says something 
 all the sources are scored on the same people.
 """
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Mapping, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ import pandas as pd
 from panel.topic import PlotStyle, Topic
 
 from ..aggregate import outcome_shares
-from ..comparison import RunSet
+from ..levels import banded
 from ..saved import NotApplicable, SavedRun
 from ..stats.classifier import cross_validated, losses, recalibrated
 from ..stats.design import indicators
@@ -78,12 +78,12 @@ def own_answers(run: SavedRun) -> pd.Series:
     return run.subjects[run.claims.column].map(meaning).dropna()
 
 
-def load_ground(runs: RunSet, predictors: Union[Sequence[str], None] = None, strength: float = 0.3, folds: int = 5, seed: int = 0) -> Ground:
+def load_ground(runs: Mapping[str, SavedRun], predictors: Union[Sequence[str], None] = None, strength: float = 0.3, folds: int = 5, seed: int = 0) -> Ground:
     """
     Fit the trained model and score every source on the subjects all runs share.
 
     Args:
-        runs: the runs to benchmark.
+        runs: label -> run, the runs to benchmark, all of one topic.
         predictors: the columns the trained model is given; the dataset's grouping columns
             by default.
         strength: the trained logit's `C`, the inverse of its ridge penalty.
@@ -95,18 +95,19 @@ def load_ground(runs: RunSet, predictors: Union[Sequence[str], None] = None, str
             different datasets, or too few subjects are left.
         ValueError: on a predictor the dataset does not have.
     """
-    first = next(iter(runs.runs.values()))
+    first = next(iter(runs.values()))
+    topic = first.topic
     if not first.claims:
-        raise NotApplicable(f"'{first.dataset.name}' has no answers to '{runs.topic.name}' to train on or score against")
-    if len({run.dataset.name for run in runs.runs.values()}) > 1:
+        raise NotApplicable(f"'{first.dataset.name}' has no answers to '{topic.name}' to train on or score against")
+    if len({run.dataset.name for run in runs.values()}) > 1:
         raise NotApplicable("the runs are of different datasets; a benchmark needs the same subjects")
     predictors = list(predictors or [column for column in first.dataset.groups if column != first.claims.column])
     unknown = sorted(set(predictors) - set(first.subjects.columns))
     if unknown:
         raise ValueError(f"'{first.dataset.name}' has no columns {unknown}; it has {list(first.subjects.columns)}")
 
-    outcomes = first.options + ([runs.topic.turnout[1]] if runs.topic.turnout else [])
-    predicted = {label: outcome_shares(run.normalized, run.topic) for label, run in runs.runs.items()}
+    outcomes = first.options + ([topic.turnout[1]] if topic.turnout else [])
+    predicted = {label: outcome_shares(run.normalized, run.topic) for label, run in runs.items()}
     answers = own_answers(first)
     for shares in predicted.values():
         answers = answers[answers.index.isin(shares.index)]
@@ -116,7 +117,7 @@ def load_ground(runs: RunSet, predictors: Union[Sequence[str], None] = None, str
 
     levels = first.dataset.levels
     design = np.hstack([
-        indicators(first.subjects.loc[answers.index, column], levels[column].several if column in levels else None, levels[column].bands if column in levels else None)
+        indicators(banded(first.subjects.loc[answers.index, column], levels.get(column)), levels[column].several if column in levels else None)
         for column in predictors
     ])
     chosen = answers.to_numpy()
@@ -131,8 +132,8 @@ def load_ground(runs: RunSet, predictors: Union[Sequence[str], None] = None, str
         sources[reread(label)] = recalibrated(shares.to_numpy(), chosen, outcomes, folds, seed)
     scored = {(source, measure): values for source, probabilities in sources.items() for measure, values in zip(MEASURES, losses(probabilities, answered))}
     return Ground(
-        topic=runs.topic, outcomes=outcomes, answers=answers, predicted=predicted, trained=trained,
-        losses=pd.DataFrame(scored, index=answers.index), predictors=predictors, style=runs.style,
+        topic=topic, outcomes=outcomes, answers=answers, predicted=predicted, trained=trained,
+        losses=pd.DataFrame(scored, index=answers.index), predictors=predictors, style=first.style,
     )
 
 

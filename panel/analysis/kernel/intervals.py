@@ -1,5 +1,5 @@
 """
-95 % intervals for the kernel's main statistics, from its replicates (`matrix.scheme_of`).
+95 % intervals for the kernel's main statistics, from its replicates (`replicates.scheme_of`).
 
 - a sampled kernel: half-samples of its profiles, the percentile interval of the replicates
   (`stats.replicates`) - what another draw of subjects from the population would give;
@@ -20,13 +20,15 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
+from ..estimate import high, low
 from ..output import Output
 from ..plots.intervals import interval_panels
 from ..stats.distributions import tv
 from ..stats.replicates import interval
 from ..stats.spectral import EFFECTIVE_AXES, centred_svd, soft_ranks
 from ..stats.variance import eps2
-from .matrix import HALVES, REPEATS, Kernel, KernelSet, replicas, scheme_of
+from .matrix import Kernel, KernelSet
+from .replicates import HALF_SAMPLES, RESAMPLED, replicas, scheme_of
 
 NAME, DIFFERENCES = "kernel_intervals", "kernel_intervals_differences"
 ESTIMATE, LOW, HIGH = "estimate", "low", "high"
@@ -76,7 +78,7 @@ def intervals(kernels: KernelSet, out: Output, draws: int = 200, seed: int = 0, 
         replicates[label] = pd.DataFrame([statistics(replica, seed=seed) for replica in replicas(kernel, draws, seed)])
         scheme = scheme_of(kernel)
         frame = pd.DataFrame({ESTIMATE: estimates[label]})
-        bounds = [interval(replicates[label][name], estimates[label][name], recentre=scheme == REPEATS) if len(replicates[label]) else (np.nan, np.nan) for name in frame.index]
+        bounds = [interval(replicates[label][name], estimates[label][name], recentre=scheme == RESAMPLED) if len(replicates[label]) else (np.nan, np.nan) for name in frame.index]
         frame[LOW], frame[HIGH] = [low for low, _ in bounds], [high for _, high in bounds]
         frame["interval"] = f"{scheme}, {draws}" if scheme else (f"none: delivered means over {kernel.averaged} repeats" if kernel.averaged else "none: one answer per cell")
         rows[label] = frame
@@ -85,7 +87,7 @@ def intervals(kernels: KernelSet, out: Output, draws: int = 200, seed: int = 0, 
         held = kernels.kernels[reference]
         differences = {}
         for label, kernel in kernels.kernels.items():
-            same = label != reference and scheme_of(kernel) == scheme_of(held) == HALVES and kernel.factors.equals(held.factors)
+            same = label != reference and scheme_of(kernel) == scheme_of(held) == HALF_SAMPLES and kernel.factors.equals(held.factors)
             if not same:
                 continue
             gap = estimates[label] - estimates[reference]
@@ -98,7 +100,7 @@ def intervals(kernels: KernelSet, out: Output, draws: int = 200, seed: int = 0, 
             out.table(DIFFERENCES, pd.concat(differences, names=["kernel", "statistic"]))
     shown = {}
     for label, frame in rows.items():
-        shown[label], shown[f"{label}_low"], shown[f"{label}_high"] = frame[ESTIMATE], frame[LOW], frame[HIGH]
+        shown[label], shown[low(label)], shown[high(label)] = frame[ESTIMATE], frame[LOW], frame[HIGH]
     figure = interval_panels(
         pd.DataFrame(shown), list(rows), title=f"{kernels.topic.name}: the kernels' statistics with 95 % intervals",
         note=f"{draws} replicates: half-samples of a sampled kernel's profiles, resampled repeats of a designed one; a designed kernel with one answer per cell has none",

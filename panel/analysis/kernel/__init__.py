@@ -1,6 +1,7 @@
 """
-Runs read as kernels: a matrix from profiles to answers (`matrix`), and one module per analysis
-of it, after `CoRe/llm_pushforward`.
+Runs read as kernels: a matrix from profiles to answers (`matrix`), read from saved runs
+(`loaded`), its factors as a design (`factors`), its replicates (`replicates`), and one module
+per analysis of it, after `CoRe/llm_pushforward`.
 
 Every analysis is a function `(kernels, out) -> (table, figures)` over a `KernelSet` of one
 run or several, raising `NotApplicable` when it has nothing to work on; `KERNEL_ANALYSES` names
@@ -12,7 +13,8 @@ from .axes import axes
 from .electorates import electorates
 from .importance import importance
 from .intervals import intervals
-from .matrix import Kernel, KernelSet, describe, kernel_of, load_kernels, push
+from .loaded import describe, kernel_of, load_kernels
+from .matrix import Kernel, KernelSet, push
 from .noise import noise
 from .pairs import pairs
 from .populations import populations

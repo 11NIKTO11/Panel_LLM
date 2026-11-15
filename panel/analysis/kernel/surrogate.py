@@ -20,14 +20,21 @@ import pandas as pd
 from matplotlib.figure import Figure
 from sklearn.model_selection import KFold
 
+from ..estimate import bounds
 from ..output import Output
 from ..plots.intervals import interval_panels
 from ..stats.distributions import pairwise_tv, tv
 from ..stats.surrogate import LogitAdditive
-from .matrix import PROFILE, Kernel, KernelSet, push
+from .factors import level_designs
+from .matrix import Kernel, KernelSet, push
 
 NAME, RANGES = "kernel_surrogate", "kernel_surrogate_ranges"
+OBSERVED, PRODUCT = "observed", "product"
 STARTS, ROW_STARTS, DRAWS = 100, 20, 20000
+
+
+def ends(name: str) -> Tuple[str, str]:
+    return bounds(name)[1:]
 
 
 def additive_r2(kernel: Kernel, designs: dict, folds: int = 5, seed: int = 0) -> float:
@@ -47,7 +54,7 @@ def independent(kernel: Kernel, surrogate: LogitAdditive, draws: int, seed: int)
     subjects = kernel.factors.loc[kernel.factors.index.repeat(weights)]
     drawn = pd.DataFrame({column: random.choice(subjects[column].to_numpy(), draws) for column in kernel.factors.columns})
     population = drawn.value_counts()
-    known = kernel.factors.reset_index().set_index(list(kernel.factors.columns))[PROFILE]
+    known = pd.Series(kernel.factors.index, index=pd.MultiIndex.from_frame(kernel.factors))
     found = population.index.isin(known.index)
     observed = population[found]
     answer = pd.Series(0.0, index=kernel.outcomes)
@@ -78,7 +85,7 @@ def surrogate(kernels: KernelSet, out: Output, factors: Union[Sequence[str], Non
     random = np.random.default_rng(seed)
     rows, ranges = {}, {}
     for label, kernel in kernels.kernels.items():
-        designs = kernel.level_designs(factors)
+        designs = level_designs(kernel, factors)
         values = kernel.matrix.to_numpy().T
         fitted = LogitAdditive(designs, kernel.factors, values)
         predicted = fitted.predict(kernel.factors)
@@ -105,19 +112,19 @@ def surrogate(kernels: KernelSet, out: Output, factors: Union[Sequence[str], Non
             "independent factors: TV from own": tv(mixed.to_numpy(), own.to_numpy()), "independent factors: share observed": seen,
         }
         ranges[label] = pd.DataFrame({
-            "mean": values.mean(axis=0), "observed_low": values.min(axis=0), "observed_high": values.max(axis=0),
-            "product_low": searched_low, "product_high": searched_high, "bound low": low, "bound high": high,
+            "mean": values.mean(axis=0), ends(OBSERVED)[0]: values.min(axis=0), ends(OBSERVED)[1]: values.max(axis=0),
+            ends(PRODUCT)[0]: searched_low, ends(PRODUCT)[1]: searched_high, "bound low": low, "bound high": high,
         }, index=kernel.outcomes)
     table = out.table(NAME, pd.DataFrame(rows).T.rename_axis("kernel"))
     out.table(RANGES, pd.concat(ranges, names=["kernel", "outcome"]))
     shown = {}
     for label, frame in ranges.items():
-        for kind in ("observed", "product"):
+        for kind in (OBSERVED, PRODUCT):
             shown[f"{label} {kind}"] = frame["mean"]
-            shown[f"{label} {kind}_low"], shown[f"{label} {kind}_high"] = frame[f"{kind}_low"], frame[f"{kind}_high"]
+            shown[ends(f"{label} {kind}")[0]], shown[ends(f"{label} {kind}")[1]] = frame[ends(kind)[0]], frame[ends(kind)[1]]
     panels = pd.DataFrame(shown).rename(index=kernels.labels)
     figure = interval_panels(
-        panels, [f"{label} {kind}" for label in ranges for kind in ("observed", "product")], percent=list(panels.columns), unit="%", same_scale=True,
+        panels, [f"{label} {kind}" for label in ranges for kind in (OBSERVED, PRODUCT)], percent=list(panels.columns), unit="%", same_scale=True,
         per_row=2, title=f"{kernels.topic.name}: each outcome's range, observed and over every combination",
         note="dot: the outcome's mean over the observed profiles; bars: its lowest and highest probability over them, and over the full product by the additive surrogate",
     )
