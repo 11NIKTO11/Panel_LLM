@@ -1218,3 +1218,156 @@ nor its runs say what a grid over the survey's vocabulary should.
 - open: once `grid_sod` has a run (with repeats), the `grids` set, `kernel.ipynb`'s default
   and the tests move to it and the retired grids can go
 - §15, §15.1 and §16 above say `grid_sod` and `grid_sod45` for what are now the retired grids
+
+## 29. The model receives every schema text, and the record says what was sent (2026-11-15)
+
+Found in the architecture review of `panel/`: Pydantic writes a field's description beside the
+`$ref` to its model, and each path to a provider treated that differently.
+
+- what happened to the turnout field's description (`schema.turnout.field`, which carries
+  "the sum must be 1.0"):
+  - OpenRouter to an OpenAI model: dropped without a word (`move_ref_descriptions` looked for
+    `$defs` in the wrong dict)
+  - the Anthropic SDK (`transform_schema`): dropped
+  - the OpenAI SDK: kept, the definition inlined at the field
+  - Gemini: sent as generated
+- **the generated schema has no description beside a `$ref`** (`panel/topic/response.py`): the
+  framing's `turnout.field` follows `turnout.description`, after a blank line, in the turnout
+  model's own description. One place, every client; the framing files did not change
+  - the five schema snapshots were regenerated, deliberately
+  - `tests/test_schemas.py` refuses a schema with anything beside a `$ref`
+- **`response_schema_sent`** is in the record beside `response_schema`:
+  `client.schema_sent(model, response_format)`, the schema as that client's request carries it
+  (the SDK's rewrite for Anthropic and OpenAI, the fix-ups for OpenRouter, the generated one
+  for Gemini and Fake). `execute` asks for it before the first call
+  - OpenAI's is read from `openai.lib._pydantic.to_strict_json_schema`, a private name of the
+    SDK - NOT checked against a request
+- `panel/llm/schema_compat.py` loses nothing any more: a description beside a `$ref` is
+  appended to its definition's, and for Claude through OpenRouter a number's bounds are written
+  into its description (`bounds_as_text`, as Anthropic's SDK does) instead of being removed
+- `tests/test_llm.py` holds both Anthropic clients to the request as it leaves the SDK: the
+  whole body, and for every framing and both shapes that the schema says every text of the
+  framing, lists the labels in order and states the bounds
+- the five runs sent before this carry a `schema_note`: the three grid runs through OpenRouter
+  (how `CoRe/_grid_separate` built the schema then is not known) and the two Haiku `regions`
+  runs (the text did not reach the model)
+- REJECTED: fixing it per client - the Anthropic client would have to stop using
+  `messages.parse`, and each client would keep its own handling of the same schema
+- open: whether OpenAI's strict mode takes a description beside a `$ref` today - a live call
+
+## 30. `Trikolora` is gone from the saved tables; spent code left the tree (2026-11-15)
+
+- the two Haiku `regions` runs were the last tables under the old option id (§9 kept it as an
+  alias): header and `framing.labels` rewritten to `TSS` in `results.csv`, `normalized.csv`
+  and the archive, a `renamed` block in the record, no number changed. The alias `Trikolora`
+  left `topic.json`; `p_Trikolora` stays for the colleague's delivered table
+- moved to `_delete/`: `panel/analysis/validate.py` (only a test used it; `panel/run/check.py`
+  does its work), `migrate_grid.py`, `migrate_latent.py`, `migrate_results.py` (spent)
+- no saved record is of the legacy shape any more, so `load_run` and `ResultStore.load` read
+  today's shape only
+
+## 31. An analysis is two halves; review follow-ups (2026-11-15)
+
+From the architecture review of `panel/` (its plan, `_plan_analysis_split.md`, is spent).
+
+- **an analysis module has three functions**
+  - `compute(run, ...) -> {name: table}`, the main table first; no output, no figure
+  - `draw(run, tables, ...) -> {name: figure}`
+  - `<name>(run, out, ...)`, the public one, unchanged for callers: compute, draw,
+    `output.save`. Each of the three names the parameters it uses
+- **a comparison calls `compute`** of the single-run analysis it builds on
+  - gone: the throwaway `Output(..., save=False)` in four comparisons, the `_Kept` output of
+    `comparison/compass.py`, and the single-run figures that were drawn and discarded
+  - gone: `comparison/areas.py` rebuilding and splitting `area.py`'s column names; it asks
+    `area.column(metric, source, reference)`
+- **names of estimates are made in one place**: `analysis/estimate.py` (`low`, `high`,
+  `bounds`, `is_end`) for `<name>_low` / `<name>_high`; `sources.versus` for a pair
+- one function measures every pair of sources, `sources.pair_distances`; `distance` and
+  `area` both stand on it. `PAIRS`, `TURNOUT` and `shown` moved to `sources.py`
+- `RunSet.stands` (claimed label -> the run that stands for it), `RunSet.labels`,
+  `SavedRun.title` replace their copies
+- `metrics.py` and `bootstrap.py` are in `analysis/stats/`; `bootstrap.interval` is
+  `bootstrap.intervals`, so it no longer shares a name with `replicates.interval`
+- checked: every table of every analysis and comparison over three saved runs and three sets
+  is byte for byte what it was before
+- REJECTED: a frozen dataclass per analysis instead of a dict of tables - nine types for
+  tables that already have names
+- REJECTED: one generic wrapper routing `**params` to `compute` and `draw` by their
+  signatures - the public signature disappears and a misspelt parameter is dropped silently.
+  Martin: kept up by hand he would take a dispatcher keyed by an enum,
+  `run_it(AREA, run, out, **params)`; here the explicit function costs the same
+- REJECTED: making the capturing output official - the figures would still be drawn
+- REJECTED (changed while executing): keying an estimate's value and ends by a column level,
+  flattened on writing. The tables' column orders differ, so flattening needs a rule per
+  table; naming functions give the same single place with the tables left as they are saved
+- not done: the comparisons, `benchmark/` and `kernel/` keep one function each; they take
+  this shape with the kernel split (review A2)
+- the same review, smaller:
+  - `analysis/levels.py:banded` is the one place a numeric column is cut into its bands;
+    `stats/design.py:indicators` takes the column already cut; `area.ordered` is `members`
+  - a topic's files are read from `topic.dir`: `load_framing`, `load_question`,
+    `load_plot_style`, `load_polls`, `load_positions` take no `topics_dir`; `load_run` and
+    `load_runs` take `datasets_dir` and `topics_dir`
+  - `plots/style.py` has `finish` and `framed`; every title is anchored by its top now
+  - `panel/config.py` has `check_keys` and `check_short`; `cli.py` at the root holds what the
+    entry scripts share
+- open, from the review: `kernel/matrix.py` holds five things (A2); `check` takes a `Resolved`
+  though it says "from the saved files alone" (A6); `SavedRun.weighted` is an analysis
+  option carried by the loaded run (A7); `store.save` is called twice and builds two records
+  (A8); `prepare` imports `run.store`, `output.py` imports `panel.run` for two names (A9)
+
+## 32. The rest of the review: the kernel in four modules, and what was left as it is (2026-11-15)
+
+- **`analysis/kernel/` is four modules where `matrix.py` was one**
+  - `matrix.py`: `Kernel`, `KernelSet`, `assembled`, `push` - the kernel itself
+  - `loaded.py`: `factor_columns`, `kernel_of`, `load_kernels`, `describe`
+  - `factors.py`: `design`, `level_designs`, `players` - functions of a kernel, no longer its methods
+  - `replicates.py`: `scheme_of`, `replicas`, `replica_answers`; the schemes are
+    `HALF_SAMPLES` and `RESAMPLED` (were `HALVES` and `REPEATS`, the second a name `noise.py` also has)
+  - `assembled(label, run, calls, factors, designed, averaged)` takes what it needs; the empty
+    kernel `kernel_of` built to hand it as a prototype is gone
+  - `shapley.py` takes its replicates from `replica_answers` and no longer repeats the scheme's branches
+- **the benchmark takes runs**: `load_ground(runs: {label: run}, ...)`; topic and style are the
+  first run's. `benchmark/` no longer imports `comparison/`, and `kernel/agreement.py` no
+  longer makes up a run set with empty polls
+- **`check(store, stem, topic, framing)`** reads the record and the saved answers only: the
+  calls are the record's subjects times its repeats, the prompts the saved ones. It no longer
+  resolves the spec, so a run can be checked after its dataset was prepared again
+- **`ResultStore.save` is one call**: the archived copy and the plain files from one table and
+  one record. `timestamped` is gone
+- **a client says whether it takes an effort**: `BaseLLMClient.TAKES_EFFORT`, true for the
+  Anthropic clients; `resolve` reads it and no longer inspects a constructor
+- **the experts' scale is data**: `positions.json` has `"scale": [0, 10]`, `Positions.scale`;
+  the two `compass` figures read it
+- `pack` takes `datasets_dir` and `topics_dir`
+- named in `plots/style.py`: `AGREEMENT`, `SHIFTS`, `DISTANCES`, the colour ranges the kernel
+  figures wrote as literals; `scales.py`'s `DELTA` is `DOBRUSHIN`
+- `panel/digest.py` is the one place a file's sha256 is taken and a record's `<name>_sha256`
+  keys are written and read; `Dataset.built_from(description)` names the files a run is built
+  from, for `resolve` and `pack`. `resolve.SUBJECT` is `dataset.INDEX`; the presets read their
+  number fields off `RunSpec`; `kernel/` and `benchmark/` name interval ends through `estimate.py`
+- a saved `parties` is no longer read (`response.py`): no saved answer has had one since §10
+- fixed on the way, both on a kernel of one factor (the `regions` runs), both now tested:
+  - `kernel/variance.py` stacked a scalar zero for the interactions it does not have
+  - `kernel/surrogate.py` matched a one-level MultiIndex against a plain index
+- checked: every table of the kernel analyses over the grids, the two `regions` runs and one
+  survey run, and of the benchmarks over two survey runs, is byte for byte what it was
+- REJECTED: `compute` / `draw` (§31) for `comparison/`, `benchmark/` and `kernel/`
+  - nothing calls their numbers without their figures, which was the reason for the split
+  - several kernel figures draw what is not a table - every pair's distance, the noise's
+    pairs, the sorted matrix - so `draw` would compute it a second time, or `compute` would
+    stop returning tables only
+- REJECTED: `weighted` as a parameter of the analyses instead of a field of `SavedRun`
+  - it would pass through every `compute` that reads the sources, their comparisons and
+    `ranked`; one reading option on the loaded run is the smaller thing
+- left as it is, on purpose:
+  - `panel/prepare.py` imports `run.store.digests_in_use`: prepare must not replace what a
+    saved run was built from (§20), so it has to look at the results
+  - `Output` reads `ANALYSIS_DIR` / `PLOTS_DIR` off `ResultStore`, which owns every results path (§24)
+  - `run.py` constructs the client: it is the composition root
+  - a kernel's factor columns are read from today's description file: a stored description's
+    `reads` is not in the record
+  - `panel/llm/runner.py` keeps its unused fallback and its prints, with the package's
+    copy-as-a-unit contract
+- open: the kernel and the benchmark each have an `agreement` that computes the same
+  per-outcome correlation and ratio of standard deviations, per profile and per subject
