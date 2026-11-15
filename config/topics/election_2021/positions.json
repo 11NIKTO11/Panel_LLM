@@ -1,4 +1,5 @@
 {
+    "scale": [0, 10],
     "axes": {
         "x": {
             "item": "lrecon",

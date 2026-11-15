@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from panel import paths
+from panel.config import check_keys, check_short
 
 from .vocabulary import Topic
 
@@ -56,7 +57,7 @@ TEXT_KEYS = {
 
 @dataclass(frozen=True)
 class TurnoutText:
-    """The turnout model's title and descriptions; `field` describes `voted_or_not` on both models."""
+    """The turnout model's title and descriptions; `field` describes `voted_or_not` and is sent after `description`, in one text."""
     title: str
     description: str
     voted: str
@@ -135,9 +136,9 @@ def _text(config: dict, block: str, path: Path) -> dict:
     return entry
 
 
-def load_framing(topic: Topic, name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> Framing:
+def load_framing(topic: Topic, name: str) -> Framing:
     """
-    Read one framing of a topic.
+    Read one framing of a topic, from the topic's own folder.
 
     Raises:
         FileNotFoundError: if the topic's `framings/` holds no framing of that name.
@@ -145,19 +146,14 @@ def load_framing(topic: Topic, name: str, topics_dir: Union[str, Path] = paths.T
             short that could not sit in a stem, a label for an unknown option, labels that are
             not unique after defaults, or schema text that disagrees with the topic on turnout.
     """
-    path = Path(topics_dir) / topic.name / FRAMINGS_DIR / f"{name}.json"
+    path = topic.dir / FRAMINGS_DIR / f"{name}.json"
     if not path.exists():
         raise FileNotFoundError(f"no framing '{name}' for topic '{topic.name}' at {path}")
     config = json.loads(path.read_text(encoding="utf-8"))
-    unknown = sorted(set(config) - REQUIRED_KEYS - OPTIONAL_KEYS)
-    missing = sorted(REQUIRED_KEYS - set(config))
-    if unknown or missing:
-        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    check_keys(config, REQUIRED_KEYS, OPTIONAL_KEYS, str(path))
     if config["name"] != name or config["topic"] != topic.name:
         raise ValueError(f"{path} declares name '{config['name']}' and topic '{config['topic']}'")
-    short = config["short"]
-    if not short or not short.isascii() or "_" in short:
-        raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
+    short = check_short(config["short"], str(path))
 
     foreign = sorted(set(config["labels"]) - set(topic.options))
     if foreign:

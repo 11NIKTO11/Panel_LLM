@@ -39,6 +39,8 @@ from typing import Mapping, Tuple, Union
 
 import pandas as pd
 
+from panel.config import check_keys, check_short
+
 from .forms import Forms
 
 SLOT = re.compile(r"\{([a-z_0-9]+)(?:\|([a-z_0-9]+))?\}")
@@ -122,15 +124,10 @@ def load_template(path: Union[str, Path]) -> PromptTemplate:
     if not path.exists():
         raise FileNotFoundError(f"no description template at {path}")
     config = json.loads(path.read_text(encoding="utf-8"))
-    unknown = sorted(set(config) - REQUIRED_KEYS - OPTIONAL_KEYS)
-    missing = sorted(REQUIRED_KEYS - set(config))
-    if unknown or missing:
-        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    check_keys(config, REQUIRED_KEYS, OPTIONAL_KEYS, str(path))
     if config["name"] != path.stem:
         raise ValueError(f"{path} declares name '{config['name']}'")
-    short = config["short"]
-    if not short or not short.isascii() or "_" in short:
-        raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
+    short = check_short(config["short"], str(path))
     sentences, stored = tuple(tuple(block) for block in config["sentences"]), bool(config.get("stored", False))
     if stored and sentences:
         raise ValueError(f"{path}: a stored description is not rendered and has no sentences")

@@ -34,6 +34,7 @@ from typing import Dict, List, Union
 import pandas as pd
 
 from panel import paths
+from panel.config import check_keys, check_short
 
 from .vocabulary import Topic
 
@@ -103,9 +104,7 @@ def question_names(topic: str, language: str, topics_dir: Union[str, Path] = pat
     return sorted(path.stem for path in folder.glob("*.json") if language in _read(path)["languages"])
 
 
-def load_question(
-    topic: Topic, language: str, name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR
-) -> Question:
+def load_question(topic: Topic, language: str, name: str) -> Question:
     """
     Read one question of a topic in one language.
 
@@ -115,23 +114,18 @@ def load_question(
             keys, a name that disagrees with the file, a short that could not sit in a stem,
             forms without `by` or `by` without forms, or a fallback that is not one of the forms.
     """
-    path = Path(topics_dir) / topic.name / QUESTIONS_DIR / f"{name}.json"
+    path = topic.dir / QUESTIONS_DIR / f"{name}.json"
     if not path.exists():
         raise FileNotFoundError(f"no question '{name}' for topic '{topic.name}' at {path}")
     config = _read(path)
     if config["name"] != name:
         raise ValueError(f"{path} declares name '{config['name']}'")
-    short = config["short"]
-    if not short or not short.isascii() or "_" in short:
-        raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
+    short = check_short(config["short"], str(path))
     if language not in config["languages"]:
         raise ValueError(f"{path}: no '{language}' wording; it has {sorted(config['languages'])}")
 
     entry = config["languages"][language]
-    unknown = sorted(set(entry) - REQUIRED_KEYS - OPTIONAL_KEYS)
-    missing = sorted(REQUIRED_KEYS - set(entry))
-    if unknown or missing:
-        raise ValueError(f"{path}: '{language}' has unknown keys {unknown}, missing keys {missing}")
+    check_keys(entry, REQUIRED_KEYS, OPTIONAL_KEYS, f"{path}: '{language}'")
     text, by, fallback = entry["text"], entry.get("by"), entry.get("fallback")
     several = isinstance(text, dict)
     if several != (by is not None):

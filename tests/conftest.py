@@ -49,7 +49,7 @@ def legacy_topic() -> Topic:
 
 @pytest.fixture(scope="session")
 def legacy_framing(legacy_topic) -> Framing:
-    return load_framing(legacy_topic, LEGACY_FRAMING, TOPICS_DIR)
+    return load_framing(legacy_topic, LEGACY_FRAMING)
 
 
 @pytest.fixture(scope="session")

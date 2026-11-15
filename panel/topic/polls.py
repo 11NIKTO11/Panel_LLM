@@ -15,12 +15,8 @@ What others estimated for a topic's options: published polls, as data.
 poll is one more source to hold against the actual result, beside the runs. No model sees it.
 """
 import json
-from pathlib import Path
-from typing import Union
 
 import pandas as pd
-
-from panel import paths
 
 from .vocabulary import Topic
 
@@ -29,14 +25,14 @@ KEYS = {"polls", "note"}
 POLL_KEYS = {"shares", "url"}
 
 
-def load_polls(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> pd.DataFrame:
+def load_polls(topic: Topic) -> pd.DataFrame:
     """
     The topic's polls, one row per poll, a column per option; no rows if it has no `polls.json`.
 
     Raises:
         ValueError: on unknown keys, or a poll whose shares are not exactly the topic's options.
     """
-    path = Path(topics_dir) / topic.name / CONFIG_NAME
+    path = topic.dir / CONFIG_NAME
     options = list(topic.options)
     if not path.exists():
         return pd.DataFrame(columns=options, dtype=float)

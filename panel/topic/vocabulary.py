@@ -47,6 +47,7 @@ from typing import Dict, List, Tuple, Union
 import pandas as pd
 
 from panel import paths
+from panel.config import check_keys
 
 CONFIG_NAME = "topic.json"
 REQUIRED_KEYS = {"name", "reference", "turnout", "options"}
@@ -152,10 +153,7 @@ def load_topic(name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> To
     if not path.exists():
         raise FileNotFoundError(f"no topic at {path}")
     config = json.loads(path.read_text(encoding="utf-8"))
-    unknown = sorted(set(config) - REQUIRED_KEYS - OPTIONAL_KEYS)
-    missing = sorted(REQUIRED_KEYS - set(config))
-    if unknown or missing:
-        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    check_keys(config, REQUIRED_KEYS, OPTIONAL_KEYS, str(path))
     if config["name"] != name:
         raise ValueError(f"{path} declares name '{config['name']}'")
 

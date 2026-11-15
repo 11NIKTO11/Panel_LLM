@@ -17,10 +17,7 @@ use their own palette and name an option by its id.
 import json
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Dict, Tuple, Union
-
-from panel import paths
+from typing import Dict, Tuple
 
 from .vocabulary import Topic
 
@@ -43,7 +40,7 @@ class PlotStyle:
     last: Tuple[str, ...] = ()
 
 
-def load_plot_style(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> PlotStyle:
+def load_plot_style(topic: Topic) -> PlotStyle:
     """
     The topic's plot style, or the empty one if it has no `plot.json`.
 
@@ -51,7 +48,7 @@ def load_plot_style(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DI
         ValueError: on unknown keys, an id the topic does not have, colours for only some of
             the options or one turnout column, or a colour that is not `#rrggbb`.
     """
-    path = Path(topics_dir) / topic.name / CONFIG_NAME
+    path = topic.dir / CONFIG_NAME
     if not path.exists():
         return PlotStyle()
     config = json.loads(path.read_text(encoding="utf-8"))

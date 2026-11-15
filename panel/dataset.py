@@ -46,6 +46,7 @@ from typing import Dict, List, Tuple, Union
 import pandas as pd
 
 from panel import paths
+from panel.config import check_keys, check_short
 
 CONFIG_NAME = "dataset.json"
 FORMS_NAME = "forms.json"
@@ -156,6 +157,10 @@ class Dataset:
     def prompts_path(self, description: str) -> Path:
         return self.data_dir / "prompts" / f"{description}.csv"
 
+    def built_from(self, description: str) -> Dict[str, Path]:
+        """The files a run of one description is built from, by the name its record gives their digests."""
+        return {"values": self.values_path, "prompts": self.prompts_path(description), "forms": self.forms_path}
+
 
 @dataclass(frozen=True)
 class Claims:
@@ -187,15 +192,10 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
     if not path.exists():
         raise FileNotFoundError(f"no dataset declaration at {path}")
     config = json.loads(path.read_text(encoding="utf-8"))
-    unknown = sorted(set(config) - REQUIRED_KEYS - OPTIONAL_KEYS)
-    missing = sorted(REQUIRED_KEYS - set(config))
-    if unknown or missing:
-        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    check_keys(config, REQUIRED_KEYS, OPTIONAL_KEYS, str(path))
     if config["name"] != name:
         raise ValueError(f"{path} declares name '{config['name']}'")
-    short = config["short"]
-    if not short or not short.isascii() or "_" in short:
-        raise ValueError(f"{path}: short '{short}' must be non-empty ASCII without underscores")
+    short = check_short(config["short"], str(path))
 
     columns = tuple(config["columns"])
     if not columns or len(set(columns)) != len(columns):
@@ -248,10 +248,7 @@ def load_claims(dataset: Dataset, topic: str) -> Claims:
     ref = dataset.claims[topic]
     path = dataset.dir / ref.map
     config = json.loads(path.read_text(encoding="utf-8"))
-    unknown = sorted(set(config) - MAP_KEYS - MAP_OPTIONAL_KEYS)
-    missing = sorted(MAP_KEYS - set(config))
-    if unknown or missing:
-        raise ValueError(f"{path}: unknown keys {unknown}, missing keys {missing}")
+    check_keys(config, MAP_KEYS, MAP_OPTIONAL_KEYS, str(path))
     answers = list(config["options"]) + list(config["abstained"]) + list(config["excluded"])
     if len(set(answers)) != len(answers):
         raise ValueError(f"{path}: an answer is sorted into more than one group")

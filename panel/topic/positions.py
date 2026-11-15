@@ -4,6 +4,7 @@ Where experts place a topic's options: positions on rated items, as data.
 `config/topics/<name>/positions.json`, optional:
 
     {
+        "scale": [0, 10],
         "axes": {
             "x": {"item": "lrecon", "label": "economic left (0) - right (10)"},
             "y": {"item": "galtan", "label": "GAL (0) - TAN (10)"}
@@ -13,23 +14,21 @@ Where experts place a topic's options: positions on rated items, as data.
         "note": "free text, ignored by code"
     }
 
-`positions` rates some of the topic's options, every one on the same items; `axes` names the
+`positions` rates some of the topic's options, every one on the same items; `scale` is the
+lowest and the highest rating an item can get, which a map's axes span; `axes` names the
 two items a map is drawn in; `spread` gives each item's mean and standard deviation in the
 population the ratings come from, to put the items on one scale. No model sees this file.
 """
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Tuple, Union
 
 import pandas as pd
 
-from panel import paths
-
 from .vocabulary import Topic
 
 CONFIG_NAME = "positions.json"
-KEYS = {"axes", "positions", "spread", "note"}
+KEYS = {"scale", "axes", "positions", "spread", "note"}
 
 
 @dataclass(frozen=True)
@@ -40,11 +39,13 @@ class Positions:
         axes: the two items of the map, x then y.
         labels: item -> axis label, for the two axes.
         spread: indexed by item, the columns `mean` and `std`.
+        scale: the lowest and the highest rating an item can get.
     """
     table: pd.DataFrame
     axes: Tuple[str, str]
     labels: Dict[str, str]
     spread: pd.DataFrame
+    scale: Tuple[float, float]
 
     @property
     def plane(self) -> pd.DataFrame:
@@ -57,7 +58,7 @@ class Positions:
         return (self.table - self.spread["mean"]) / self.spread["std"]
 
 
-def load_positions(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> Union[Positions, None]:
+def load_positions(topic: Topic) -> Union[Positions, None]:
     """
     The topic's expert positions, or None if it has no `positions.json`.
 
@@ -65,7 +66,7 @@ def load_positions(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DIR
         ValueError: on unknown or missing keys, an option the topic does not have, options
             rated on different items, or an axis or spread that does not match the items.
     """
-    path = Path(topics_dir) / topic.name / CONFIG_NAME
+    path = topic.dir / CONFIG_NAME
     if not path.exists():
         return None
     config = json.loads(path.read_text(encoding="utf-8"))
@@ -80,4 +81,5 @@ def load_positions(topic: Topic, topics_dir: Union[str, Path] = paths.TOPICS_DIR
     return Positions(
         table=table.loc[[option for option in topic.options if option in table.index]], axes=axes,
         labels={config["axes"][side]["item"]: config["axes"][side]["label"] for side in ("x", "y")}, spread=spread.loc[table.columns],
+        scale=(float(config["scale"][0]), float(config["scale"][1])),
     )
