@@ -5,9 +5,10 @@ Names make runs groupable; the copied text makes a record self-contained, so a l
 template or a framing cannot change what a past run meant. Legacy records under
 the legacy shape keep it; nothing rewrites them.
 
-A run someone else sent and delivered as a table carries a `delivered` block instead of what
-it was sent: its description and framing are names without text, so it is read but never
-resolved or checked.
+A run that exists only as a table - one someone else sent and delivered, or one of ours of
+which only the aggregate was kept - carries a `delivered` block saying what its rows are. It
+is read but never checked; someone else's has a description and a framing that are names
+without text, so it cannot be resolved either.
 """
 import subprocess
 import sys

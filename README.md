@@ -241,7 +241,7 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | `sod` | 3880 survey respondents, keyed by the survey's `id` | cs | `python -m datasets.sod.prepare` |
 | `sod_en` | the same respondents, the survey's English edition | en | not ported, out of the tree |
 | `grid` | 288 synthetic profiles, the full factorial of `grid_income3.json` | cs | not ported, out of the tree |
-| `regions` | the country and its 14 regions, for place-level prompts | cs | `python prepare.py regions` |
+| `regions` | the country and its 14 regions, for place-level prompts; `direct_legacy` is `direct` as sent in 2025, stored | cs | `python prepare.py regions` |
 
 - `dataset.json` declares the language of the values, the columns every row must carry, the
   descriptions rendered for it, and per topic a *claims map* (`claims/<topic>.json`) sorting the

@@ -48,7 +48,7 @@ def main() -> None:
     settings = {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
     print(describe(run))
     if DELIVERED in run.record:
-        print(f"\ndelivered, not sent from here - nothing to check: {run.record[DELIVERED]['note']}")
+        print(f"\nkept as a delivered table - nothing to check: {run.record[DELIVERED]['note']}")
     else:
         print(f"\n{report(check(resolve(run.spec), store), len(run.options))}")
     for name, analysis in ANALYSES.items():

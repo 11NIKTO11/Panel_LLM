@@ -1092,3 +1092,50 @@ results/<topic>/
   - not migrated: the trial runs outside `results/` (§14) and anything under `_delete/`
   - `migrate_results.py` is spent; `migrate_grid.py` (spent too) was pointed at the new paths
 - rejected: keeping `<stem>.csv` names inside the run folder - the path length above
+
+## 25. The place-level tables of 2025 are runs (2026-11-14)
+
+`LLM_preferences/`: eight tables, two per GPT model (4.1-nano, 4o-mini, 4.1, 4o). For the
+country and each region the model was asked ten times at temperature 0 - as an inhabitant
+(`citizen_prompt`) or for the result outright (`direct_prompt`) - and only the aggregate of
+the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <dir>]]`, one-off.
+
+- **Each table is a run over `regions`**, framing `cs_legacy`, `OpenAI`, `Prob`, `t=0.0`, `x10`:
+  - `regions_citizen_cslegacy_legacy_OpenAI_<model>_Prob_t=0.0_x10`: description `citizen`,
+    question `legacy` - together word for word what was sent
+  - `regions_directlegacy_cslegacy_OpenAI_<model>_Prob_t=0.0_x10`: the stored, standalone
+    description `direct_legacy`
+- **`direct_legacy`** is `direct` as the notebook of 2025 worded it: the preposition never
+  vocalised (`v Středočeském kraji`, `v Zlínském kraji`). Two of fifteen prompts differ from
+  `direct`, so the runs could not name `direct`; its prompt table was written once by the
+  migration, like `sod`'s `legacy`
+- **One row per area, with a `delivered` block** (`averaged: 10`), as the colleague's means
+  have: `repeat` is 1, the stem says x10 because ten calls were made. The table is copied to
+  the run's `delivered/`
+  - what a row is: turnout is the mean; an option's share is the mean of the answers' shares,
+    each normalized and weighted by its probability of voting, then rescaled to sum to 1
+    (`aggregate_results_from_df` of that time) - not a mean answer. The spread over the ten
+    answers is lost
+  - unlike the colleague's, these resolve: description, framing, question and schema are
+    today's files. They are not checked - fifteen rows stand for a hundred and fifty calls
+  - the prompts are rebuilt from the notebook (`election_preferences.ipynb`, last at commit
+    `79b2189`), compared with today's rendering for all fifteen areas; no saved file held them
+  - unknown: the date of the runs, and whether that commit is the notebook exactly as run
+- `legacy_stems` in the tests now means the legacy framing and a `migrated` block, since these
+  runs carry the legacy framing too; `tests/test_latent_results.py` covers them
+- **Not a run**: `results/election_2021/preferences/LatentPreferences.csv`, an older table of
+  one country-level row per model whose prompt is not known, with its four figures
+  (`latent_<model>.png`). Its numbers are neither the `citizen` nor the `direct` row for Česko
+
+### 25.1 What else was sorted the same day
+
+- the figures of 2025 (`_to_sort/graphs/`, 36 of 40) sit in their run's `plots/2025/` under
+  their old names; a name without a shape is the `Prob` run and `_single` the `Pick` run -
+  matched by the numbers in the figure for gpt-4o and gpt-4.1-nano, by the name for the rest
+- `LLM_Panel_one_party/` (the tables given to the colleague) equal the four `Pick` runs number
+  for number - nothing to migrate
+- `tmp/skiped` (subjects skipped by gpt-4o-mini and gpt-4.1 in 2025) belongs to no saved run:
+  every legacy run has all 3880 subjects
+- parked in `_delete/`, for Martin to remove: `tmp/docs/`, `tmp/skiped`, `_to_sort/unported/`
+  (`sod_en` and the old `grid`, never run; last tracked at `ccea2c6`)
+- `migrate_latent.py` is spent

@@ -17,11 +17,12 @@ comparison, with the runs it was made from.
     |   |-- archive/                <timestamp>.csv + <timestamp>_run.json, one pair per save
     |   |-- analysis/               tables derived from the run: <statistic>.csv
     |   |-- plots/                  figures derived from the run: <name>.png
-    |   `-- delivered/              for a run someone else sent: the table as delivered
+    |   `-- delivered/              for a run kept only as a table: the table as delivered
     |-- comparisons/<name>/
     |   |-- runs.json               label -> stem: the runs this comparison was made from
     |   |-- analysis/               <statistic>.csv
     |   `-- plots/                  <name>.png
+    |-- preferences/                pre-RunSpec tables that map to no run, with their figures
     `-- <name>_claimed_votes.csv    topic-level reference series (legacy)
 
 One folder per topic: runs on different topics answer with different vocabularies and cannot
