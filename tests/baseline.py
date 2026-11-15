@@ -9,9 +9,6 @@ does it.
 
 Writes under tests/fixtures/:
     manifest.json             when, from which commit, with which library versions
-    prompt_tables.json        row count and digest per stored prompt table, keyed
-                              <dataset>/<description>, after checking that rendering from
-                              the dataset's profile reproduces it
     schemas/<topic>/<framing>.json   the response schemas a run on that topic under that framing
                               is shown; for the legacy topic the frozen copy from its results config.json
     legacy_aggregates.json    country-level aggregation per legacy run, per CSV, for all
@@ -31,16 +28,12 @@ import numpy as np
 import pandas as pd
 import pydantic
 
-from panel.dataset import dataset_names, load_dataset, profile_path, read_profile
-from panel.describe.render import render
-from panel.describe.tables import read_table
-from panel.describe.template import load_description
 from panel.run import ResultStore
 from panel.topic import framing_names, load_framing, load_topic, make_response_models, topic_names
 
 from tests.conftest import FIXTURES, LEGACY_FRAMING, LEGACY_TOPIC, RESULTS_DIR, ROOT, TOPICS_DIR
 from tests.snapshots import (
-    aggregate_all, frame_digest, json_shape, models_by_name, prompt_table_digest, reparse,
+    aggregate_all, frame_digest, json_shape, models_by_name, reparse,
     schema_snapshot,
 )
 
@@ -58,35 +51,13 @@ def _write(path: Path, payload) -> None:
     print(f"wrote {path.relative_to(ROOT).as_posix()}")
 
 
-def prompt_tables() -> Dict:
-    """
-    Digest each stored prompt table of each prepared dataset, after rendering it again.
-
-    Raises:
-        RuntimeError: if rendering does not reproduce a stored table exactly.
-    """
-    out = {}
-    for name in dataset_names():
-        dataset = load_dataset(name)
-        if not dataset.descriptions or not profile_path(dataset).exists():
-            continue
-        profile = read_profile(dataset)
-        for description in dataset.descriptions:
-            rendered = render(dataset, load_description(description), profile)
-            stored = read_table(dataset.name, description).iloc[:, 0]
-            if not rendered.index.equals(stored.index) or int((rendered.values != stored.values).sum()):
-                raise RuntimeError(f"{dataset.name}/{description}: rendering differs from the stored table")
-            out[f"{dataset.name}/{description}"] = prompt_table_digest(stored)
-    return out
-
-
 def schemas() -> Dict[str, Dict]:
     """Today's generated schemas per topic and framing, keyed <topic>/<framing>; what the legacy runs were shown is `legacy_schema_sent`."""
     out = {}
     for name in topic_names(TOPICS_DIR):
         topic = load_topic(name, TOPICS_DIR)
         for framing_name in framing_names(name, TOPICS_DIR):
-            framing = load_framing(topic, framing_name, TOPICS_DIR)
+            framing = load_framing(topic, framing_name)
             out[f"{name}/{framing_name}"] = schema_snapshot(*make_response_models(topic, framing))
     return out
 
@@ -99,7 +70,7 @@ def legacy_runs() -> Tuple[Dict, Dict]:
         RuntimeError: if a run's raw JSON does not reparse to its stored CSV.
     """
     topic = load_topic(LEGACY_TOPIC, TOPICS_DIR)
-    models = models_by_name(topic, load_framing(topic, LEGACY_FRAMING, TOPICS_DIR))
+    models = models_by_name(topic, load_framing(topic, LEGACY_FRAMING))
     store = ResultStore(RESULTS_DIR, LEGACY_TOPIC)
     aggregates, reparsed = {}, {}
     for stem in store.runs():
@@ -131,7 +102,6 @@ def main(argv=None) -> None:
     if (FIXTURES / "manifest.json").exists() and not args.overwrite:
         sys.exit(f"{FIXTURES} already holds a baseline; pass --overwrite to retake it")
 
-    _write(FIXTURES / "prompt_tables.json", prompt_tables())
     for name, snapshot in schemas().items():
         _write(FIXTURES / "schemas" / f"{name}.json", snapshot)
     aggregates, reparsed = legacy_runs()
