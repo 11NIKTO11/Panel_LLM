@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 
-from .style import EDGE, INK, MUTED, NEUTRAL, PANEL, SURFACE, clean
+from .style import INK, MUTED, NEUTRAL, SURFACE, finish, framed
 
 
 def maps(
@@ -49,13 +49,9 @@ def maps(
     for ax in axes[len(panels):]:
         ax.set_visible(False)
     for ax, (name, points) in zip(axes, panels.items()):
-        clean(ax)
-        ax.set_facecolor(PANEL)
+        framed(ax)
         ax.grid(axis="y", color=SURFACE, linewidth=0.8)
         ax.grid(axis="x", color=SURFACE, linewidth=0.8)
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_color(EDGE)
         for point, (x, y) in points.iterrows():
             color = colors.get(point, NEUTRAL)
             wanted = target.loc[point]
@@ -76,9 +72,4 @@ def maps(
         [Line2D([], [], marker="o", linestyle="", color=NEUTRAL), Line2D([], [], marker="x", linestyle="", color=NEUTRAL, markeredgewidth=2.2)],
         list(names), loc="lower center", ncols=2, frameon=False, fontsize=10, bbox_to_anchor=(0.5, 0),
     )
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0.95 / height, 1, 1 - (0.6 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note, bottom=0.95, noted=0.6)

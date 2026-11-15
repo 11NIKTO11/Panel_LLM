@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
 from matplotlib.figure import Figure
 
-from .style import INK, MUTED, SURFACE, legible, wrap
+from .style import INK, MUTED, SURFACE, finish, legible, wrap
 
 
 def heatmap(
@@ -58,12 +58,7 @@ def heatmap(
     bar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.03)
     bar.outline.set_visible(False)
     bar.ax.tick_params(length=0, colors=MUTED, labelsize=10)
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note)
 
 
 def grid(
@@ -108,12 +103,7 @@ def grid(
     ax.tick_params(which="both", length=0, colors=INK, labelsize=10)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note)
 
 
 def grids(
@@ -158,12 +148,7 @@ def grids(
         for spine in ax.spines.values():
             spine.set_visible(False)
     axes[-1].set_xticks(range(first.shape[1]), [str(column) for column in first.columns], rotation=30, ha="right", rotation_mode="anchor")
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note)
 
 
 def images(
@@ -198,8 +183,4 @@ def images(
         if xlabel:
             ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
     fig.colorbar(image, ax=list(axes), shrink=0.6, label="probability")
-    if title:
-        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    return fig
+    return finish(fig, height, title, note, tight=False)

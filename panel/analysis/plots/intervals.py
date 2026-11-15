@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .style import EDGE, INK, MUTED, PANEL, SERIES, SURFACE, clean
+from .style import INK, MUTED, SERIES, SURFACE, finish, framed
 
 
 def interval_panels(
@@ -53,11 +53,7 @@ def interval_panels(
         ax.set_visible(False)
     y = np.arange(len(table))
     for ax, column in zip(axes, columns):
-        clean(ax)
-        ax.set_facecolor(PANEL)
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_color(EDGE)
+        framed(ax)
         scale = 100 if column in percent else 1
         values = table[column].to_numpy(dtype=float) * scale
         if bars:
@@ -82,9 +78,4 @@ def interval_panels(
     for ax in grid[:, 0]:
         ax.set_yticks(y, [str(row) for row in table.index])
     axes[0].set_ylim(len(table) - 0.5, -0.6)
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2, h_pad=1.6)
-    return fig
+    return finish(fig, height, title, note, w_pad=2.2, h_pad=1.6)

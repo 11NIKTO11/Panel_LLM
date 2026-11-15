@@ -4,7 +4,7 @@ from typing import Mapping, Sequence, Union
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .style import INK, MUTED, SERIES, SURFACE, clean
+from .style import INK, MUTED, SERIES, SURFACE, clean, finish
 
 
 def curves(
@@ -47,12 +47,7 @@ def curves(
     ax.set_xlabel(xlabel or x, fontsize=10, color=INK)
     ax.set_ylabel(ylabel or y, fontsize=10, color=INK)
     ax.legend(frameon=False, fontsize=9, loc="upper left")
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note)
 
 
 def line_panels(
@@ -108,9 +103,4 @@ def line_panels(
         ax.tick_params(axis="x", labelsize=9, colors=INK)
     handles, names = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, names, loc="lower center", ncol=min(len(names), 4), frameon=False, fontsize=9)
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, (0.3 + 0.25 * -(-len(names) // 4)) / height, 1, 1 - (0.6 if note else 0.3) / height), w_pad=2.0, h_pad=1.4)
-    return fig
+    return finish(fig, height, title, note, bottom=0.3 + 0.25 * -(-len(names) // 4), noted=0.6, w_pad=2.0, h_pad=1.4)

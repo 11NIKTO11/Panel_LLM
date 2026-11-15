@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 
-from .style import INK, MUTED, NEUTRAL, SURFACE, clean, tint, wrap
+from .style import INK, MUTED, NEUTRAL, SURFACE, clean, finish, tint, wrap
 
 
 def source_bars(
@@ -73,9 +73,4 @@ def source_bars(
 
     handles = [Patch(color=tint(NEUTRAL, strength[source])) if row_colors else Patch(color=colors[source]) for source in sources]
     fig.legend(handles, [names.get(source, source) for source in sources], loc="lower center", ncols=len(sources), frameon=False, fontsize=10, bbox_to_anchor=(0.5, 0))
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0.4 / height, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note, bottom=0.4)

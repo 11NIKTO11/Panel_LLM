@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .style import EDGE, INK, MUTED, NEUTRAL, PANEL, SERIES, SURFACE, clean, tint, wrap
+from .style import EDGE, INK, MUTED, NEUTRAL, PANEL, SERIES, SURFACE, clean, finish, framed, tint, wrap
 
 
 def violins(
@@ -51,12 +51,7 @@ def violins(
         ax.set_ylim(len(part) - 0.4, -0.6)
         ax.set_xlim(0, max(float(values[part].max().max()) * 1.03, 0.05))
         ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note)
 
 
 def histograms(
@@ -80,13 +75,9 @@ def histograms(
     fig = Figure(figsize=(4.4 * values.shape[1] + 0.6, height), facecolor=SURFACE)
     axes = fig.subplots(1, values.shape[1], squeeze=False)[0]
     for ax, column in zip(axes, values.columns):
-        clean(ax)
-        ax.set_facecolor(PANEL)
+        framed(ax)
         ax.grid(axis="x", visible=False)
         ax.grid(axis="y", color=SURFACE, linewidth=0.8)
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_color(EDGE)
         found = values[column].dropna().to_numpy(dtype=float)
         ax.hist(found, bins=bins, color=SERIES[0], edgecolor=PANEL, linewidth=0.6)
         ax.axvline(found.mean(), color=INK, linewidth=1)
@@ -94,29 +85,7 @@ def histograms(
         ax.set_title(column, fontsize=10, color=INK, loc="left", fontweight="bold")
         ax.tick_params(axis="y", colors=MUTED, labelsize=9)
     axes[0].set_ylabel(ylabel, fontsize=9, color=MUTED)
-    if title:
-        fig.suptitle(title, x=0.02, ha="left", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2)
-    return fig
-
-
-def _framed(ax) -> None:
-    clean(ax)
-    ax.set_facecolor(PANEL)
-    for spine in ax.spines.values():
-        spine.set_visible(True)
-        spine.set_color(EDGE)
-
-
-def _finish(fig: Figure, height: float, title: Union[str, None], note: Union[str, None]) -> Figure:
-    if title:
-        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0, 1, 1 - (0.5 if note else 0.3) / height), w_pad=2.2, h_pad=1.6)
-    return fig
+    return finish(fig, height, title, note, w_pad=2.2)
 
 
 def overlaid(
@@ -148,7 +117,7 @@ def overlaid(
     fig = Figure(figsize=(4.4 * min(per_row, len(panels)) + 0.6, height), facecolor=SURFACE)
     axes = fig.subplots(rows, min(per_row, len(panels)), squeeze=False).ravel()
     for ax, (panel, found) in zip(axes, panels.items()):
-        _framed(ax)
+        framed(ax)
         for name, values in found.items():
             values = np.asarray(values, dtype=float)
             ax.hist(values[~np.isnan(values)], bins=bins, density=True, color=palette[name], alpha=0.55, label=name)
@@ -161,7 +130,7 @@ def overlaid(
         ax.legend(fontsize=8, frameon=False)
     for ax in axes[len(panels):]:
         ax.set_visible(False)
-    return _finish(fig, height, title, note)
+    return finish(fig, height, title, note, w_pad=2.2, h_pad=1.6)
 
 
 def strips(
@@ -192,7 +161,7 @@ def strips(
     fig = Figure(figsize=(4.6 * min(per_row, len(panels)) + 1.2, height), facecolor=SURFACE)
     axes = fig.subplots(rows, min(per_row, len(panels)), squeeze=False).ravel()
     for ax, (panel, found) in zip(axes, panels.items()):
-        _framed(ax)
+        framed(ax)
         groups = list(found)
         data = [np.asarray(found[group], dtype=float) for group in groups]
         ax.boxplot(data, orientation="horizontal", widths=0.6, showfliers=False, patch_artist=True,
@@ -208,4 +177,4 @@ def strips(
             ax.set_xlabel(xlabel, fontsize=9, color=MUTED)
     for ax in axes[len(panels):]:
         ax.set_visible(False)
-    return _finish(fig, height, title, note)
+    return finish(fig, height, title, note, w_pad=2.2, h_pad=1.6)

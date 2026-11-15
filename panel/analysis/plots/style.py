@@ -1,10 +1,13 @@
 """Shared looks: the surface, a panel fill and edge, inks, a fixed colour per named series, two neutrals for
 what the series are held against (the reference and a second yardstick), a colour range
-per kind of heatmap (errors run hot, effect sizes in the legacy figure's range), label wrapping."""
+per kind of heatmap (errors run hot, effect sizes in the legacy figure's range, agreement green,
+shifts orange, distances purple), label wrapping,
+the framed panel, and the title and note every figure ends with."""
 import textwrap
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 
 from matplotlib.colors import to_rgb
+from matplotlib.figure import Figure
 
 SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
@@ -17,6 +20,9 @@ REFERENCE = "#1b1b1b"
 SECONDARY = "#a3a19b"
 ERRORS = "YlOrRd"
 EFFECTS = "cividis"
+AGREEMENT = "Greens"
+SHIFTS = "Oranges"
+DISTANCES = "Purples"
 SERIES = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948")
 
 
@@ -59,3 +65,38 @@ def clean(ax) -> None:
     ax.set_axisbelow(True)
     ax.tick_params(length=0, colors=MUTED, labelsize=9)
     ax.tick_params(axis="y", colors=INK, labelsize=10)
+
+
+def framed(ax) -> None:
+    """Axes as a panel of their own: `clean`, on the panel fill, with an edge all round."""
+    clean(ax)
+    ax.set_facecolor(PANEL)
+    for spine in ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color(EDGE)
+
+
+def finish(
+    fig: Figure, height: float, title: Union[str, None] = None, note: Union[str, None] = None,
+    bottom: float = 0.0, noted: float = 0.5, tight: bool = True, **pads: float,
+) -> Figure:
+    """
+    The title, top left and anchored by its top, the note under it, and the axes laid out below them.
+
+    Args:
+        fig: the figure, its axes drawn.
+        height: of the figure, in inches; everything here is placed in inches from an edge.
+        title: figure title.
+        note: a line under the title.
+        bottom: inches kept free under the axes, for a legend.
+        noted: inches kept free above the axes when there is a note; 0.3 without one.
+        tight: lay the axes out; off for a figure whose colour bar spans its axes.
+        pads: `w_pad`, `h_pad` of the layout.
+    """
+    if title:
+        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
+    if note:
+        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
+    if tight:
+        fig.tight_layout(rect=(0, bottom / height, 1, 1 - (noted if note else 0.3) / height), **pads)
+    return fig

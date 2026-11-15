@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 
-from .style import INK, MUTED, NEUTRAL, SERIES, SURFACE, clean, wrap
+from .style import NEUTRAL, SERIES, SURFACE, clean, finish, wrap
 
 
 def stacked_bars(
@@ -59,9 +59,4 @@ def stacked_bars(
         [Patch(color=colors.get(part, NEUTRAL)) for part in table.columns], [labels.get(part, part) for part in table.columns],
         loc="lower center", ncols=min(len(table.columns), 9), frameon=False, fontsize=9, bbox_to_anchor=(0.5, 0), handlelength=1, columnspacing=1.2,
     )
-    if title:
-        fig.suptitle(title, x=0.02, y=1 - 0.1 / height, ha="left", va="top", fontsize=13, color=INK, fontweight="bold")
-    if note:
-        fig.text(0.02, 1 - 0.42 / height, note, ha="left", va="top", fontsize=9, color=MUTED)
-    fig.tight_layout(rect=(0, 0.45 / height, 1, 1 - (0.5 if note else 0.3) / height))
-    return fig
+    return finish(fig, height, title, note, bottom=0.45)
