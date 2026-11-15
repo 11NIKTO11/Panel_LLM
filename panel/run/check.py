@@ -11,9 +11,8 @@ from typing import Dict, Tuple, Union
 
 import pandas as pd
 
-from panel.topic import Topic
+from panel.topic import Framing, Topic, make_response_models
 
-from .resolve import REPEAT, SUBJECT, Resolved
 from .store import ResultStore
 
 MEAN, TOP = "mean", "top"
@@ -33,13 +32,13 @@ class Check:
     """
     Attributes:
         stem: the run.
-        calls: calls the run laid out.
+        calls: calls the run laid out: its subjects times its repeats.
         answers: answers saved.
         same_calls: whether the saved answers are exactly those calls.
         model: the model id asked for.
         model_resolved: the one the provider reported, or None.
         subjects: subjects the run covers.
-        identical_prompts: subjects whose prompt is word for word another subject's.
+        identical_prompts: subjects whose saved prompt is word for word another subject's.
         missing: empty cells among the topic's columns of the results table.
         tolerance: how far a sum may be from 1.
         out_of_range: probabilities below 0 or above 1.
@@ -81,20 +80,31 @@ def _sums(totals: pd.Series, tolerance: float) -> Sums:
     return Sums(int(((totals - 1).abs() > tolerance).sum()), float(totals.min()), float(totals.max()))
 
 
-def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Check:
+def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, tolerance: float = 0.01) -> Check:
     """
-    Look over the saved run of a resolved spec.
+    Look over a saved run.
+
+    Args:
+        store: the topic's results.
+        stem: the run.
+        topic, framing: what the run answered and how it was worded; its saved answers are
+            parsed by their response model. Nothing of the dataset is read.
+        tolerance: how far a sum may be from 1.
 
     Raises:
         FileNotFoundError: if the store holds no such run.
     """
-    stem, topic = resolved.stem, resolved.topic
     record = store.record(stem)
-    loaded = store.load(stem, resolved.response_model)
+    spec, subjects = record["spec"], record["dataset"]["rows"]
+    response_model = {model.SHORT_NAME: model for model in make_response_models(topic, framing)}[spec["shape"]]
+    loaded = store.load(stem, response_model)
     responses = [response for _, response in loaded.values()]
     frame = topic.rename(store.frame(stem))
-    expected = {(int(subject), int(repeat)) for subject, repeat in zip(resolved.calls[SUBJECT], resolved.calls[REPEAT])}
-    probabilities = "options" in resolved.response_model.model_fields
+    expected = {(int(subject), repeat) for subject in subjects for repeat in range(1, spec["repeats"] + 1)}
+    prompts = {}
+    for (subject, _), (prompt, _) in sorted(loaded.items()):
+        prompts.setdefault(subject, prompt)
+    probabilities = "options" in response_model.model_fields
     options = list(topic.options)
 
     values = []
@@ -108,13 +118,13 @@ def check(resolved: Resolved, store: ResultStore, tolerance: float = 0.01) -> Ch
 
     return Check(
         stem=stem,
-        calls=len(resolved.calls),
+        calls=len(expected),
         answers=len(responses),
         same_calls=set(loaded) == expected,
-        model=resolved.spec.model,
+        model=spec["model"],
         model_resolved=record.get("model_resolved"),
-        subjects=len(resolved.rows),
-        identical_prompts=int(resolved.rows.apply(resolved.prompt, axis=1).duplicated(keep=False).sum()),
+        subjects=len(subjects),
+        identical_prompts=int(pd.Series(prompts, dtype=object).duplicated(keep=False).sum()),
         missing=int(frame[topic.columns].isna().sum().sum()),
         tolerance=tolerance,
         out_of_range=sum(not 0 <= value <= 1 for value in values),

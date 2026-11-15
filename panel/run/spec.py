@@ -76,6 +76,6 @@ class RunSpec:
         The spec a record stores, back as an object.
 
         Raises:
-            TypeError: on a legacy record's spec, whose fields are not these.
+            TypeError: on a record whose spec has other fields than these.
         """
         return cls(**record)

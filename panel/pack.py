@@ -18,7 +18,6 @@ from. A pack is refused when one of those files is no longer the one recorded - 
 run beside data it was not built from. A file the run names but that does not exist (the
 prompts of a run someone else sent) is listed as missing.
 """
-import hashlib
 import json
 import shutil
 from datetime import datetime
@@ -29,9 +28,9 @@ from panel import paths
 from panel.analysis import ANALYSES, NotApplicable, Output, load_run
 from panel.dataset import CONFIG_NAME as DATASET_NAME
 from panel.dataset import Dataset, load_dataset
+from panel.digest import recorded, sha256
 from panel.run import ResultStore, RunSpec
 from panel.run.record import git_state
-from panel.run.store import DIGEST_SUFFIX
 from panel.topic import Topic, load_topic, plot, polls, positions
 from panel.topic.framing import FRAMINGS_DIR
 from panel.topic.question import QUESTIONS_DIR
@@ -43,24 +42,15 @@ DATASET_DIR = "dataset"
 TOPIC_DIR = "topic"
 
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def _origin(path: Path) -> str:
     """A path as the manifest names it: relative to the repo when inside it."""
     path = path.resolve()
     return (path.relative_to(paths.ROOT) if path.is_relative_to(paths.ROOT) else path).as_posix()
 
 
-def _built_from(dataset: Dataset, spec: RunSpec) -> Dict[str, Path]:
-    """Digest name of a record -> the file it is the sha256 of."""
-    return {"values": dataset.values_path, "prompts": dataset.prompts_path(spec.description), "forms": dataset.forms_path}
-
-
 def _named(dataset: Dataset, topic: Topic, spec: RunSpec) -> Dict[str, Path]:
     """Pack path -> the file of the dataset or the topic that the run names, existing or not."""
-    of_dataset = [dataset.dir / DATASET_NAME, dataset.description_path(spec.description), *_built_from(dataset, spec).values()]
+    of_dataset = [dataset.dir / DATASET_NAME, dataset.description_path(spec.description), *dataset.built_from(spec.description).values()]
     if topic.name in dataset.claims:
         of_dataset.append(dataset.dir / dataset.claims[topic.name].map)
     of_topic = [topic.dir / TOPIC_NAME, topic.dir / FRAMINGS_DIR / f"{spec.framing}.json"]
@@ -74,7 +64,10 @@ def _named(dataset: Dataset, topic: Topic, spec: RunSpec) -> Dict[str, Path]:
     return named
 
 
-def pack(store: ResultStore, stem: str, to: Union[str, Path] = paths.PACKS_DIR, derive: bool = True) -> Path:
+def pack(
+    store: ResultStore, stem: str, to: Union[str, Path] = paths.PACKS_DIR, derive: bool = True,
+    datasets_dir: Union[str, Path] = paths.DATASETS_DIR, topics_dir: Union[str, Path] = paths.TOPICS_DIR,
+) -> Path:
     """
     Write one run's pack.
 
@@ -95,14 +88,14 @@ def pack(store: ResultStore, stem: str, to: Union[str, Path] = paths.PACKS_DIR, 
     """
     record = store.record(stem)
     spec = RunSpec.from_dict(record["spec"])
-    dataset, topic = load_dataset(spec.dataset), load_topic(spec.topic)
+    dataset, topic = load_dataset(spec.dataset, datasets_dir), load_topic(spec.topic, topics_dir)
     folder = Path(to) / store.topic / stem
     if folder.exists():
         raise FileExistsError(f"{folder} exists; a pack is not written over - remove it or pack elsewhere")
 
-    recorded = {key[:-len(DIGEST_SUFFIX)]: digest for key, digest in record["dataset"].items() if key.endswith(DIGEST_SUFFIX)}
-    files = {name: path for name, path in _built_from(dataset, spec).items() if recorded.get(name) and path.exists()}
-    changed = sorted(_origin(path) for name, path in files.items() if sha256(path) != recorded[name])
+    digests = recorded(record["dataset"])
+    files = {name: path for name, path in dataset.built_from(spec.description).items() if digests.get(name) and path.exists()}
+    changed = sorted(_origin(path) for name, path in files.items() if sha256(path) != digests[name])
     if changed:
         raise ValueError(f"'{stem}' was built from other files than today's {changed}: its record gives another sha256")
 
@@ -118,7 +111,7 @@ def pack(store: ResultStore, stem: str, to: Union[str, Path] = paths.PACKS_DIR, 
     skipped = {}
     if derive:
         out = Output(folder / RUN_DIR)
-        run = load_run(store, stem)
+        run = load_run(store, stem, datasets_dir=datasets_dir, topics_dir=topics_dir)
         for name, analysis in ANALYSES.items():
             try:
                 analysis(run, out)
@@ -133,8 +126,8 @@ def pack(store: ResultStore, stem: str, to: Union[str, Path] = paths.PACKS_DIR, 
         "packed_at": datetime.now().isoformat(timespec="seconds"),
         **git_state(),
         "spec": record["spec"],
-        "built_from": {name: {"file": f"{DATASET_DIR}/{path.relative_to(dataset.dir).as_posix()}", "sha256": recorded[name]} for name, path in files.items()},
-        "unverified": sorted(set(_built_from(dataset, spec)) - set(files)),
+        "built_from": {name: {"file": f"{DATASET_DIR}/{path.relative_to(dataset.dir).as_posix()}", "sha256": digests[name]} for name, path in files.items()},
+        "unverified": sorted(set(dataset.built_from(spec.description)) - set(files)),
         "missing": sorted(name for name, path in named.items() if not path.exists()),
         "derived": derive,
         "not_applicable": skipped,

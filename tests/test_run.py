@@ -5,7 +5,6 @@ import shutil
 import pytest
 
 from panel import paths
-from panel.analysis import validate
 from panel.dataset import load_dataset
 from panel.run import ResultStore, RunSpec, execute, resolve
 from panel.run.check import MEAN, TOP, check, means, report
@@ -64,7 +63,7 @@ def test_execute_offline(tmp_path):
     record = store.record(run.stem)
     assert RunSpec.from_dict(record["spec"]) == SOD
     assert resolve(RunSpec.from_dict(record["spec"])).stem == run.stem
-    assert record["response_schema"] == run.response_model.model_json_schema()
+    assert record["response_schema"] == record["response_schema_sent"] == run.response_model.model_json_schema()
     assert record["framing"]["instructions"] == run.framing.instructions and record["n"] == 20
     assert "question" not in record["framing"] and record["question"]["forms"] == run.question.forms
     assert {name: record["dataset"][f"{name}_sha256"] for name in run.digests} == run.digests
@@ -74,8 +73,6 @@ def test_execute_offline(tmp_path):
     loaded = store.load(run.stem, run.response_model)
     assert set(loaded) == {(int(i), 1) for i in run.rows.index}
     assert all(result.options for _, result in loaded.values())
-    bad_turnout, bad_options, duplicates = validate.evaluate_voting_results(loaded)
-    assert not bad_turnout and not bad_options and not duplicates
     assert store.runs() == [run.stem] and written.results_csv.exists()
 
 
@@ -83,9 +80,9 @@ def test_check_of_a_saved_run(tmp_path):
     run = prepared(SOD)
     store = ResultStore(tmp_path, SOD.topic)
     with pytest.raises(FileNotFoundError):
-        check(run, store)
+        check(store, run.stem, run.topic, run.framing)
     execute(run, store, FakeClient(), max_workers=4)
-    result = check(run, store)
+    result = check(store, run.stem, run.topic, run.framing)
     total = len(run.topic.options)
     assert result.answers == result.calls == 20 and result.same_calls and result.model_resolved == "fake-model-fake"
     assert result.missing == 0 and result.out_of_range == 0 and result.duplicates == 0
@@ -99,7 +96,7 @@ def test_check_of_a_saved_run(tmp_path):
 
     pick = prepared(SOD.variant(shape="Pick"))
     execute(pick, store, FakeClient(), max_workers=4)
-    picked = check(pick, store)
+    picked = check(store, pick.stem, pick.topic, pick.framing)
     assert picked.options is None and picked.undefined is None and picked.both is None and picked.turnout.off == 0
     assert abs(means(store.frame(pick.stem), pick.topic).loc[list(pick.topic.options), MEAN].sum() - 1) < 1e-9
     assert pick.stem in report(picked, total)
@@ -174,7 +171,7 @@ def test_standalone_description_is_the_whole_prompt(tmp_path):
     store = ResultStore(tmp_path, DIRECT.topic)
     execute(run, store, FakeClient(), max_workers=4)
     assert len(store.frame(run.stem)) == 45 and store.record(run.stem)["question"] is None
-    result = check(run, store)
+    result = check(store, run.stem, run.topic, run.framing)
     assert result.answers == result.calls == 45 and result.same_calls and result.subjects == 15 and result.identical_prompts == 0
 
 

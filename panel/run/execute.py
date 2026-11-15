@@ -2,8 +2,7 @@
 Send a resolved run and save what comes back: the one loop that turns a spec into files.
 
 The batch runner handles per-call retries; this module handles what is left after a batch -
-capped rerun rounds over the skipped calls, then a refusal if any remain - and the double save:
-an archived copy first, then the plain files a stem is loaded by.
+capped rerun rounds over the skipped calls, then a refusal if any remain - and the save.
 """
 from panel.llm import BaseLLMClient, run_llm_batch
 
@@ -33,15 +32,17 @@ def execute(
         overwrite: replace a run of a different spec that already holds the stem.
 
     Returns:
-        The plain paths written (the archived copy is written first).
+        The plain paths written; an archived copy is written beside them.
 
     Raises:
         RuntimeError: if calls are still unprocessed after the rerun rounds.
+        ValueError: if the client cannot say what schema it sends, before any call is made.
         FileExistsError: if the stem already holds a run of a different spec.
         ValueError: if the store belongs to another topic.
     """
     calls = resolved.calls
     spec = resolved.spec
+    client.schema_sent(spec.model, resolved.response_model)
     settings = dict(
         prompt_creator=resolved.prompt, response_model=resolved.response_model, model=spec.model,
         temperature=spec.temperature, client=client, instructions=resolved.framing.instructions,
@@ -57,5 +58,4 @@ def execute(
         raise RuntimeError(
             f"{len(skipped)} of {len(calls)} calls unprocessed after {rounds} rerun rounds, e.g. calls {skipped[:10]}"
         )
-    store.save(resolved, results, client, timestamped=True, overwrite=overwrite)
-    return store.save(resolved, results, client, timestamped=False, overwrite=overwrite)
+    return store.save(resolved, results, client, overwrite=overwrite)

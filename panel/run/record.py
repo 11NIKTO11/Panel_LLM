@@ -2,8 +2,7 @@
 The run record: what a saved run was, in enough detail to audit it without the code.
 
 Names make runs groupable; the copied text makes a record self-contained, so a later edit of a
-template or a framing cannot change what a past run meant. Legacy records under
-the legacy shape keep it; nothing rewrites them.
+template or a framing cannot change what a past run meant.
 
 A run that exists only as a table - one someone else sent and delivered, or one of ours of
 which only the aggregate was kept - carries a `delivered` block saying what its rows are. It
@@ -21,6 +20,7 @@ import pandas as pd
 import pydantic
 
 from panel import paths
+from panel.digest import named
 from panel.llm import BaseLLMClient
 
 from .resolve import Resolved
@@ -58,7 +58,8 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         resolved: the run as sent.
         n: how many calls came back.
         saved_at: when the files were written.
-        client: the client that made the calls, for the model id the provider reported.
+        client: the client that made the calls, for the model id the provider reported and the
+            schema as that client sends it - `response_schema` is the one the run generated.
     """
     spec, dataset, description, framing = resolved.spec, resolved.dataset, resolved.description, resolved.framing
     question = resolved.question
@@ -71,7 +72,7 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         "dataset": {
             "name": dataset.name, "short": dataset.short, "language": dataset.language,
             "rows": [int(subject) for subject in resolved.rows.index],
-            **{f"{name}_sha256": digest for name, digest in resolved.digests.items()},
+            **named(resolved.digests),
         },
         "description": {
             "name": description.name, "short": description.short,
@@ -88,6 +89,7 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
             "shared": shared and {"column": shared.column, "map": shared.map},
         },
         "response_schema": resolved.response_model.model_json_schema(),
+        "response_schema_sent": client.schema_sent(spec.model, resolved.response_model) if client else None,
         "model_resolved": getattr(client, "last_model", None) if client else None,
         **git_state(),
         "versions": versions(),

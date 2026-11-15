@@ -31,7 +31,7 @@ def test_ours_resolve_check_and_carry_the_schema_sent(stem, store):
     resolved = resolve(RunSpec.from_dict(record["spec"]))
     assert resolved.stem == stem and record["response_schema"] == load_fixture("grid_schema_sent")["VotingProbabilities"]
     assert len(record["migrated"]["repeats"]) == OURS[stem]
-    done = check(resolved, store)
+    done = check(store, stem, resolved.topic, resolved.framing)
     assert done.same_calls and done.missing == 0 and done.out_of_range == 0
     assert len(load_run(store, stem).results) == OURS[stem] * len(resolved.rows)
 

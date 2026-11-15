@@ -21,7 +21,7 @@ import argparse
 from dotenv import load_dotenv
 
 from panel import paths
-from panel.run import ResultStore, execute, resolve
+from panel.run import Resolved, ResultStore, execute, resolve
 from panel.run.check import check, means, report
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
@@ -33,6 +33,11 @@ def listing(base: dict, presets: dict, kind: tuple) -> str:
     rows = {"(base)": {}, **presets}
     width = max(map(len, rows))
     return "\n".join(f"  {name:<{width}}  " + "  ".join(f"{field}={ {**base, **preset}[field] }" for field in kind) for name, preset in rows.items())
+
+
+def looked_over(run: Resolved, store: ResultStore) -> str:
+    """The check of a saved run and the means of its answers, as text."""
+    return f"{report(check(store, run.stem, run.topic, run.framing), len(run.topic.options))}\n\n{means(run.topic.rename(store.frame(run.stem)), run.topic).round(3).to_string()}"
 
 
 def main() -> None:
@@ -61,7 +66,7 @@ def main() -> None:
     run = resolve(spec)
     store = ResultStore(paths.RESULTS_DIR, spec.topic)
     if args.check:
-        print(f"{report(check(run, store), len(run.topic.options))}\n\n{means(run.topic.rename(store.frame(run.stem)), run.topic).round(3).to_string()}")
+        print(looked_over(run, store))
         return
     saved = store.paths(run.stem).record.exists()
     print(f"{run.stem}: {len(run.calls)} calls over {len(run.rows)} subjects{' - replaces a saved run' if saved else ''}")
@@ -79,8 +84,7 @@ def main() -> None:
         if input(f"send {len(run.calls)} calls to {spec.client} {spec.model}? [y/N] ").strip().lower() != "y":
             return
     written = execute(run, store, client)
-    print(f"-> {written.results_csv}\n")
-    print(f"{report(check(run, store), len(run.topic.options))}\n\n{means(run.topic.rename(store.frame(run.stem)), run.topic).round(3).to_string()}")
+    print(f"-> {written.results_csv}\n\n{looked_over(run, store)}")
 
 
 if __name__ == "__main__":

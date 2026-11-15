@@ -39,6 +39,7 @@ from typing import Any, Dict, List, Mapping, Tuple, Type, Union
 import pandas as pd
 from pydantic import BaseModel
 
+from panel.digest import recorded
 from panel.llm import BaseLLMClient
 from panel.topic.normalize import normalize_groups
 
@@ -46,7 +47,6 @@ from .record import build_record
 from .resolve import REPEAT, SUBJECT, Resolved
 
 PROMPT = "Prompt"
-DIGEST_SUFFIX = "_sha256"
 
 
 @dataclass(frozen=True)
@@ -63,10 +63,8 @@ def digests_in_use(results_dir: Union[str, Path]) -> Dict[str, List[str]]:
     """The sha256 of every file a saved run of any topic was built from -> the stems of those runs."""
     found: Dict[str, List[str]] = {}
     for path in sorted(Path(results_dir).glob(f"*/{ResultStore.RUNS_DIR}/*/{ResultStore.RECORD_NAME}")):
-        dataset = json.loads(path.read_text(encoding="utf-8")).get("dataset", {})
-        for key, digest in dataset.items():
-            if key.endswith(DIGEST_SUFFIX):
-                found.setdefault(digest, []).append(path.parent.name)
+        for digest in recorded(json.loads(path.read_text(encoding="utf-8")).get("dataset", {})).values():
+            found.setdefault(digest, []).append(path.parent.name)
     return found
 
 
@@ -141,8 +139,8 @@ class ResultStore:
 
     def frame(self, stem: str, normalized: bool = False) -> pd.DataFrame:
         """
-        A run's CSV as stored: the ids of its day for a run saved here, native names for a legacy
-        one. `Topic.rename` turns either into today's ids.
+        A run's CSV as stored, under the option ids of the day it was saved; `Topic.rename`
+        turns them into today's.
 
         Raises:
             FileNotFoundError: if that run has no such CSV.
@@ -158,20 +156,16 @@ class ResultStore:
         A run's raw results JSON, as written.
 
         Raises:
-            FileNotFoundError: if the run has no JSON (the legacy VPick runs have none).
+            FileNotFoundError: if the run has no JSON.
         """
         path = self.paths(stem).results_json
         if not path.exists():
             raise FileNotFoundError(f"{path} not found; saved runs: {self.runs()}")
         return json.loads(path.read_text(encoding="utf-8"))
 
-    def load(self, stem: str, response_model: Type[BaseModel]) -> Dict[Tuple[int, int], Tuple[Union[str, None], BaseModel]]:
+    def load(self, stem: str, response_model: Type[BaseModel]) -> Dict[Tuple[int, int], Tuple[str, BaseModel]]:
         """
-        Every saved response of a run, parsed again, keyed (subject id, repeat).
-
-        Reads both shapes of raw JSON: items that are `{prompt, result}` pairs, and legacy items
-        that are the result itself (then the prompt is None). A legacy key is a subject id; a
-        repeated run's key is `<id>:<repeat>`.
+        Every saved response of a run, parsed again, keyed (subject id, repeat), each with its prompt.
 
         Raises:
             FileNotFoundError: if the run has no JSON.
@@ -180,9 +174,7 @@ class ResultStore:
         parsed = {}
         for key, item in self.raw(stem).items():
             subject, _, repeat = key.partition(":")
-            wrapped = isinstance(item, dict) and set(item) == {"prompt", "result"}
-            prompt, payload = (item["prompt"], item["result"]) if wrapped else (None, item)
-            parsed[(int(subject), int(repeat or 1))] = (prompt, response_model.model_validate(payload))
+            parsed[(int(subject), int(repeat or 1))] = (item["prompt"], response_model.model_validate(item["result"]))
         return parsed
 
     def save(
@@ -190,24 +182,26 @@ class ResultStore:
         resolved: Resolved,
         results: Dict[int, Tuple[str, BaseModel]],
         client: Union[BaseLLMClient, None] = None,
-        timestamped: bool = True,
         overwrite: bool = False,
     ) -> RunPaths:
         """
-        Write one result set under the run's stem.
+        Write a run's results under its stem: the archived copy, then the plain files.
 
-        Called twice per run - once as it defaults, once with `timestamped=False`. The
-        timestamped set lands in the run's `archive/`, unique per save, and is what keeps an overwritten
-        run recoverable; it holds the CSV and the record only, because the raw JSON and the
+        Both come from one table and one record. The archived copy lands in the run's
+        `archive/`, named by the time of the save, and is what keeps an overwritten run
+        recoverable; it holds the CSV and the record only, because the raw JSON and the
         normalized CSV are reconstructions of the CSV. The plain set is the handle a stem is
         loaded by and is overwritten freely by the same spec.
 
         Args:
             resolved: the run that produced `results`.
             results: {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`.
-            client: the client that made the calls, for the record's `model_resolved`.
-            timestamped: write the archived copy instead of the plain one.
+            client: the client that made the calls, for the record's `model_resolved` and
+                `response_schema_sent`.
             overwrite: replace a run of a different spec that already holds the stem.
+
+        Returns:
+            The plain paths.
 
         Raises:
             ValueError: if the run's topic is not this store's topic.
@@ -223,19 +217,16 @@ class ResultStore:
                 raise FileExistsError(f"'{stem}' already holds a run of a different spec; pass overwrite=True to replace it")
 
         now = datetime.now()
-        paths = self.paths(stem, now.strftime("%Y-%m-%d-%H-%M-%S") if timestamped else None)
-        paths.results_csv.parent.mkdir(parents=True, exist_ok=True)
         frame = _results_frame(results, resolved)
-        record = build_record(resolved, len(results), now, client)
-
-        frame.to_csv(paths.results_csv, index=True, encoding="utf-8")
-        paths.record.write_text(json.dumps(record, ensure_ascii=False, indent=4), encoding="utf-8")
-        if not timestamped:
-            raw = _raw_results(results, resolved)
-            paths.results_json.write_text(json.dumps(raw, ensure_ascii=False, indent=4), encoding="utf-8")
-            normalized = normalize_groups(frame, resolved.topic.normalize_groups)
-            normalized.to_csv(paths.normalized_csv, index=True, encoding="utf-8")
-        return paths
+        record = json.dumps(build_record(resolved, len(results), now, client), ensure_ascii=False, indent=4)
+        for paths in (self.paths(stem, now.strftime("%Y-%m-%d-%H-%M-%S")), plain):
+            paths.results_csv.parent.mkdir(parents=True, exist_ok=True)
+            frame.to_csv(paths.results_csv, index=True, encoding="utf-8")
+            paths.record.write_text(record, encoding="utf-8")
+        raw = _raw_results(results, resolved)
+        plain.results_json.write_text(json.dumps(raw, ensure_ascii=False, indent=4), encoding="utf-8")
+        normalize_groups(frame, resolved.topic.normalize_groups).to_csv(plain.normalized_csv, index=True, encoding="utf-8")
+        return plain
 
 
 def _results_frame(results: Dict[int, Tuple[str, BaseModel]], resolved: Resolved) -> pd.DataFrame:

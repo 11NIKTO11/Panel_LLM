@@ -13,8 +13,6 @@ A run reads the prompt table. The values table is analysis's; here it supplies t
 the prompt table must cover, so a table rendered before the values were rebuilt is refused,
 and the one column a question worded by a shared vocabulary asks for.
 """
-import hashlib
-import inspect
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,8 +21,9 @@ from typing import Dict, Type, Union
 import pandas as pd
 
 from panel import paths
-from panel.dataset import Dataset, load_dataset, read_values, shared_keys
+from panel.dataset import INDEX, Dataset, load_dataset, read_values, shared_keys
 from panel.describe.render import read_prompts
+from panel.digest import sha256
 from panel.describe.template import PromptTemplate, load_template
 from panel.llm import BaseLLMClient
 from panel.topic import Framing, Question, Topic, load_framing, load_question, load_topic, make_response_models
@@ -34,7 +33,7 @@ from .registry import client_class, short_name
 from .spec import RunSpec
 
 MODEL_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9.\-]*")
-SUBJECT = "id"
+SUBJECT = INDEX
 REPEAT = "repeat"
 QUESTION = "question"
 
@@ -122,7 +121,7 @@ def resolve(
     """
     dataset = load_dataset(spec.dataset, datasets_dir)
     topic = load_topic(spec.topic, topics_dir)
-    framing = load_framing(topic, spec.framing, topics_dir)
+    framing = load_framing(topic, spec.framing)
     if spec.description not in dataset.descriptions:
         raise ValueError(
             f"dataset '{dataset.name}' has no description '{spec.description}'; it has {list(dataset.descriptions)}"
@@ -135,11 +134,11 @@ def resolve(
             f"description '{description.name}' is {'' if description.standalone else 'not '}standalone, "
             f"question is {spec.question!r}: a standalone description takes none, any other needs one"
         )
-    question = load_question(topic, framing.language, spec.question, topics_dir) if spec.question else None
+    question = load_question(topic, framing.language, spec.question) if spec.question else None
     if not MODEL_ID.fullmatch(spec.model):
         raise ValueError(f"model id {spec.model!r} cannot sit in a filename")
     client_type = client_class(spec.client)
-    if spec.effort and "effort" not in inspect.signature(client_type.__init__).parameters:
+    if spec.effort and not client_type.TAKES_EFFORT:
         raise ValueError(f"client '{spec.client}' takes no effort; the spec sets {spec.effort!r}")
     response_model = {model.SHORT_NAME: model for model in make_response_models(topic, framing)}[spec.shape]
 
@@ -151,8 +150,5 @@ def resolve(
         rows[QUESTION] = keys.map(question.wording, na_action=None)
     if spec.sample is not None:
         rows = rows.sample(n=spec.sample, random_state=spec.random_state)
-    sources = {
-        "values": dataset.values_path, "prompts": dataset.prompts_path(description.name), "forms": dataset.forms_path,
-    }
-    digests = {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in sources.items()}
+    digests = {name: sha256(path) for name, path in dataset.built_from(description.name).items()}
     return Resolved(spec, dataset, description, topic, framing, question, client_type, response_model, rows, digests)

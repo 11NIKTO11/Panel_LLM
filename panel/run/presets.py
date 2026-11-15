@@ -29,7 +29,7 @@ from the spec.
 import json
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, get_args
 
 from .spec import RunSpec
 
@@ -37,7 +37,7 @@ KEYS = {"base", "data", "models"}
 FIELDS = tuple(field.name for field in fields(RunSpec))
 DATA = ("dataset", "description", "topic", "framing", "question", "shape", "repeats")
 MODEL = ("client", "model", "temperature", "effort")
-NUMBERS = {"temperature": float, "repeats": int, "sample": int, "random_state": int}
+NUMBERS = {field.name: kind for field in fields(RunSpec) for kind in (int, float) if kind in (field.type, *get_args(field.type))}
 NONE = "none"
 
 
