@@ -1,7 +1,7 @@
 {
-    "name": "grid_sod45",
-    "short": "gridsod45",
-    "title": "Synthetic profile grid in the survey's vocabulary, incomes cut at 25 and 45 thousand",
+    "name": "grid_sod45_retired",
+    "short": "gridsod45retired",
+    "title": "RETIRED - synthetic profile grid in the survey's vocabulary, incomes cut at 25 and 45 thousand",
     "language": "cs",
     "source": "dataset.json",
     "columns": [
@@ -67,5 +67,5 @@
             }
         }
     },
-    "note": "360 synthetic profiles = 2 x 3 x 5 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. Gender, education and interest are the survey's answers, age_range its five bands. grid_sod with other incomes: written in the survey's style, but not its bands - cut at 25 and 45 thousand; why they were changed is not recorded. Ported from CoRe/_grid_separate grid/grid_config_sod.json as left uncommitted after 132038d; its gpt-4o run of 2026-09-24, saved under grid-sod-r1, was sent these profiles."
+    "note": "RETIRED on 2026-11-15 (named grid_sod45 until then; DECISIONS.md section 28): superseded by grid_sod, whose incomes are cut at 25 and 40 thousand. Kept so that the run sent these profiles can still be read; build nothing new on it. 360 synthetic profiles = 2 x 3 x 5 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. Gender, education and interest are the survey's answers, age_range its five bands. grid_sod_retired with other incomes: written in the survey's style, but not its bands - cut at 25 and 45 thousand; why they were changed is not recorded. Ported from CoRe/_grid_separate grid/grid_config_sod.json as left uncommitted after 132038d; its gpt-4o run of 2026-09-24, saved under grid-sod-r1, was sent these profiles."
 }

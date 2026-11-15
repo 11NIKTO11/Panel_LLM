@@ -1177,3 +1177,44 @@ the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <di
   `_delete/tmp_artifical_matrix/`. Of its 151 files only the two tables are here (the
   colleague's delivered runs, §15.1); all 151 are in `CoRe/_grid_separate/colleague/`
 - `_to_sort/` is gone, moved into `_delete/` by Martin
+
+## 27. `grid_colleague` is `grid_simple_en` (2026-11-15)
+
+Martin's naming: the dataset is the simple design in English ids, beside `grid_simple` (the
+same design in Czech words); that it is the colleague's grid is said in its title and note.
+
+- `datasets/grid_simple_en/`, short `gridsimpleen`; description `delivered` and framing
+  `colleague` keep their names
+- **its two saved runs were renamed with it**, or they would name a dataset that does not
+  exist: `gridsimpleen_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3`
+  (`election_2021`) and `..._Prob_t=0.0` (`media_fees_2026`). In each record `stem`,
+  `spec.dataset`, `dataset.name` and `dataset.short` changed and a `renamed` block names the
+  old stem; no result, table or hash changed
+- `gridsimple` alone now names two runs; a run of `grid_simple` is found by `gridsimple_`
+- §15, §15.1 and §21 above say `grid_colleague` - the name of their day
+
+## 28. The first two sod grids are retired; `grid_sod` is cut at 25 and 40 thousand (2026-11-15)
+
+Martin's decision, on reading the first grid: its incomes do not span incomes, so neither it
+nor its runs say what a grid over the survey's vocabulary should.
+
+- **`grid_sod_retired`** (was `grid_sod`): incomes `Do 15.000` / `30.001 - 40.000` /
+  `Vice než 80.000 Kč` - 15 to 30 and 40 to 80 thousand are in no profile
+- **`grid_sod45_retired`** (was `grid_sod45`): cut at 25 and 45 thousand; covers every income,
+  superseded by the cut at 40
+- **`grid_sod`** (new): `Do 25.000` / `25.001 - 40.000` / `Vice než 40.000 Kč`, otherwise
+  `grid_sod45` - 360 profiles, description `default`. Prepared; **no run has been sent it**
+- the retired datasets stay in `datasets/` with RETIRED in title and note: a run names its
+  dataset and is read against its values, so they cannot go while their runs are kept
+  - their runs were renamed with them, as in §27 (`renamed` block, nothing else changed):
+    `gridsodretired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3` and
+    `gridsod45retired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3`
+  - the `grids` set labels them `grid sod retired` and `grid sod45 retired`
+- REJECTED: changing the incomes of an existing grid in place - its saved run would stand
+  beside profiles it was not sent (§20)
+- REJECTED: moving the retired grids and their runs to `_delete/` now -
+  `gridsodretired_..._x3` is the only grid run of ours with repeats; the kernel notebook's
+  default, the kernel examples and `tests/test_kernel.py` read it
+- open: once `grid_sod` has a run (with repeats), the `grids` set, `kernel.ipynb`'s default
+  and the tests move to it and the retired grids can go
+- §15, §15.1 and §16 above say `grid_sod` and `grid_sod45` for what are now the retired grids

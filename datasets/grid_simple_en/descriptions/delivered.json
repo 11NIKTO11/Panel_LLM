@@ -1,0 +1,15 @@
+{
+    "name": "delivered",
+    "short": "delivered",
+    "stored": true,
+    "standalone": true,
+    "note": "What the colleague's runs were sent, which was not delivered: neither prompts nor system prompt nor question, so there is no prompt table and a run naming this description can be read but not resolved or sent again. Their results are in results/<topic>/ under the stems gridsimpleen_delivered_colleague_..., the delivered tables beside them in delivered/.",
+    "reads": [
+        "gender",
+        "education",
+        "age",
+        "income",
+        "interest"
+    ],
+    "sentences": []
+}

@@ -1,7 +1,7 @@
 {
     "name": "grid_sod",
     "short": "gridsod",
-    "title": "Synthetic profile grid in the survey's vocabulary",
+    "title": "Synthetic profile grid in the survey's vocabulary, incomes cut at 25 and 40 thousand",
     "language": "cs",
     "source": "dataset.json",
     "columns": [
@@ -43,9 +43,9 @@
         },
         "income_range": {
             "order": [
-                "Do 15.000 Kč",
-                "30.001 - 40.000 Kč",
-                "Vice než 80.000 Kč"
+                "Do 25.000 Kč",
+                "25.001 - 40.000 Kč",
+                "Vice než 40.000 Kč"
             ]
         },
         "interest_in_politics": {
@@ -67,5 +67,5 @@
             }
         }
     },
-    "note": "360 synthetic profiles = 2 x 3 x 5 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. Gender, education and interest are the survey's answers, age_range its five bands. The incomes are three of the survey's bands: the lowest, a middle one, the highest. Ported from CoRe/_grid_separate grid/grid_config_sod.json as committed (132038d, grid `sod`); its gpt-4o runs of 2026-09-11, grid-sod-r1..r3, were sent these profiles (r1 survives only in that folder's archive/, its stem was overwritten on 2026-09-24 by the run of grid_sod45)."
+    "note": "360 synthetic profiles = 2 x 3 x 5 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. Gender, education and interest are the survey's answers, age_range its five bands. The incomes are written in the survey's style but are not its bands: three bands that cover every income, cut at 25 and 40 thousand. The sod grid since 2026-11-15 (DECISIONS.md section 28), replacing grid_sod_retired (incomes with gaps) and grid_sod45_retired (cut at 25 and 45 thousand); no run has been sent it yet."
 }

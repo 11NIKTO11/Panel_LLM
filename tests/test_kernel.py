@@ -19,7 +19,7 @@ from tests.conftest import RESULTS_DIR, load_fixture, require
 
 PUSHFORWARD = load_fixture("pushforward")
 LEGACY = {model: f"sod_legacy_cslegacy_legacy_OpenAI_{model}_Prob_t=0.0" for model in PUSHFORWARD["scorecard"]}
-GRIDS = {"sod": "gridsod_default", "simple": "gridsimple", "colleague": "gridcolleague_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"}
+GRIDS = {"sod": "gridsodretired_", "simple": "gridsimple_", "colleague": "gridsimpleen_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"}
 
 
 @pytest.fixture(scope="module")

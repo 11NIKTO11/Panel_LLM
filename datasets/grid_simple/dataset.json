@@ -67,5 +67,5 @@
             }
         }
     },
-    "note": "384 synthetic profiles = 2 x 4 x 4 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. The colleague's design (grid_colleague) with each of their ids as the Czech phrase it stands for: abstract levels, a low / middle / high income rather than a CZK band. Ported from CoRe/_grid_separate grid/grid_config_simple.json (grid `simple`), whose gpt-4o run grid-simple was sent these profiles."
+    "note": "384 synthetic profiles = 2 x 4 x 4 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. The colleague's design (grid_simple_en) with each of their ids as the Czech phrase it stands for: abstract levels, a low / middle / high income rather than a CZK band. Ported from CoRe/_grid_separate grid/grid_config_simple.json (grid `simple`), whose gpt-4o run grid-simple was sent these profiles."
 }

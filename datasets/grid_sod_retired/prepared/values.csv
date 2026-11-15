@@ -1,0 +1,361 @@
+id,gender,education_level,age_range,income_range,interest_in_politics
+1,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+2,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,spíše se nezajímám
+3,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,spíše se zajímám
+4,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,velmi se zajímám
+5,muž,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+6,muž,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+7,muž,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+8,muž,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+9,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+10,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+11,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+12,muž,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+13,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+14,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,spíše se nezajímám
+15,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,spíše se zajímám
+16,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,velmi se zajímám
+17,muž,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+18,muž,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+19,muž,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+20,muž,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+21,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+22,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+23,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+24,muž,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+25,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+26,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,spíše se nezajímám
+27,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,spíše se zajímám
+28,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,velmi se zajímám
+29,muž,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+30,muž,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+31,muž,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+32,muž,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+33,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+34,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+35,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+36,muž,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+37,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+38,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,spíše se nezajímám
+39,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,spíše se zajímám
+40,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,velmi se zajímám
+41,muž,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+42,muž,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+43,muž,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+44,muž,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+45,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+46,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+47,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+48,muž,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+49,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+50,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,spíše se nezajímám
+51,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,spíše se zajímám
+52,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,velmi se zajímám
+53,muž,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+54,muž,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+55,muž,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+56,muž,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+57,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+58,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+59,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+60,muž,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,velmi se zajímám
+61,muž,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+62,muž,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,spíše se nezajímám
+63,muž,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,spíše se zajímám
+64,muž,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,velmi se zajímám
+65,muž,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+66,muž,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+67,muž,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+68,muž,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+69,muž,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+70,muž,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+71,muž,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+72,muž,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+73,muž,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+74,muž,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,spíše se nezajímám
+75,muž,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,spíše se zajímám
+76,muž,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,velmi se zajímám
+77,muž,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+78,muž,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+79,muž,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+80,muž,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+81,muž,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+82,muž,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+83,muž,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+84,muž,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+85,muž,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+86,muž,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,spíše se nezajímám
+87,muž,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,spíše se zajímám
+88,muž,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,velmi se zajímám
+89,muž,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+90,muž,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+91,muž,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+92,muž,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+93,muž,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+94,muž,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+95,muž,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+96,muž,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+97,muž,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+98,muž,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,spíše se nezajímám
+99,muž,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,spíše se zajímám
+100,muž,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,velmi se zajímám
+101,muž,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+102,muž,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+103,muž,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+104,muž,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+105,muž,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+106,muž,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+107,muž,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+108,muž,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+109,muž,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+110,muž,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,spíše se nezajímám
+111,muž,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,spíše se zajímám
+112,muž,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,velmi se zajímám
+113,muž,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+114,muž,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+115,muž,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+116,muž,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+117,muž,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+118,muž,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+119,muž,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+120,muž,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,velmi se zajímám
+121,muž,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+122,muž,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,spíše se nezajímám
+123,muž,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,spíše se zajímám
+124,muž,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,velmi se zajímám
+125,muž,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+126,muž,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+127,muž,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+128,muž,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+129,muž,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+130,muž,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+131,muž,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+132,muž,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+133,muž,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+134,muž,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,spíše se nezajímám
+135,muž,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,spíše se zajímám
+136,muž,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,velmi se zajímám
+137,muž,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+138,muž,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+139,muž,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+140,muž,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+141,muž,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+142,muž,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+143,muž,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+144,muž,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+145,muž,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+146,muž,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,spíše se nezajímám
+147,muž,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,spíše se zajímám
+148,muž,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,velmi se zajímám
+149,muž,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+150,muž,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+151,muž,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+152,muž,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+153,muž,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+154,muž,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+155,muž,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+156,muž,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+157,muž,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+158,muž,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,spíše se nezajímám
+159,muž,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,spíše se zajímám
+160,muž,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,velmi se zajímám
+161,muž,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+162,muž,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+163,muž,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+164,muž,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+165,muž,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+166,muž,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+167,muž,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+168,muž,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+169,muž,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+170,muž,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,spíše se nezajímám
+171,muž,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,spíše se zajímám
+172,muž,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,velmi se zajímám
+173,muž,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+174,muž,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+175,muž,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+176,muž,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+177,muž,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+178,muž,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+179,muž,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+180,muž,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,velmi se zajímám
+181,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+182,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,spíše se nezajímám
+183,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,spíše se zajímám
+184,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Do 15.000 Kč,velmi se zajímám
+185,žena,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+186,žena,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+187,žena,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+188,žena,základní + středoškolské vzdělání bez maturity,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+189,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+190,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+191,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+192,žena,základní + středoškolské vzdělání bez maturity,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+193,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+194,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,spíše se nezajímám
+195,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,spíše se zajímám
+196,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Do 15.000 Kč,velmi se zajímám
+197,žena,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+198,žena,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+199,žena,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+200,žena,základní + středoškolské vzdělání bez maturity,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+201,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+202,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+203,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+204,žena,základní + středoškolské vzdělání bez maturity,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+205,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+206,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,spíše se nezajímám
+207,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,spíše se zajímám
+208,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Do 15.000 Kč,velmi se zajímám
+209,žena,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+210,žena,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+211,žena,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+212,žena,základní + středoškolské vzdělání bez maturity,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+213,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+214,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+215,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+216,žena,základní + středoškolské vzdělání bez maturity,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+217,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+218,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,spíše se nezajímám
+219,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,spíše se zajímám
+220,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Do 15.000 Kč,velmi se zajímám
+221,žena,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+222,žena,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+223,žena,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+224,žena,základní + středoškolské vzdělání bez maturity,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+225,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+226,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+227,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+228,žena,základní + středoškolské vzdělání bez maturity,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+229,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+230,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,spíše se nezajímám
+231,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,spíše se zajímám
+232,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Do 15.000 Kč,velmi se zajímám
+233,žena,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+234,žena,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+235,žena,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+236,žena,základní + středoškolské vzdělání bez maturity,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+237,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+238,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+239,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+240,žena,základní + středoškolské vzdělání bez maturity,55–65 let,Vice než 80.000 Kč,velmi se zajímám
+241,žena,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+242,žena,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,spíše se nezajímám
+243,žena,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,spíše se zajímám
+244,žena,středoškolské vzdělání s maturitou,18–24 let,Do 15.000 Kč,velmi se zajímám
+245,žena,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+246,žena,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+247,žena,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+248,žena,středoškolské vzdělání s maturitou,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+249,žena,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+250,žena,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+251,žena,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+252,žena,středoškolské vzdělání s maturitou,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+253,žena,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+254,žena,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,spíše se nezajímám
+255,žena,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,spíše se zajímám
+256,žena,středoškolské vzdělání s maturitou,25–34 let,Do 15.000 Kč,velmi se zajímám
+257,žena,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+258,žena,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+259,žena,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+260,žena,středoškolské vzdělání s maturitou,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+261,žena,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+262,žena,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+263,žena,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+264,žena,středoškolské vzdělání s maturitou,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+265,žena,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+266,žena,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,spíše se nezajímám
+267,žena,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,spíše se zajímám
+268,žena,středoškolské vzdělání s maturitou,35–44 let,Do 15.000 Kč,velmi se zajímám
+269,žena,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+270,žena,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+271,žena,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+272,žena,středoškolské vzdělání s maturitou,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+273,žena,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+274,žena,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+275,žena,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+276,žena,středoškolské vzdělání s maturitou,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+277,žena,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+278,žena,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,spíše se nezajímám
+279,žena,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,spíše se zajímám
+280,žena,středoškolské vzdělání s maturitou,45–54 let,Do 15.000 Kč,velmi se zajímám
+281,žena,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+282,žena,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+283,žena,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+284,žena,středoškolské vzdělání s maturitou,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+285,žena,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+286,žena,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+287,žena,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+288,žena,středoškolské vzdělání s maturitou,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+289,žena,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+290,žena,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,spíše se nezajímám
+291,žena,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,spíše se zajímám
+292,žena,středoškolské vzdělání s maturitou,55–65 let,Do 15.000 Kč,velmi se zajímám
+293,žena,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+294,žena,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+295,žena,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+296,žena,středoškolské vzdělání s maturitou,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+297,žena,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+298,žena,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+299,žena,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+300,žena,středoškolské vzdělání s maturitou,55–65 let,Vice než 80.000 Kč,velmi se zajímám
+301,žena,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,vůbec se nezajímám
+302,žena,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,spíše se nezajímám
+303,žena,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,spíše se zajímám
+304,žena,vysokoškolské vzdělání,18–24 let,Do 15.000 Kč,velmi se zajímám
+305,žena,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,vůbec se nezajímám
+306,žena,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,spíše se nezajímám
+307,žena,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,spíše se zajímám
+308,žena,vysokoškolské vzdělání,18–24 let,30.001 - 40.000 Kč,velmi se zajímám
+309,žena,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,vůbec se nezajímám
+310,žena,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,spíše se nezajímám
+311,žena,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,spíše se zajímám
+312,žena,vysokoškolské vzdělání,18–24 let,Vice než 80.000 Kč,velmi se zajímám
+313,žena,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,vůbec se nezajímám
+314,žena,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,spíše se nezajímám
+315,žena,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,spíše se zajímám
+316,žena,vysokoškolské vzdělání,25–34 let,Do 15.000 Kč,velmi se zajímám
+317,žena,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,vůbec se nezajímám
+318,žena,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,spíše se nezajímám
+319,žena,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,spíše se zajímám
+320,žena,vysokoškolské vzdělání,25–34 let,30.001 - 40.000 Kč,velmi se zajímám
+321,žena,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,vůbec se nezajímám
+322,žena,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,spíše se nezajímám
+323,žena,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,spíše se zajímám
+324,žena,vysokoškolské vzdělání,25–34 let,Vice než 80.000 Kč,velmi se zajímám
+325,žena,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,vůbec se nezajímám
+326,žena,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,spíše se nezajímám
+327,žena,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,spíše se zajímám
+328,žena,vysokoškolské vzdělání,35–44 let,Do 15.000 Kč,velmi se zajímám
+329,žena,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,vůbec se nezajímám
+330,žena,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,spíše se nezajímám
+331,žena,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,spíše se zajímám
+332,žena,vysokoškolské vzdělání,35–44 let,30.001 - 40.000 Kč,velmi se zajímám
+333,žena,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,vůbec se nezajímám
+334,žena,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,spíše se nezajímám
+335,žena,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,spíše se zajímám
+336,žena,vysokoškolské vzdělání,35–44 let,Vice než 80.000 Kč,velmi se zajímám
+337,žena,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,vůbec se nezajímám
+338,žena,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,spíše se nezajímám
+339,žena,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,spíše se zajímám
+340,žena,vysokoškolské vzdělání,45–54 let,Do 15.000 Kč,velmi se zajímám
+341,žena,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,vůbec se nezajímám
+342,žena,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,spíše se nezajímám
+343,žena,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,spíše se zajímám
+344,žena,vysokoškolské vzdělání,45–54 let,30.001 - 40.000 Kč,velmi se zajímám
+345,žena,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,vůbec se nezajímám
+346,žena,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,spíše se nezajímám
+347,žena,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,spíše se zajímám
+348,žena,vysokoškolské vzdělání,45–54 let,Vice než 80.000 Kč,velmi se zajímám
+349,žena,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,vůbec se nezajímám
+350,žena,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,spíše se nezajímám
+351,žena,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,spíše se zajímám
+352,žena,vysokoškolské vzdělání,55–65 let,Do 15.000 Kč,velmi se zajímám
+353,žena,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,vůbec se nezajímám
+354,žena,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,spíše se nezajímám
+355,žena,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,spíše se zajímám
+356,žena,vysokoškolské vzdělání,55–65 let,30.001 - 40.000 Kč,velmi se zajímám
+357,žena,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,vůbec se nezajímám
+358,žena,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,spíše se nezajímám
+359,žena,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,spíše se zajímám
+360,žena,vysokoškolské vzdělání,55–65 let,Vice než 80.000 Kč,velmi se zajímám

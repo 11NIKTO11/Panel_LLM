@@ -65,14 +65,14 @@ def grid_spec(dataset: str, repeats: int) -> RunSpec:
 
 
 def colleague_spec(topic: str, temperature: float, repeats: int) -> RunSpec:
-    return RunSpec(dataset="grid_colleague", description="delivered", topic=topic, framing="colleague", question=None,
+    return RunSpec(dataset="grid_simple_en", description="delivered", topic=topic, framing="colleague", question=None,
                    client="OpenRouter", model="gpt-4o-2024-11-20", shape="Prob", temperature=temperature, repeats=repeats,
                    random_state=None)
 
 
 OURS = (
-    Ours(grid_spec("grid_sod", 3), (f"archive/grid-sod-r1{TAIL}_2026-09-11-01-33-14", f"grid-sod-r2{TAIL}", f"grid-sod-r3{TAIL}")),
-    Ours(grid_spec("grid_sod45", 1), (f"grid-sod-r1{TAIL}",)),
+    Ours(grid_spec("grid_sod_retired", 3), (f"archive/grid-sod-r1{TAIL}_2026-09-11-01-33-14", f"grid-sod-r2{TAIL}", f"grid-sod-r3{TAIL}")),
+    Ours(grid_spec("grid_sod45_retired", 1), (f"grid-sod-r1{TAIL}",)),
     Ours(grid_spec("grid_simple", 1), (f"grid-simple{TAIL}",)),
 )
 COLLEAGUE = (

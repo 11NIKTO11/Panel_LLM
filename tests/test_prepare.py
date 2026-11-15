@@ -186,7 +186,7 @@ GRIDS = [name for name in dataset_names()
 
 
 def test_grids_are_found():
-    assert {"grid_sod", "grid_sod45", "grid_simple", "grid_colleague"} <= set(GRIDS)
+    assert {"grid_sod", "grid_sod_retired", "grid_sod45_retired", "grid_simple", "grid_simple_en"} <= set(GRIDS)
 
 
 @pytest.mark.parametrize("name", GRIDS)
@@ -211,7 +211,7 @@ def test_grid_is_the_full_factorial_of_its_levels(name):
 
 
 def test_grid_sod_words_a_profile_as_its_runs_were_sent():
-    grid = load_dataset("grid_sod")
+    grid = load_dataset("grid_sod_retired")
     values = full_factorial(grid)
     described = render(grid, load_template(grid.description_path("default")), values, load_forms(grid.forms_path))
     assert described[1] == ("Jsem muž, je mi mezi 18 a 24 lety, mé vzdělání je základní + středoškolské vzdělání "
@@ -219,7 +219,7 @@ def test_grid_sod_words_a_profile_as_its_runs_were_sent():
 
 
 def test_grid_refuses_a_column_without_levels():
-    grid = load_dataset("grid_sod")
+    grid = load_dataset("grid_sod_retired")
     with pytest.raises(ValueError):
         full_factorial(replace(grid, levels={column: grid.levels[column] for column in grid.columns[1:]}))
 
