@@ -1139,3 +1139,41 @@ the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <di
 - parked in `_delete/`, for Martin to remove: `tmp/docs/`, `tmp/skiped`, `_to_sort/unported/`
   (`sod_en` and the old `grid`, never run; last tracked at `ccea2c6`)
 - `migrate_latent.py` is spent
+
+## 26. A run can be packed (2026-11-15)
+
+`python pack.py <topic> <run> [--zip] [--copy] [--to <dir>]` writes `packs/<topic>/<stem>/`
+(gitignored): everything needed to read one run without the repo. `panel/pack.py`.
+
+- **What a pack holds**
+  - `run/`: the run's folder as saved - results, record, `archive/`, `delivered/`, old figures
+  - `dataset/`, `topic/`: only the files the run names, at the paths they have under
+    `datasets/<name>/` and `config/topics/<topic>/`: declaration, forms, the description, the
+    claims map, values, the prompt table; `topic.json`, the framing, the question, the
+    reference results, `plot.json`, `polls.json`, `positions.json`
+  - `MANIFEST.json`: per file its sha256, its size and where it was copied from; `built_from`
+    names the packed files whose hash the run's record carries; the commit of the code
+- **Tables and figures are made again**, into the pack's `run/analysis/` and `run/plots/`, by
+  every analysis of `analyze.py`; a file without `from` in the manifest was made, not copied.
+  `--copy` takes the saved ones as they are. The saved run is not touched
+- **Refused when the data moved**: a values table, prompt table or forms file that is not the
+  one the record gives the sha256 of raises, before anything is written - a pack would set a
+  run beside data it was not built from
+  - a hash the record does not carry is listed as `unverified`, a named file that does not
+    exist as `missing` (the colleague's prompts and framing, §21) - facts of the run, not errors
+- **A pack is never written over**; an existing folder raises
+- `python pack.py --verify <pack>` checks a pack's files against its manifest
+- REJECTED: mirroring the repo's paths inside a pack (`results/<topic>/runs/<stem>/...`), which
+  would let a pack be laid over a checkout - the stem twice in one path does not fit a Windows
+  path (§24)
+- REJECTED: packing the dataset's raw source and the code. The source is licensed survey data
+  and the record names the commit
+- not packed: the comparisons a run is a member of
+- a pack of a `sod` run holds the survey's values table
+
+### 26.1 Sorted the same day
+
+- `tmp/` is empty: its scripts are in `_delete/tmp_scripts/`, `tmp/_artifical_matrix/` in
+  `_delete/tmp_artifical_matrix/`. Of its 151 files only the two tables are here (the
+  colleague's delivered runs, §15.1); all 151 are in `CoRe/_grid_separate/colleague/`
+- `_to_sort/` is gone, moved into `_delete/` by Martin

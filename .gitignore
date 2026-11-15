@@ -17,6 +17,7 @@ SoD-*
 results
 graphs
 tmp
+/packs/
 
 # Coding agent files
 .claude
@@ -25,5 +26,4 @@ tmp
 
 
 _delete
-_to_sort
 .pytest_cache

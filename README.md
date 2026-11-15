@@ -90,6 +90,7 @@ it (`panel/paths.py` anchors them on the package).
 | 4 | `python compare.py <topic> <run> <run> ...` | several runs of a topic side by side |
 | 5 | `python benchmark.py <topic> <run> ...` | runs against a model trained on the subjects' own answers |
 | 6 | `python kernel.py <topic> <run> ...` | runs read as kernels, profiles -> answers: noise, effects, axes, populations |
+| 7 | `python pack.py <topic> <run> [--zip]` | `packs/<topic>/<run>/`: the run, the dataset and topic files it names, its tables and figures made again, a manifest of hashes |
 
 `analyze.ipynb`, `compare.ipynb`, `benchmark.ipynb` and `kernel.ipynb` are steps 3 to 6 one block at a time. `run.py` replaced
 `simulate.ipynb` and `analyze.py` replaced `panel_stats.ipynb`; both are gone. Nothing is defined in a

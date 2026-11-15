@@ -34,6 +34,11 @@ def _git(*args: str) -> str:
     return done.stdout.strip()
 
 
+def git_state() -> Dict[str, Any]:
+    """The repo's commit, and whether tracked files differ from it."""
+    return {"git_commit": _git("rev-parse", "HEAD") or None, "git_dirty": bool(_git("status", "--porcelain", "--untracked-files=no"))}
+
+
 def versions() -> Dict[str, str]:
     """Python, the data stack and every provider SDK that is installed."""
     out = {"python": sys.version.split()[0], "pandas": pd.__version__, "pydantic": pydantic.__version__}
@@ -84,7 +89,6 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         },
         "response_schema": resolved.response_model.model_json_schema(),
         "model_resolved": getattr(client, "last_model", None) if client else None,
-        "git_commit": _git("rev-parse", "HEAD") or None,
-        "git_dirty": bool(_git("status", "--porcelain", "--untracked-files=no")),
+        **git_state(),
         "versions": versions(),
     }
