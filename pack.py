@@ -15,11 +15,11 @@ of a survey run holds the survey's values - mind where it goes.
 import argparse
 from pathlib import Path
 
+from cli import list_runs
 from panel import paths
 from panel.analysis import find_stem
 from panel.pack import archive, pack, verify
 from panel.run import ResultStore
-from panel.topic import topic_names
 
 
 def main() -> None:
@@ -37,9 +37,7 @@ def main() -> None:
         print("\n".join(f"  {name}" for name in wrong) if wrong else "every file is what the manifest says")
         raise SystemExit(1 if wrong else 0)
     if args.run is None:
-        for topic in [args.topic] if args.topic else topic_names():
-            for stem in ResultStore(paths.RESULTS_DIR, topic).runs():
-                print(f"  {topic:<22} {stem}")
+        list_runs(args.topic)
         return
 
     store = ResultStore(paths.RESULTS_DIR, args.topic)

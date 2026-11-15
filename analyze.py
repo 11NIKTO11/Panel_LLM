@@ -16,12 +16,13 @@ Reads `results/<topic>/runs/<run>/` and writes tables to its `analysis/`, figure
 """
 import argparse
 
+from cli import add_effects, add_output, effects_settings, list_runs, run_each, suffix
 from panel import paths
-from panel.analysis import ANALYSES, NotApplicable, Output, describe, find_stem, load_run
-from panel.run import ResultStore, resolve
+from panel.analysis import ANALYSES, Output, describe, find_stem, load_run
+from panel.run import ResultStore
 from panel.run.check import check, report
 from panel.run.record import DELIVERED
-from panel.topic import topic_names
+from panel.topic import load_framing
 
 
 def main() -> None:
@@ -29,38 +30,23 @@ def main() -> None:
     parser.add_argument("topic", nargs="?", help="a folder under results/")
     parser.add_argument("run", nargs="?", help="a stem, or any text only one stem contains")
     parser.add_argument("--only", choices=list(ANALYSES), help="one analysis instead of all")
-    parser.add_argument("--predictors", help="for effects: the columns to test, comma-separated; the dataset's grouping columns and claims by default")
-    parser.add_argument("--delta", type=float, help="for effects: what a zero share is replaced by before the log-ratio transform; 0.005 by default")
-    parser.add_argument("--no-save", action="store_true", help="write no table and no figure")
-    parser.add_argument("--plain", action="store_true", help="default colours instead of the topic's plot.json")
-    parser.add_argument("--unweighted", action="store_true", help="do not weight option shares by the probability of voting; files get the suffix _unweighted")
+    add_effects(parser)
+    add_output(parser)
     args = parser.parse_args()
 
     if args.run is None:
-        for topic in [args.topic] if args.topic else topic_names():
-            for stem in ResultStore(paths.RESULTS_DIR, topic).runs():
-                print(f"  {topic:<22} {stem}")
+        list_runs(args.topic)
         return
 
     store = ResultStore(paths.RESULTS_DIR, args.topic)
     run = load_run(store, find_stem(store, args.run), styled=not args.plain, weighted=not args.unweighted)
-    out = Output(store.run_dir(run.stem), save=not args.no_save, suffix="_unweighted" if args.unweighted else "")
-    settings = {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
+    out = Output(store.run_dir(run.stem), save=not args.no_save, suffix=suffix(args))
     print(describe(run))
     if DELIVERED in run.record:
         print(f"\nkept as a delivered table - nothing to check: {run.record[DELIVERED]['note']}")
     else:
-        print(f"\n{report(check(resolve(run.spec), store), len(run.options))}")
-    for name, analysis in ANALYSES.items():
-        if args.only in (None, name):
-            try:
-                table, _ = analysis(run, out, **settings.get(name, {}))
-            except NotApplicable as reason:
-                print(f"\n{name}: skipped - {reason}")
-                continue
-            print(f"\n{name}\n{table.round(3).to_string()}")
-    for path in out.written:
-        print(f"-> {path}")
+        print(f"\n{report(check(store, run.stem, run.topic, load_framing(run.topic, run.spec.framing)), len(run.options))}")
+    run_each(ANALYSES, args.only, run, out, effects_settings(args))
 
 
 if __name__ == "__main__":
