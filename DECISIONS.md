@@ -1447,6 +1447,16 @@ no column holding more than 16 different values.
     kept for `compare.py`'s `spread`, which sets runs beside each other
 - **`analyze.ipynb` has no "What the answers say" block** any more; `answers` is still the
   first analysis of `analyze.py`. The check cell is three lines: framing, check, report
+- **`analyze.ipynb` has no "Spread of answers per subject" block** either: within one run its
+  table repeats the stems and its distances have no yardstick. `spread` still runs in
+  `analyze.py` and feeds `compare.py`. The single run's map (`compass`) is 7.5 inches wide, not 10
+- **The turnout difference keeps its sign and says whose it is**: the measure is
+  `Turnout, first - second` (`sources.TURNOUT`, formerly `Turnout difference`), a row
+  `predicted vs actual` being predicted minus actual, and the figures' notes say so. Tables
+  saved before carry the old column name until they are made again
+  - REJECTED: the absolute difference - the sign is the finding (a model over- or
+    underestimates turnout; respondents over-claim), and an interval that crosses zero
+    would turn into one that never touches it
 - **Not in `compare.py`**: no comparison of runs by resolution, by decision
 - open: on the per-column figure an option whose colour is near-black (`PirSTAN`) differs
   from the expected line only by being solid
