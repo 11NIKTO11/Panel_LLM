@@ -259,8 +259,8 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 | `self_v1` | cs | the first-person self-description the legacy runs were built from; renders the survey and the grid |
 | `self_v2` | cs | `self_v1` plus EU, NATO and covid answers |
 | `self_v1_en` | en | the English counterpart of `self_v1`, concept for concept |
-| `latent_citizen_v1` | cs | "I am an inhabitant of <region>" |
-| `latent_direct_v1` | cs | the whole prompt for a place; `standalone`, so no question follows it |
+| `citizen` (dataset `regions`) | cs | "I am an inhabitant of <region>" |
+| `direct` (dataset `regions`) | cs | the whole prompt for a place; `standalone`, so no question follows it |
 
 - a template is a list of sentences, each a list of alternatives in priority order; the first
   whose slots are all filled wins. That is how a sentence degrades when an answer is missing and
