@@ -1,8 +1,5 @@
 """
 A saved run looked over once, from the saved files alone, so it holds for any run a store has.
-
-Two parts: `check` asks whether the run is complete and each answer consistent, and `report`
-words that for a person; `means` is the first reading of what the run predicts, as a table.
 Nothing here compares against a reference - that is analysis.
 """
 from collections import Counter
@@ -28,31 +25,33 @@ class Sums:
 
 
 @dataclass(frozen=True)
+class Distinct:
+    """How many different answers a run holds - two answers are the same when every column matches: how many
+    there are, how many of them one answer alone gave, and how many answers gave the most common one."""
+    answers: int
+    once: int
+    commonest: int
+
+
+@dataclass(frozen=True)
 class Check:
     """
-    Attributes:
-        stem: the run.
-        calls: calls the run laid out: its subjects times its repeats.
-        answers: answers saved.
-        same_calls: whether the saved answers are exactly those calls.
-        model: the model id asked for.
-        model_resolved: the one the provider reported, or None.
-        subjects: subjects the run covers.
-        identical_prompts: subjects whose saved prompt is word for word another subject's.
-        missing: empty cells among the topic's columns of the results table.
-        tolerance: how far a sum may be from 1.
-        out_of_range: probabilities below 0 or above 1.
-        turnout: the turnout pair's sums; None for a topic without turnout.
-        options: the option probabilities' sums; None for a pick.
-        listed: options listed in an answer -> answers; None for a pick.
-        duplicates: answers naming an option twice; None for a pick.
-        identical: answers equal to another subject's in every column; None for a pick.
-        abstained: answers giving going to vote a probability of zero; None without turnout.
-        undefined: answers whose option probabilities sum to zero, so no preference can be
-            read from them; None for a pick.
-        both: answers that are both; an undefined answer outside this overlap is a subject
-            who may vote but prefers nothing. None for a pick or without turnout.
-        highest: mean of the highest option probability per answer; None for a pick.
+    None for a topic without turnout: `turnout`, `abstained`, `both`. None for a pick: `options`, `listed`,
+    `duplicates`, `distinct`, `undefined`, `both`, `highest`.
+
+    calls: the calls the run laid out, its subjects times its repeats.
+    same_calls: whether the saved answers are exactly those calls.
+    model_resolved: the model id the provider reported, or None.
+    identical_prompts: subjects whose saved prompt is word for word another subject's.
+    missing: empty cells among the topic's columns of the results table.
+    out_of_range: probabilities below 0 or above 1.
+    listed: options listed in an answer -> answers.
+    distinct: the different answers among all, over subjects and repeats alike.
+    abstained: answers giving going to vote a probability of zero.
+    undefined: answers whose option probabilities sum to zero, so no preference can be read from them.
+    both: answers that are both; an undefined answer outside this overlap is a subject who may vote
+        but prefers nothing.
+    highest: mean of the highest option probability per answer.
     """
     stem: str
     calls: int
@@ -69,7 +68,7 @@ class Check:
     options: Union[Sums, None]
     listed: Union[Dict[int, int], None]
     duplicates: Union[int, None]
-    identical: Union[int, None]
+    distinct: Union[Distinct, None]
     abstained: Union[int, None]
     undefined: Union[int, None]
     both: Union[int, None]
@@ -82,17 +81,8 @@ def _sums(totals: pd.Series, tolerance: float) -> Sums:
 
 def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, tolerance: float = 0.01) -> Check:
     """
-    Look over a saved run.
-
-    Args:
-        store: the topic's results.
-        stem: the run.
-        topic, framing: what the run answered and how it was worded; its saved answers are
-            parsed by their response model. Nothing of the dataset is read.
-        tolerance: how far a sum may be from 1.
-
-    Raises:
-        FileNotFoundError: if the store holds no such run.
+    Nothing of the dataset is read: the saved answers are parsed by the response model of `topic` and
+    `framing`. A stem the store does not hold raises `FileNotFoundError` in `store.record`.
     """
     record = store.record(stem)
     spec, subjects = record["spec"], record["dataset"]["rows"]
@@ -115,6 +105,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         names = [[option.name for option in response.options] for response in responses]
     abstained = frame[topic.turnout[0]] <= ZERO if topic.turnout else None
     undefined = frame[options].sum(axis=1) <= ZERO if probabilities else None
+    given = frame.groupby(topic.columns, dropna=False).size()
 
     return Check(
         stem=stem,
@@ -132,7 +123,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         options=_sums(pd.Series([sum(o.probability for o in r.options) for r in responses]), tolerance) if probabilities else None,
         listed=dict(sorted(Counter(len(set(listed)) for listed in names).items())) if probabilities else None,
         duplicates=sum(len(listed) != len(set(listed)) for listed in names) if probabilities else None,
-        identical=int(frame.duplicated(subset=topic.columns, keep=False).sum()) if probabilities else None,
+        distinct=Distinct(len(given), int((given == 1).sum()), int(given.max())) if probabilities else None,
         abstained=int(abstained.sum()) if topic.turnout else None,
         undefined=int(undefined.sum()) if probabilities else None,
         both=int((abstained & undefined).sum()) if topic.turnout and probabilities else None,
@@ -142,16 +133,9 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
 
 def means(frame: pd.DataFrame, topic: Topic) -> pd.DataFrame:
     """
-    What a run's answers say on average, as saved, not normalised and compared with nothing.
-
-    Args:
-        frame: a run's results table, one row per answer.
-        topic: the topic it answered.
-
-    Returns:
-        One row per topic column: `mean` over the answers, and for an option `top`, the share
-        of the answers with a preference in which it has the highest probability. For a pick
-        both are the share of answers choosing the option.
+    One row per topic column, as saved, not normalised: `mean` over the answers and, for an option, `top`,
+    the share of the answers with a preference in which it has the highest probability. For a pick both
+    are the share of answers choosing the option.
     """
     options = list(topic.options)
     defined = frame.loc[frame[options].sum(axis=1) > ZERO, options]
@@ -161,13 +145,7 @@ def means(frame: pd.DataFrame, topic: Topic) -> pd.DataFrame:
 
 
 def report(result: Check, total: int) -> str:
-    """
-    A check as text, for a person.
-
-    Args:
-        result: from `check`.
-        total: how many options the topic has, to say whether answers list them all.
-    """
+    """`total` is how many options the topic has, to say whether answers list them all."""
     rows: Tuple[Tuple[str, str], ...] = (
         ("answers", f"{result.answers} of {result.calls} calls, {'the same' if result.same_calls else 'NOT the same'} subjects"),
         ("model", f"{result.model} -> {result.model_resolved}"),
@@ -186,7 +164,7 @@ def report(result: Check, total: int) -> str:
             ("option sum", _sums_text(result.options, result.tolerance)),
             ("options listed", f"all {total} in {result.listed.get(total, 0)} answers" + (f"; fewer: {fewer}" if fewer else "")),
             ("duplicate options", str(result.duplicates)),
-            ("identical answers", str(result.identical)),
+            ("distinct answers", f"{_share(result.distinct.answers, result.answers)} of {result.answers}; {result.distinct.once} given once, the most common {result.distinct.commonest} times"),
             ("no preference", f"{_share(result.undefined, result.answers)} have options summing to 0"),
             ("highest option", f"{result.highest:.3f} on average"),
         )
