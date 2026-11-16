@@ -710,11 +710,11 @@ the "one topic or two" question of §10.
 - why: the two `topic.json` were the same but for name and note. What sets the legacy runs
   apart sits below the topic - no system prompt and the task in the schema text, one
   ungendered question - and a topic holds several framings and questions
-  - framing `cs_legacy` (stem part `cslegacy`), question `legacy`: the legacy topic's `cs.json`
+  - framing `cs_legacy` (stem part `cs-legacy`), question `legacy`: the legacy topic's `cs.json`
     and `questions/default.json`, moved; only name, short and topic changed
   - rejected: keeping the stems by giving the legacy files the shorts `cs` and `default` - a
     new `sod` run with description `legacy` would land on the same stem with other text
-- the runs: stems `sod_legacy_cslegacy_legacy_<Client>_<model>_<Shape>_t=0.0[...]` in
+- the runs: stems `sod_legacy_cs-legacy_legacy_<Client>_<model>_<Shape>_t=0.0[...]` in
   `results/election_2021/`. Tables and raw JSON are byte copies; in each record only `stem`,
   the spec's topic, framing and question, and the name and short of the framing and question
   blocks changed, and `migrated.folded` names the stem and topic before. Checked per run
@@ -791,7 +791,7 @@ sent, as datasets of their own. Importing the runs (b) and the grid analysis com
   plus the old question equals the `Prompt` of every saved copy of every run, archives
   included (5 for `grid_sod`, 3 for `grid_sod45`, 2 for `grid_simple`); every delivered row of
   the colleague is one row of `grid_colleague`
-- framing `cs_grid` (stem part `csgrid`) for the grid runs (2026-11-14): their system prompt
+- framing `cs_grid` (stem part `cs-grid`) for the grid runs (2026-11-14): their system prompt
   is the one of September, which still names the profile's attributes and the form of the
   answer, and their schema text the general one of that time (options, not parties) - neither
   `cs` nor `cs_legacy`. Built from `_grid_separate`'s topic file, texts copied
@@ -815,7 +815,7 @@ trial folder first, then into `results/`; the two agreed byte for byte.
     2026-09-11, saved then as three runs `grid-sod-r1..r3`, are one run with a `repeat`
     column - the shape every repeated run has. Repeat 1 is rebuilt from its table (its raw
     JSON was overwritten by the `grid_sod45` run); 2 and 3 are parsed from their raw JSON
-  - `gridsod45_..._t=0.3` and `gridsimple_..._t=0.3`: one repeat each
+  - `gridsod45_..._t=0.3` and `grid-simple_..._t=0.3`: one repeat each
   - each saved prompt equals today's (description, a space, the question) and each repeat's
     numbers equal its old table exactly; `check` passes
   - record: `saved_at` the latest repeat's, `response_schema` the schema as sent
@@ -1074,8 +1074,9 @@ results/<topic>/
   `plots/<name>.png`. A table someone else delivered sits in that run's `delivered/`; the
   record's `delivered.file` is relative to the run's folder and did not change
 - **What was derived from several runs is a named comparison**:
-  `comparisons/<name>/analysis|plots/`, the name being the set's (`--set`), `--name`, or the
-  topic. `runs.json` there is `label -> stem`, the runs it was made from - written on every
+  `comparisons/<name>/analysis|plots/`, the name being the set's (`--set`) or `--name`; runs named one by one need
+  `--name` (2026-11-16). REJECTED: the topic as the default name - it made
+  `results/election_2021/comparisons/election_2021/`, which read as a second topic. `runs.json` there is `label -> stem`, the runs it was made from - written on every
   saving pass, so it also covers a comparison that is in no `comparisons.json`. It has the
   shape of a set and can be copied into one
   - `compare.py`, `benchmark.py` and `kernel.py` write into the same folder under one name;
@@ -1088,7 +1089,8 @@ results/<topic>/
 - **Migration**: `python migrate_results.py [--write]`, one-off - files renamed, never
   rewritten, the sha256 of every file compared before and after. 134 files moved;
   `sod_claimed_votes.csv` stayed. `comparisons/grids/` got its `runs.json` from the set;
-  `comparisons/election_2021/` has none - which runs those tables were made from is not known
+  `comparisons/election_2021/` had none - which runs those tables were made from was not known
+  (by their columns the two Haiku `sod` trials of §14); deleted 2026-11-16
   - not migrated: the trial runs outside `results/` (§14) and anything under `_delete/`
   - `migrate_results.py` is spent; `migrate_grid.py` (spent too) was pointed at the new paths
 - rejected: keeping `<stem>.csv` names inside the run folder - the path length above
@@ -1101,9 +1103,9 @@ country and each region the model was asked ten times at temperature 0 - as an i
 the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <dir>]]`, one-off.
 
 - **Each table is a run over `regions`**, framing `cs_legacy`, `OpenAI`, `Prob`, `t=0.0`, `x10`:
-  - `regions_citizen_cslegacy_legacy_OpenAI_<model>_Prob_t=0.0_x10`: description `citizen`,
+  - `regions_citizen_cs-legacy_legacy_OpenAI_<model>_Prob_t=0.0_x10`: description `citizen`,
     question `legacy` - together word for word what was sent
-  - `regions_directlegacy_cslegacy_OpenAI_<model>_Prob_t=0.0_x10`: the stored, standalone
+  - `regions_direct-legacy_cs-legacy_OpenAI_<model>_Prob_t=0.0_x10`: the stored, standalone
     description `direct_legacy`
 - **`direct_legacy`** is `direct` as the notebook of 2025 worded it: the preposition never
   vocalised (`v Středočeském kraji`, `v Zlínském kraji`). Two of fifteen prompts differ from
@@ -1122,7 +1124,8 @@ the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <di
     `79b2189`), compared with today's rendering for all fifteen areas; no saved file held them
   - unknown: the date of the runs, and whether that commit is the notebook exactly as run
 - `legacy_stems` in the tests now means the legacy framing and a `migrated` block, since these
-  runs carry the legacy framing too; `tests/test_latent_results.py` covers them
+  runs carry the legacy framing too; `tests/test_region_results.py` covers them
+  (`test_latent_results.py` until 2026-11-16; "latent" was the old word for a run over `regions` - a region run)
 - **Not a run**: `results/election_2021/preferences/LatentPreferences.csv`, an older table of
   one country-level row per model whose prompt is not known, with its four figures
   (`latent_<model>.png`). Its numbers are neither the `citizen` nor the `direct` row for Česko
@@ -1183,14 +1186,14 @@ the ten answers was saved. `python migrate_latent.py <folder> [--write [--to <di
 Martin's naming: the dataset is the simple design in English ids, beside `grid_simple` (the
 same design in Czech words); that it is the colleague's grid is said in its title and note.
 
-- `datasets/grid_simple_en/`, short `gridsimpleen`; description `delivered` and framing
+- `datasets/grid_simple_en/`, short `grid-simple-en`; description `delivered` and framing
   `colleague` keep their names
 - **its two saved runs were renamed with it**, or they would name a dataset that does not
-  exist: `gridsimpleen_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3`
+  exist: `grid-simple-en_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3`
   (`election_2021`) and `..._Prob_t=0.0` (`media_fees_2026`). In each record `stem`,
   `spec.dataset`, `dataset.name` and `dataset.short` changed and a `renamed` block names the
   old stem; no result, table or hash changed
-- `gridsimple` alone now names two runs; a run of `grid_simple` is found by `gridsimple_`
+- `grid-simple` alone now names two runs; a run of `grid_simple` is found by `grid-simple_`
 - §15, §15.1 and §21 above say `grid_colleague` - the name of their day
 
 ## 28. The first two sod grids are retired; `grid_sod` is cut at 25 and 40 thousand (2026-11-15)
@@ -1207,13 +1210,13 @@ nor its runs say what a grid over the survey's vocabulary should.
 - the retired datasets stay in `datasets/` with RETIRED in title and note: a run names its
   dataset and is read against its values, so they cannot go while their runs are kept
   - their runs were renamed with them, as in §27 (`renamed` block, nothing else changed):
-    `gridsodretired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3` and
-    `gridsod45retired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3`
+    `grid-sod-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3` and
+    `grid-sod45-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3`
   - the `grids` set labels them `grid sod retired` and `grid sod45 retired`
 - REJECTED: changing the incomes of an existing grid in place - its saved run would stand
   beside profiles it was not sent (§20)
 - REJECTED: moving the retired grids and their runs to `_delete/` now -
-  `gridsodretired_..._x3` is the only grid run of ours with repeats; the kernel notebook's
+  `grid-sod-retired_..._x3` is the only grid run of ours with repeats; the kernel notebook's
   default, the kernel examples and `tests/test_kernel.py` read it
 - open: once `grid_sod` has a run (with repeats), the `grids` set, `kernel.ipynb`'s default
   and the tests move to it and the retired grids can go
@@ -1371,3 +1374,27 @@ From the architecture review of `panel/` (its plan, `_plan_analysis_split.md`, i
     copy-as-a-unit contract
 - open: the kernel and the benchmark each have an `agreement` that computes the same
   per-outcome correlation and ratio of standard deviations, per profile and per subject
+
+## 33. Hyphens in shorts; a run that was brought in is never saved over (2026-11-16)
+
+- **A short of several words is hyphenated**: `grid-simple`, `grid-simple-en`, `grid-sod`,
+  `grid-sod-retired`, `grid-sod45-retired`, `sod-legacy` (datasets), `cs-grid`, `cs-legacy`
+  (framings), `direct-legacy` (description). Formerly the same letters run together
+  (`gridsimpleen`), which read as one unknown word
+  - the underscore still separates the parts of a stem and is still refused in a short
+  - 21 run folders renamed, their records' `stem` and `short` fields rewritten and a `renamed`
+    entry added; `renamed` is a list where a record has more than one. No table was touched
+  - the stems in the sections above were rewritten to today's, except where a section names
+    a stem of before the `retired` rename (`gridsod_...`, `gridsod45_...`)
+  - not renamed: packs already written, anything in `_delete/`
+  - REJECTED: leaving the framing and description shorts alone - half a stem hyphenated
+- **A run with a `migrated` or a `delivered` block is never saved over** (`ResultStore.refuse`,
+  `record.KEPT`), whatever `overwrite` says; `execute` asks before the first call
+  - why: such a run was brought in, not sent, so it has no `archive/` - a save over it would
+    replace the only copy. Every run `save` wrote has an archived copy per save
+  - a legacy or retired run sent again is a new run under a name of its own; the blocks, not
+    the words `legacy` / `retired` in a name, are what marks a run as kept
+  - REJECTED: archiving the brought-in files on the first save over them - it would leave a
+    run under a legacy stem that is not the legacy run
+- **Runs named one by one need `--name`** (§24): no comparison is called after its topic.
+  `results/election_2021/comparisons/election_2021/` and `preferences/` are deleted
