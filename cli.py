@@ -24,7 +24,7 @@ def add_run_set(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("topic", help="a folder under results/")
     parser.add_argument("runs", nargs="*", help="per run, a stem or any text only one stem contains")
     parser.add_argument("--set", help="a named set of the topic's comparisons.json, in place of runs; its labels name the runs, its name the files")
-    parser.add_argument("--name", help="what the written files are named after; the set, or the topic, by default")
+    parser.add_argument("--name", help="what the comparison is called, its folder under results/<topic>/comparisons/; needed with runs, the set's name by default")
 
 
 def run_set(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Tuple[Union[List[str], Dict[str, str]], str]:
@@ -32,7 +32,9 @@ def run_set(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Tuple[
     named = load_comparisons(args.topic)
     if bool(args.set) == bool(args.runs) or (args.set and args.set not in named):
         parser.error(f"name either the topic's runs, or --set, one of {list(named)}")
-    return (named[args.set].runs, args.name or args.set) if args.set else (args.runs, args.name or args.topic)
+    if args.runs and not args.name:
+        parser.error("runs named one by one need --name, what their comparison is called")
+    return (named[args.set].runs, args.name or args.set) if args.set else (args.runs, args.name)
 
 
 def add_output(parser: argparse.ArgumentParser) -> None:

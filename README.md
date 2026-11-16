@@ -163,7 +163,7 @@ python compare.py election_2021 <run> <run> --name haiku
 python compare.py election_2021 --set haiku          # a named set of the topic's comparisons.json
 python benchmark.py election_2021 <run> <run> --name haiku --predictors gender,age,region
 python kernel.py election_2021 gridsodretired_ gridsimple_ --name grids
-python kernel.py election_2021 <run> <run> --reference gpt-4o --draws 100
+python kernel.py election_2021 <run> <run> --name legacy --reference gpt-4o --draws 100
 ```
 
 A run is named by its stem or by any text only one stem contains. Tables go to `analysis/` and
@@ -337,7 +337,7 @@ results/election_2021/
     └── plots/            their figures
 ```
 
-The comparison's name is the set's (`--set`), `--name`, or the topic. Files inside a run's
+The comparison's name is the set's (`--set`) or `--name`; runs named one by one need `--name`. Files inside a run's
 folder carry no stem; the folder does.
 
 The stem is `<dataset>_<description>_<framing>_<question>_<Client>_<model>_<Shape>_t=<t>`, plus

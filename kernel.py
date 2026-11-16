@@ -1,17 +1,16 @@
 """
 Read saved runs as kernels - a matrix from profiles to answers - and analyse them, from the command line.
 
-    python kernel.py election_2021 gridsodretired_ gridsimple_  each run by any text only its stem contains
-    python kernel.py election_2021 gridsodretired_ gridsimple_ --name grids
+    python kernel.py election_2021 gridsodretired_ gridsimple_ --name grids  each run by any text only its stem contains
     python kernel.py election_2021 --set grids                  a named set of the topic's comparisons.json
-    python kernel.py election_2021 gridsodretired_ --only pairs
-    python kernel.py election_2021 legacy_OpenAI_gpt-4o_Prob --factors gender,age,region
-    python kernel.py election_2021 gridsodretired_ --no-save
+    python kernel.py election_2021 gridsodretired_ --name grids --only pairs
+    python kernel.py election_2021 legacy_OpenAI_gpt-4o_Prob --name legacy --factors gender,age,region
+    python kernel.py election_2021 gridsodretired_ --name grids --no-save
 
 `python analyze.py <topic>` lists a topic's saved runs. Writes into
 `results/<topic>/comparisons/<name>/`: tables to `analysis/`, figures to `plots/`, named
-`kernel_<analysis>`, and `runs.json` saying which runs were read; the name is the set's, or the
-topic unless given. `kernel.ipynb` is the same thing one block at a time.
+`kernel_<analysis>`, and `runs.json` saying which runs were read; the name is the set's, or
+`--name`, which runs named one by one need. `kernel.ipynb` is the same thing one block at a time.
 """
 import argparse
 
