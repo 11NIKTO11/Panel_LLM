@@ -1398,3 +1398,104 @@ From the architecture review of `panel/` (its plan, `_plan_analysis_split.md`, i
     run under a legacy stem that is not the legacy run
 - **Runs named one by one need `--name`** (§24): no comparison is called after its topic.
   `results/election_2021/comparisons/election_2021/` and `preferences/` are deleted
+
+## 34. How finely a model tells subjects apart: `resolution` (2026-11-17)
+
+The question: a run sends thousands of different prompts - does the model answer each, or sort
+people into a few bins? gpt-4o-mini on `sod`: 3854 different prompts, 650 different answers,
+no column holding more than 16 different values.
+
+- **Two answers are the same when every topic column matches**; "distinct" is the count of
+  different answers. Formerly the check counted "identical answers" - every answer with a twin,
+  3591 of 3880 - a number with no scale that read as an error
+  - REJECTED: "strictly distinct", two answers matching in no column - a property of a pair
+    that gives no count for a run (not transitive), and nearly empty: every answer shares a
+    0.05 with every other somewhere
+- **The check prints one line, as a canary**: `distinct answers 650 (16.8%) of 3880; 289 given
+  once, the most common 130 times` (`check.Distinct`), over all calls
+- **`panel/analysis/resolution.py`**, second in a full pass and at the top of `analyze.ipynb`,
+  after the subjects' table. On the answers as saved, never normalised:
+  - `resolution` - per column, how many different values and the three most common with
+    their share; figure: a stem at every value, as tall as the share of answers holding it
+  - `resolution_values` - every value of every column with its count and share
+  - `resolution_answers` - how much of the run the most common answers cover, against the
+    same curve for the prompts: expected (dashed) is an answer of its own for every different
+    prompt, actual (solid) is what was given
+  - `resolution_columns` (figure only) - that curve per column, a line per option in its
+    colour, turnout dotted (its first column; the second is its mirror)
+- **A value is a stem, not a bar**: a hairline ending in a dot. A bar has a width and reads as
+  a range of values; the point is that the answers hold exactly that number
+- **A run that repeats is counted within each repeat** - one pass over the subjects, an answer
+  each. The mean curve is drawn, shaded from the least to the most, and the count is a range
+  (`310-313` of 360 for the retired `sod` grid). The values a column holds are counted over
+  every call: they are what the model wrote
+  - REJECTED: over all calls - the model's noise between repeats of one prompt passes for
+    telling subjects apart (744 answers for 360 prompts)
+  - REJECTED: repeats averaged per subject first - a mean of three answers is nearly always
+    its own (360 of 360), and the numbers the model rounds to are gone
+  - REJECTED: the count over all calls divided by the repeats - a model that answers a prompt
+    the same every time would count a third of its answers (248 where a pass has 311)
+  - the band is least-to-most, not a standard deviation: there are three repeats
+- **Not for a run kept as a table** (`delivered`): its rows are means, not answers
+- **`SavedRun.prompts`**: the prompt of every saved row, so answers can be held against them
+- **`spread` lost its figure of the columns** (the violins; `plots.distributions.violins` is
+  gone). It showed normalised shares per subject, and `resolution` shows the same columns as
+  written, which says more. `spread` keeps its table and the two distance histograms
+  - REJECTED: stems on the normalised shares - normalising turns a handful of round numbers
+    into many nearly equal ones, so "exactly this value" means nothing there (a rug of dots)
+  - the distance histograms say little within one run (0.149 mean Euclidean has no yardstick);
+    kept for `compare.py`'s `spread`, which sets runs beside each other
+- **`analyze.ipynb` has no "What the answers say" block** any more; `answers` is still the
+  first analysis of `analyze.py`. The check cell is three lines: framing, check, report
+- **Not in `compare.py`**: no comparison of runs by resolution, by decision
+- open: on the per-column figure an option whose colour is near-black (`PirSTAN`) differs
+  from the expected line only by being solid
+
+## 35. Effort beyond Claude: OpenRouter's vocabulary, asked of the provider per run (2026-11-17)
+
+- **One vocabulary, OpenRouter's**: `minimal, low, medium, high, xhigh, max`
+  (`panel/llm/base.py:EFFORT_ORDER` without `none`; `spec.EFFORTS`). The word in the spec is
+  the word sent, and the stem keeps `e=<effort>`
+  - why: the providers name different levels and each model takes a subset - Claude
+    `low .. max`, OpenAI adds `none` and `minimal`, Gemini 3 stops at `high`, Gemini 2.5 takes
+    a token count. OpenRouter already takes one word for all of them
+  - REJECTED: a translation table of our own (`max` -> Gemini `high`, ...) - the stem would
+    no longer say what the provider received, and it breaks whenever a model's levels change
+  - REJECTED: `none` as an effort - `--effort none` already means "set no effort"
+    (`presets.NONE`); a provider's `none` means "no reasoning". Adding it needs another
+    spelling for one of the two
+- **`OpenRouter` takes an effort** (`TAKES_EFFORT`), sent as `reasoning.effort`. The native
+  `OpenAI` and `Gemini` clients still refuse one: no preset uses them with a reasoning model
+  - how OpenRouter turns the word into the provider's setting (its docs, 2026-11-16): OpenAI
+    the same word; Gemini the nearest `thinkingLevel`; Claude a thinking budget that is a
+    share of `max_tokens` (`max` / `xhigh` 95%, `high` 80%, `medium` 50%, `low` 20%,
+    `minimal` 10%). So `e=high` on `OpenRouter` and on `Anthropic` are different settings for
+    the same Claude model; the client's short name in the stem tells them apart
+  - `OpenRouterClient(max_tokens=)`: None sends none, as before; with an effort and none
+    given, 16000 is sent (`EFFORT_MAX_TOKENS`, the Anthropic client's default) so that a
+    budget which is a share of it has a known base. `client_parameters` records both
+- **A level the model does not take is refused before the first call**
+  (`panel/run/effort.py:effort_tier`, called by `execute` and by `run.py`)
+  - why ours: OpenRouter moves an unsupported level to the nearest one without saying so
+  - `BaseLLMClient.efforts(model)` asks the provider: lowest first, empty for a model that
+    takes none, None where there is no list to ask
+    - `Anthropic` / `AnthropicLegacy`: the Models API, `capabilities.effort`
+    - `OpenRouter`: the model catalogue, `reasoning.supported_efforts` - no such key is a
+      model without an effort setting, null one that takes every level (shape checked against
+      the live catalogue, 2026-11-16)
+    - a level name outside `EFFORT_ORDER` raises: its place among the others is unknown
+  - a client built with another effort than the spec's is refused too; the client's is the
+    one sent
+  - `resolve` stays offline: it checks only that the client takes an effort at all, so
+    `--show` and the tests make no request
+- **The record says where the effort stood**: `"effort": {level, rank, of, levels}`, null for
+  a run without one; `rank`, `of`, `levels` null where the provider has no list. `run.py`
+  prints it before asking: `effort high: 3 of 5 (...)`
+  - `levels` is as the provider reports it, a `none` included, so `of` counts it
+  - the rank is a position, not an amount: the same rank on two models is not the same thinking
+  - REJECTED: the tiers as fields of `RunSpec` - the spec is what is declared; a field the
+    provider reports would break the spec comparison of `ResultStore.refuse` and the reading
+    of older records
+  - REJECTED: a table of tiers per model in the repo - it goes stale with every new model
+- not done: no live call. The Anthropic lookup is tested against the SDK with a stand-in
+  transport, OpenRouter's against a stand-in catalogue; `run.py --check` does not print the tier
