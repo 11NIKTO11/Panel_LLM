@@ -1,4 +1,4 @@
-"""How values are spread: a violin per column, histograms side by side, distributions overlaid per panel, and boxes with their points."""
+"""How values are spread: a stem per value of a column, histograms side by side, distributions overlaid per panel, and boxes with their points."""
 from typing import Mapping, Sequence, Union
 
 import matplotlib.ticker as mtick
@@ -9,8 +9,8 @@ from matplotlib.figure import Figure
 from .style import EDGE, INK, MUTED, NEUTRAL, PANEL, SERIES, SURFACE, clean, finish, framed, tint, wrap
 
 
-def violins(
-    values: pd.DataFrame,
+def spikes(
+    shares: Mapping[str, pd.Series],
     rows: Sequence[str],
     head: Sequence[str] = (),
     colors: Union[Mapping[str, str], None] = None,
@@ -19,32 +19,34 @@ def violins(
     note: Union[str, None] = None,
 ) -> Figure:
     """
-    One horizontal violin per column of shares, with the median as a dot and the middle
-    half as a bar.
+    One row per column, a stem at every value it holds - a hairline ending in a dot, since a
+    value is a point and not a range - as tall as the share of cells holding exactly it; the
+    tallest of a row is named with its share. Stems of one panel share a scale.
 
-    - `values`: one row per subject, shares between 0 and 1, no missing values.
-    - `head`: columns drawn in a panel of their own above the main one, on their own scale (e.g. turnout).
+    - `shares`: column -> share per value, the values between 0 and 1.
+    - `head`: columns drawn in a panel of their own above the main one (e.g. turnout).
     """
     colors, labels = colors or {}, labels or {}
     panels = [list(part) for part in (head, rows) if len(part)]
-    height = 1.5 + 0.5 * sum(len(part) for part in panels) + 0.4 * len(panels)
+    height = 1.5 + 0.62 * sum(len(part) for part in panels) + 0.4 * len(panels)
     fig = Figure(figsize=(9, height), facecolor=SURFACE)
     axes = fig.subplots(len(panels), 1, squeeze=False, gridspec_kw={"height_ratios": [len(part) for part in panels]})[:, 0]
     for ax, part in zip(axes, panels):
         clean(ax)
-        positions = np.arange(len(part))
-        bodies = ax.violinplot([values[column].to_numpy(dtype=float) for column in part], positions, orientation="horizontal", widths=0.85, showextrema=False)["bodies"]
-        for body, column in zip(bodies, part):
-            body.set_facecolor(tint(colors.get(column, NEUTRAL), 0.55))
-            body.set_edgecolor(colors.get(column, NEUTRAL))
-            body.set_alpha(1)
-        low, middle, high = (values[part].quantile(q).to_numpy() for q in (0.25, 0.5, 0.75))
-        ax.hlines(positions, low, high, color=INK, linewidth=2.5)
-        ax.scatter(middle, positions, s=26, color=SURFACE, edgecolor=INK, linewidth=1.2, zorder=3)
-        ax.set_yticks(positions, wrap(labels.get(column, column) for column in part))
+        tallest = max(float(shares[column].max()) for column in part)
+        for position, column in enumerate(part):
+            found = shares[column]
+            base = position + 0.4
+            ax.hlines(base, 0, 1, color=EDGE, linewidth=0.6)
+            at, tops = found.index.to_numpy(dtype=float), base - 0.8 * found.to_numpy() / tallest
+            ax.vlines(at, base, tops, color=colors.get(column, NEUTRAL), linewidth=0.9)
+            ax.scatter(at, tops, s=13, color=colors.get(column, NEUTRAL), linewidths=0, zorder=3)
+            top = found.idxmax()
+            ax.annotate(f"{top:g} in {found.max():.0%}", (float(top), base - 0.8 * found.max() / tallest), xytext=(6, 3), textcoords="offset points", va="top", fontsize=8, color=MUTED)
+        ax.set_yticks(np.arange(len(part)), wrap(labels.get(column, column) for column in part))
         ax.set_ylim(len(part) - 0.4, -0.6)
-        ax.set_xlim(0, max(float(values[part].max().max()) * 1.03, 0.05))
-        ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
+        ax.set_xlim(-0.01, 1.01)
+        ax.xaxis.set_major_locator(mtick.MultipleLocator(0.1))
     return finish(fig, height, title, note)
 
 

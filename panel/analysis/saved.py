@@ -23,6 +23,7 @@ from panel.dataset import Claims, Dataset, load_claims, load_dataset, read_value
 from panel.digest import recorded, sha256
 from panel.run import ResultStore, RunSpec
 from panel.run.resolve import REPEAT
+from panel.run.store import PROMPT
 from panel.topic import PlotStyle, Positions, Topic, load_plot_style, load_positions, load_topic
 
 
@@ -35,7 +36,7 @@ class SavedRun:
     """
     `results` and `normalized` hold `repeat` before the topic's columns if the run repeats;
     `subjects` is in the order of `results`. `style` is empty when the topic has none or none was
-    asked for. `weighted`: a predicted distribution weights each answer's option shares by its
+    asked for. `prompts` is the prompt of every row of `results`, as sent. `weighted`: a predicted distribution weights each answer's option shares by its
     probability of voting; off, every answer with a preference counts the same.
     """
     stem: str
@@ -52,6 +53,7 @@ class SavedRun:
     style: PlotStyle
     positions: Union[Positions, None] = None
     weighted: bool = True
+    prompts: Union[pd.Series, None] = None
 
     @property
     def options(self) -> List[str]:
@@ -97,7 +99,8 @@ def load_run(
     values = read_values(dataset)
 
     columns = ([REPEAT] if spec.repeats > 1 else []) + topic.columns
-    results, normalized = topic.rename(store.frame(stem))[columns], topic.rename(store.frame(stem, normalized=True))[columns]
+    saved = topic.rename(store.frame(stem))
+    results, normalized = saved[columns], topic.rename(store.frame(stem, normalized=True))[columns]
     rows = record["dataset"]["rows"]
     if set(results.index) != set(rows) or not results.index.equals(normalized.index):
         raise ValueError(f"'{stem}': the saved rows are not the {len(rows)} subjects its record lists")
@@ -114,6 +117,7 @@ def load_run(
         normalized=normalized, subjects=subjects, values=values,
         claims=load_claims(dataset, topic.name) if topic.name in dataset.claims else None,
         reference=reference, style=load_plot_style(topic) if styled else PlotStyle(), positions=load_positions(topic), weighted=weighted,
+        prompts=saved[PROMPT] if PROMPT in saved and saved[PROMPT].notna().all() else None,
     )
 
 

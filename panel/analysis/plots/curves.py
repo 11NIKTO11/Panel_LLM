@@ -1,10 +1,11 @@
-"""Lines through points: one line per named series on shared axes."""
-from typing import Mapping, Sequence, Union
+"""Lines through points: one line per named series on shared axes, and shares adding up over a rank."""
+from typing import Mapping, Sequence, Tuple, Union
 
+import matplotlib.ticker as mtick
 import pandas as pd
 from matplotlib.figure import Figure
 
-from .style import INK, MUTED, SERIES, SURFACE, clean, finish
+from .style import INK, MUTED, REFERENCE, SERIES, SURFACE, clean, finish, tint
 
 
 def curves(
@@ -88,3 +89,51 @@ def line_panels(
     handles, names = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, names, loc="lower center", ncol=min(len(names), 4), frameon=False, fontsize=9)
     return finish(fig, height, title, note, bottom=0.3 + 0.25 * -(-len(names) // 4), noted=0.6, w_pad=2.0, h_pad=1.4)
+
+
+def cumulative(
+    lines: Mapping[str, pd.Series],
+    against: Union[str, None] = None,
+    colors: Union[Mapping[str, str], None] = None,
+    dotted: Sequence[str] = (),
+    bands: Union[Mapping[str, Tuple[pd.Series, pd.Series]], None] = None,
+    counts: Union[Mapping[str, str], None] = None,
+    xlabel: Union[str, None] = None,
+    ylabel: Union[str, None] = None,
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
+    """
+    `lines` is series name -> the share reached at each rank, the rank its index from 1; ranks
+    are on a log scale, each line ends in a dot, and the legend, right of the axes, gives its
+    last rank in brackets, or what `counts` says for it. `against` names the series the others
+    are held to: it is dashed, in the reference ink. `dotted` names the series drawn dotted, to
+    set them apart from the rest. `bands` is series name -> the lowest and the highest share at
+    each rank, shaded behind its line.
+    """
+    bands, counts = bands or {}, counts or {}
+    colors = colors or {}
+    height = 5.0
+    fig = Figure(figsize=(9.6, height), facecolor=SURFACE)
+    ax = fig.subplots()
+    clean(ax)
+    ax.grid(axis="y", color=ax.xaxis.get_gridlines()[0].get_color(), linewidth=0.8)
+    held = [name for name in lines if name != against]
+    palette = {**dict(zip(held, SERIES)), **({against: REFERENCE} if against else {}), **colors}
+    for name, reached in lines.items():
+        style = "--" if name == against else ":" if name in dotted else "-"
+        if name in bands:
+            least, most = bands[name]
+            ax.fill_between(least.index, least.to_numpy(), most.to_numpy(), color=tint(palette[name], 0.25), linewidth=0)
+        ax.plot(reached.index, reached.to_numpy(), linewidth=1.8, linestyle=style, color=palette[name], label=f"{name} ({counts.get(name, reached.index[-1])})")
+        ax.scatter(reached.index[-1:], reached.to_numpy()[-1:], s=26, color=palette[name], zorder=3)
+    ax.set_xscale("log")
+    ax.set_ylim(0, 1.06)
+    ax.xaxis.set_major_formatter(mtick.StrMethodFormatter("{x:g}"))
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel(xlabel or "rank", fontsize=10, color=INK)
+    ax.set_ylabel(ylabel or "share", fontsize=10, color=INK)
+    finish(fig, height, title, note)
+    fig.subplots_adjust(right=0.8)
+    ax.legend(frameon=False, fontsize=9, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0)
+    return fig

@@ -39,9 +39,10 @@ def test_interval_panels():
     assert isinstance(intervals.interval_panels(table, ["m", "d"], percent=["m"], zero=["d"], bars=True), Figure)
 
 
-def test_violins_and_histograms():
-    values = shares(40).assign(voted=RNG.uniform(size=40))
-    assert isinstance(distributions.violins(values, OPTIONS, head=["voted"], colors={"a": "#261060"}, title="t", note="n"), Figure)
+def test_stems_and_histograms():
+    values = shares(40).assign(voted=RNG.uniform(size=40)).round(1)
+    held = {column: values[column].value_counts(normalize=True) for column in values}
+    assert isinstance(distributions.spikes(held, OPTIONS, head=["voted"], colors={"a": "#261060"}, title="t", note="n"), Figure)
     assert isinstance(distributions.histograms(values[["a", "b"]], "subjects", title="t"), Figure)
 
 

@@ -1,6 +1,6 @@
 """
 How much the subjects differ in what the model says of them: each column's distribution over
-subjects, and how far each subject's answer sits from the mean answer.
+subjects, as a table, and how far each subject's answer sits from the mean answer.
 
 A subject is one row here: repeats are averaged first, so this is the spread between subjects
 and not the model's noise on one of them. A subject with no preference in any answer has no
@@ -14,9 +14,8 @@ from matplotlib.figure import Figure
 
 from .aggregate import subject_answers
 from .output import Output, save
-from .plots.distributions import histograms, violins
+from .plots.distributions import histograms
 from .saved import SavedRun
-from .sources import ranked
 
 NAME = "spread"
 DISTANCES = "spread_distances"
@@ -41,17 +40,12 @@ def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
 
 
 def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
-    """A violin per topic column over the subjects, `spread`, and the two distances as histograms, `spread_distances`."""
+    """The two distances as histograms, `spread_distances`; the columns' own values are drawn by `resolution`, as the model wrote them."""
     topic = run.topic
     found = subject_answers(run.normalized, topic)
     left = len(run.subjects) - len(found)
     note = f"{len(found)} subjects of '{run.dataset.name}'" + (f"; {left} without a preference left out" if left else "")
     return {
-        NAME: violins(
-            found, ranked(run), topic.turnout or (), run.style.colors, run.labels,
-            title=f"{run.title}: answers per subject",
-            note=f"{note}; the dot is the median, the bar the middle half",
-        ),
         DISTANCES: histograms(
             tables[DISTANCES], "subjects",
             title=f"{run.title}: how far subjects are from the mean answer",

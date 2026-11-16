@@ -14,7 +14,8 @@ from .distance import distance
 from .effects import effects
 from .groups import groups
 from .output import Output
+from .resolution import resolution
 from .spread import spread
 from .saved import NotApplicable, SavedRun, describe, find_stem, load_run
 
-ANALYSES = {"answers": answers, "country": country, "distance": distance, "area": area, "spread": spread, "correlation": correlation, "groups": groups, "effects": effects, "compass": compass}
+ANALYSES = {"answers": answers, "resolution": resolution, "country": country, "distance": distance, "area": area, "spread": spread, "correlation": correlation, "groups": groups, "effects": effects, "compass": compass}

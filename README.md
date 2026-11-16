@@ -174,6 +174,7 @@ the comparison's (`results/<topic>/comparisons/<name>/`); `--no-save` writes not
 | analysis | what it gives |
 |---|---|
 | `answers` | the mean of every column and how often each option is an answer's highest |
+| `resolution` | how finely the model tells subjects apart: the values each column holds and how common each is; how many different answers, against how many prompts |
 | `country` | predicted, claimed and actual over all the run's subjects, with intervals |
 | `distance` | MAE, RMSE, turnout difference, JS, KL and correlation between the three |
 | `area` | every distance metric per area, with subject counts; areas in the dataset's declared order (regions by population) |
