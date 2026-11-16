@@ -94,18 +94,33 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
     prompts = {}
     for (subject, _), (prompt, _) in sorted(loaded.items()):
         prompts.setdefault(subject, prompt)
-    probabilities = "options" in response_model.model_fields
-    options = list(topic.options)
 
     values = []
+    turnout = abstained = None
+    options = listed = duplicates = distinct = undefined = highest = both = None
+
     if topic.turnout:
-        values += [p for response in responses for p in (response.voted_or_not.voted, response.voted_or_not.not_voted)]
-    if probabilities:
-        values += [option.probability for response in responses for option in response.options]
+        pairs = [(response.voted_or_not.voted, response.voted_or_not.not_voted) for response in responses]
+        values += [value for pair in pairs for value in pair]
+        turnout = _sums(pd.Series([sum(pair) for pair in pairs]), tolerance)
+        stays_home = frame[topic.turnout[0]] <= ZERO
+        abstained = int(stays_home.sum())
+
+    if "options" in response_model.model_fields:
+        columns = list(topic.options)
         names = [[option.name for option in response.options] for response in responses]
-    abstained = frame[topic.turnout[0]] <= ZERO if topic.turnout else None
-    undefined = frame[options].sum(axis=1) <= ZERO if probabilities else None
-    given = frame.groupby(topic.columns, dropna=False).size()
+        sums = [sum(option.probability for option in response.options) for response in responses]
+        values += [option.probability for response in responses for option in response.options]
+        options = _sums(pd.Series(sums), tolerance)
+        listed = dict(sorted(Counter(len(set(listing)) for listing in names).items()))
+        duplicates = sum(len(listing) != len(set(listing)) for listing in names)
+        given = frame.groupby(topic.columns, dropna=False).size()
+        distinct = Distinct(len(given), int((given == 1).sum()), int(given.max()))
+        prefers_nothing = frame[columns].sum(axis=1) <= ZERO
+        undefined = int(prefers_nothing.sum())
+        highest = float(frame[columns].max(axis=1).mean())
+        if topic.turnout:
+            both = int((stays_home & prefers_nothing).sum())
 
     return Check(
         stem=stem,
@@ -119,15 +134,9 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         missing=int(frame[topic.columns].isna().sum().sum()),
         tolerance=tolerance,
         out_of_range=sum(not 0 <= value <= 1 for value in values),
-        turnout=_sums(pd.Series([r.voted_or_not.voted + r.voted_or_not.not_voted for r in responses]), tolerance) if topic.turnout else None,
-        options=_sums(pd.Series([sum(o.probability for o in r.options) for r in responses]), tolerance) if probabilities else None,
-        listed=dict(sorted(Counter(len(set(listed)) for listed in names).items())) if probabilities else None,
-        duplicates=sum(len(listed) != len(set(listed)) for listed in names) if probabilities else None,
-        distinct=Distinct(len(given), int((given == 1).sum()), int(given.max())) if probabilities else None,
-        abstained=int(abstained.sum()) if topic.turnout else None,
-        undefined=int(undefined.sum()) if probabilities else None,
-        both=int((abstained & undefined).sum()) if topic.turnout and probabilities else None,
-        highest=float(frame[options].max(axis=1).mean()) if probabilities else None,
+        turnout=turnout, abstained=abstained,
+        options=options, listed=listed, duplicates=duplicates, distinct=distinct, undefined=undefined, highest=highest,
+        both=both,
     )
 
 
