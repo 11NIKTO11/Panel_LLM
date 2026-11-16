@@ -7,13 +7,20 @@ body, and that the schema in it says everything the framing says. OpenRouter's r
 checked where they are handed to `requests`.
 """
 import json
+import time
 from dataclasses import asdict
+from types import SimpleNamespace
 
 import httpx2
 import pytest
 from anthropic import Anthropic, DefaultHttpxClient
 
-from panel.llm import client_openrouter, ordered_efforts
+import pandas as pd
+import requests
+
+from panel.llm import BatchFailed, CallFailed, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
+from panel.llm.client_gemini import GeminiClient
+from panel.llm.client_openai import OpenAIClient
 from panel.llm.client_anthropic import AnthropicClient, AnthropicLegacyClient
 from panel.llm.client_openrouter import OpenRouterClient
 from panel.llm.schema_compat import bounds_as_text, move_ref_descriptions
@@ -158,7 +165,7 @@ def test_a_call_that_used_a_server_tool_fails(probabilities):
     model, _ = probabilities
     client = AnthropicClient(api_key="test")
     answering(client, model, server_tool_use={"web_search_requests": 1})
-    with pytest.raises(ValueError, match="server tools"):
+    with pytest.raises(CallFailed, match="server tools"):
         client.call_llm("claude-test", "prompt", model, None)
     answering(client, model, server_tool_use={"web_search_requests": 0})
     assert client.call_llm("claude-test", "prompt", model, None).voted_or_not.voted == 0.7
@@ -245,6 +252,130 @@ def test_openrouter_fixups_leave_no_text_out(routed, topic_name, framing_name):
     for model in models:
         said = descriptions(client.schema_sent(routed, model))
         assert [text for text in texts(framing, model.SHORT_NAME) if text not in said] == []
+
+
+FAILURES = [(429, RateLimited), (500, CallFailed), (529, CallFailed), (408, CallFailed), (401, BatchFailed), (400, BatchFailed), (404, BatchFailed)]
+
+
+@pytest.mark.parametrize("kind", [AnthropicClient, AnthropicLegacyClient])
+@pytest.mark.parametrize("status, failure", FAILURES)
+def test_anthropic_names_each_failure(kind, status, failure, probabilities):
+    model, _ = probabilities
+    client = kind(api_key="test")
+    reply = lambda request: httpx2.Response(status, json={"type": "error", "error": {"type": "error", "message": "no"}})
+    client.client = Anthropic(api_key="test", max_retries=0, http_client=DefaultHttpxClient(transport=httpx2.MockTransport(reply)))
+    with pytest.raises(failure):
+        client.call_llm("claude-test", PROMPT, model, None)
+
+
+def test_anthropic_names_a_lost_connection_and_an_unusable_answer(probabilities):
+    model, _ = probabilities
+    client = AnthropicClient(api_key="test")
+
+    def lost(request):
+        raise httpx2.ConnectError("no route")
+
+    client.client = Anthropic(api_key="test", max_retries=0, http_client=DefaultHttpxClient(transport=httpx2.MockTransport(lost)))
+    with pytest.raises(CallFailed):
+        client.call_llm("claude-test", PROMPT, model, None)
+    wrong = lambda request: httpx2.Response(200, json={
+        "id": "msg_test", "type": "message", "role": "assistant", "model": "claude-test", "content": [{"type": "text", "text": "{}"}],
+        "stop_reason": "end_turn", "stop_sequence": None, "usage": {"input_tokens": 1, "output_tokens": 1},
+    })
+    client.client = Anthropic(api_key="test", max_retries=0, http_client=DefaultHttpxClient(transport=httpx2.MockTransport(wrong)))
+    with pytest.raises(CallFailed):
+        client.call_llm("claude-test", PROMPT, model, None)
+
+
+@pytest.mark.parametrize("status, failure", FAILURES)
+def test_openrouter_names_each_failure(monkeypatch, status, failure, probabilities):
+    model, _ = probabilities
+    client = OpenRouterClient(api_key="test")
+    monkeypatch.setattr(client_openrouter.requests, "post", lambda url, **request: Reply({"error": "no"}, status))
+    with pytest.raises(failure):
+        client.call_llm("gpt-4o", PROMPT, model, 0.0)
+    monkeypatch.setattr(client_openrouter.requests, "post", lambda url, **request: Reply({"error": {"code": status, "message": "no"}}))
+    with pytest.raises(failure):
+        client.call_llm("gpt-4o", PROMPT, model, 0.0)
+
+
+@pytest.mark.parametrize("payload", [
+    {"error": "no code"}, {"choices": []}, {"choices": [{"message": {"content": "not json"}}]}, {"choices": [{"message": {"content": "{}"}}]},
+    {"choices": [{"message": {"content": None}}]},
+], ids=["error without a code", "no choice", "not json", "not the schema", "no content"])
+def test_openrouter_names_an_unusable_answer(monkeypatch, payload, probabilities):
+    model, _ = probabilities
+    client = OpenRouterClient(api_key="test")
+    monkeypatch.setattr(client_openrouter.requests, "post", lambda url, **request: Reply(payload))
+    with pytest.raises(CallFailed):
+        client.call_llm("gpt-4o", PROMPT, model, 0.0)
+
+    def timed_out(url, **request):
+        raise requests.Timeout("too slow")
+
+    monkeypatch.setattr(client_openrouter.requests, "post", timed_out)
+    with pytest.raises(CallFailed, match="Timeout"):
+        client.call_llm("gpt-4o", PROMPT, model, 0.0)
+
+
+def test_openai_and_gemini_never_answer_with_nothing(probabilities):
+    model, _ = probabilities
+    client = OpenAIClient(api_key="test")
+    client.client = SimpleNamespace(responses=SimpleNamespace(parse=lambda **request: SimpleNamespace(model="gpt-test", output_parsed=None)))
+    with pytest.raises(CallFailed, match="no parsed output"):
+        client.call_llm("gpt-test", PROMPT, model, 0.0)
+    gemini = GeminiClient(api_key="test")
+    gemini.client = SimpleNamespace(models=SimpleNamespace(generate_content=lambda **request: SimpleNamespace(model_version="gemini-test", text=None)))
+    with pytest.raises(CallFailed, match="no text"):
+        gemini.call_llm("gemini-test", PROMPT, model, 0.0)
+    gemini.client = SimpleNamespace(models=SimpleNamespace(generate_content=lambda **request: SimpleNamespace(model_version="gemini-test", text="{}")))
+    with pytest.raises(CallFailed, match="not the schema"):
+        gemini.call_llm("gemini-test", PROMPT, model, 0.0)
+
+
+class Failing:
+    """A client whose calls raise what it was given, in turn, and then answer."""
+
+    def __init__(self, *failures, takes: float = 0.0):
+        self.failures, self.calls, self.takes = list(failures), 0, takes
+
+    def call_llm(self, model, prompt, response_format, temperature, instructions=None):
+        self.calls += 1
+        time.sleep(self.takes)
+        if self.failures:
+            failure = self.failures.pop(0)
+            if failure is not None:
+                raise failure
+            return None
+        return "answer"
+
+
+def batch(client, rows: int = 1, retries: int = 3):
+    data = pd.DataFrame({"text": [f"prompt {row}" for row in range(rows)]})
+    return run_llm_batch(data, prompt_creator=lambda row: row["text"], response_model=None, model="m", temperature=None,
+                         client=client, instructions=None, max_workers=1, retries=retries)
+
+
+def test_the_runner_waits_on_a_rate_limit_and_tries_a_failed_call_again(monkeypatch):
+    waits = []
+    monkeypatch.setattr("panel.llm.runner.time.sleep", waits.append)
+    client = Failing(RateLimited("slow down"), CallFailed("lost"))
+    assert batch(client) == ({0: ("prompt 0", "answer")}, []) and client.calls == 3
+    assert len(waits := [wait for wait in waits if wait]) == 1 and 1 <= waits[0] < 2
+    assert batch(Failing(CallFailed("a"), CallFailed("b")), retries=2) == ({}, [0])
+
+
+@pytest.mark.parametrize("failure", [BatchFailed("wrong key"), KeyError("a bug"), None], ids=["batch failed", "unforeseen", "answered None"])
+def test_the_runner_stops_the_batch_on_what_no_retry_mends(failure):
+    client = Failing(*[failure] * 50, takes=0.01)
+    with pytest.raises(type(failure) if failure else TypeError):
+        batch(client, rows=50)
+    assert client.calls < 50
+
+
+def test_the_runner_states_no_default():
+    with pytest.raises(TypeError):
+        run_llm_batch(pd.DataFrame({"text": ["a"]}), prompt_creator=lambda row: row["text"], response_model=None, client=Failing())
 
 
 def test_a_description_beside_a_ref_moves_to_its_definition():

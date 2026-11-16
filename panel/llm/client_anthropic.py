@@ -1,14 +1,16 @@
 import os
 from typing import Tuple, Type, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .base import BaseLLMClient, ordered_efforts
+from .errors import CallFailed, RateLimited, status_error
 
 try:
+    import anthropic
     from anthropic import Anthropic, transform_schema
 except Exception:  # pragma: no cover - optional dependency guard
-    Anthropic = transform_schema = None
+    anthropic = Anthropic = transform_schema = None
 
 
 def server_tools_used(response) -> dict:
@@ -72,22 +74,30 @@ class AnthropicClient(BaseLLMClient):
 
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:
-        response = self.client.messages.parse(
-            model=model,
-            max_tokens=self.max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-            tools=[],
-            output_format=response_format,
-            **({"system": instructions} if instructions else {}),
-            **({"output_config": {"effort": self.effort}} if self.effort else {}),
-            **self._sampling(temperature),
-        )
+        sampling = self._sampling(temperature)
+        try:
+            response = self.client.messages.parse(
+                model=model,
+                max_tokens=self.max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+                tools=[],
+                output_format=response_format,
+                **({"system": instructions} if instructions else {}),
+                **({"output_config": {"effort": self.effort}} if self.effort else {}),
+                **sampling,
+            )
+        except anthropic.RateLimitError as error:
+            raise RateLimited(str(error)) from error
+        except anthropic.APIStatusError as error:
+            raise status_error(error.status_code, str(error)) from error
+        except (anthropic.AnthropicError, ValidationError) as error:
+            raise CallFailed(f"{type(error).__name__}: {error}") from error
         self.last_model = getattr(response, "model", None)
         used = server_tools_used(response)
         if used:
-            raise ValueError(f"'{model}' used server tools although none were offered: {used}")
+            raise CallFailed(f"'{model}' used server tools although none were offered: {used}")
         if response.parsed_output is None:
-            raise ValueError(f"no parsed output from '{model}': stop_reason={response.stop_reason}")
+            raise CallFailed(f"no parsed output from '{model}': stop_reason={response.stop_reason}")
         return response.parsed_output
 
 

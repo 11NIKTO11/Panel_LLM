@@ -3,6 +3,8 @@ Send a resolved run and save what comes back: the one loop that turns a spec int
 
 The batch runner handles per-call retries; this module handles what is left after a batch -
 capped rerun rounds over the skipped calls, then a refusal if any remain - and the save.
+How the calls are sent (`max_workers`, `retries`, `rerun_rounds`) has its defaults here and
+nowhere below.
 """
 from panel.llm import BaseLLMClient, run_llm_batch
 
@@ -24,6 +26,9 @@ def execute(
     Refused before any call is made: a stem that holds a run of a different spec or one brought in
     (`FileExistsError`), a store of another topic, a client that cannot say what schema it sends,
     an effort the model does not take (`ValueError`). Returns the plain paths; an archived copy is written beside them.
+
+    A call that fails in a way no retry mends (`panel.llm.BatchFailed`: a wrong key, no credit, a
+    rejected request) or in a way no client foresaw stops the run with that error; nothing is saved.
     """
     calls = resolved.calls
     spec = resolved.spec

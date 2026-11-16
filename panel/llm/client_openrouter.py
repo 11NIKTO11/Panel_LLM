@@ -3,9 +3,10 @@ import os
 from typing import Tuple, Type, Union
 
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from .base import ANTHROPIC, EFFORT_ORDER, OPENAI, BaseLLMClient, detect_provider, ordered_efforts
+from .errors import CallFailed, status_error
 from .schema_compat import bounds_as_text, move_ref_descriptions, set_additional_properties_false
 
 
@@ -25,7 +26,7 @@ class OpenRouterClient(BaseLLMClient):
                  max_tokens: Union[int, None] = None):
         """
         Without a `timeout` (seconds) a hung request holds a worker thread of the batch runner's pool
-        forever and the batch never finishes; a timeout surfaces as a retryable error instead.
+        forever and the batch never finishes; a timeout is a `CallFailed` instead, and is tried again.
         `max_tokens` is the most a call may write, thinking included; None sends none, except with an
         `effort`, where `EFFORT_MAX_TOKENS` is sent so that a budget which is a share of it has a known base.
         """
@@ -67,7 +68,32 @@ class OpenRouterClient(BaseLLMClient):
         provider, model_id = self._route(model)
         response_format_json = self.schema_sent(model, response_format)
 
-        response = requests.post(
+        try:
+            response = self._post(provider, model_id, prompt, response_format, response_format_json, temperature, instructions)
+        except requests.RequestException as error:
+            raise CallFailed(f"{type(error).__name__}: {error}") from error
+        if response.status_code != 200:
+            raise status_error(
+                response.status_code,
+                f"OpenRouter request for '{provider}/{model_id}' failed with HTTP {response.status_code}: {response.text[:500]}",
+            )
+        try:
+            data = response.json()
+        except ValueError as error:
+            raise CallFailed(f"OpenRouter answered '{provider}/{model_id}' with no JSON: {response.text[:200]}") from error
+        self.last_model = data.get("model")
+        if "error" in data:  # OpenRouter can return HTTP 200 with an error payload
+            code = data["error"].get("code") if isinstance(data["error"], dict) else None
+            message = f"OpenRouter returned an error for '{provider}/{model_id}': {data['error']}"
+            raise status_error(code, message) if isinstance(code, int) else CallFailed(message)
+        try:
+            return response_format(**json.loads(data["choices"][0]["message"]["content"]))
+        except (KeyError, IndexError, TypeError, ValueError, ValidationError) as error:
+            raise CallFailed(f"answer of '{provider}/{model_id}' is not the schema: {str(data)[:500]}") from error
+
+    def _post(self, provider: str, model_id: str, prompt: str, response_format: Type[BaseModel], schema: dict,
+              temperature: Union[float, None], instructions: Union[str, None]) -> requests.Response:
+        return requests.post(
             self.url,
             headers=self.header,
             json={
@@ -83,27 +109,12 @@ class OpenRouterClient(BaseLLMClient):
                     "json_schema": {
                         "name": response_format.__name__,
                         "strict": True,
-                        "schema": response_format_json,
+                        "schema": schema,
                     }
                 },
             },
             timeout=self.timeout,
         )
-        if response.status_code != 200:
-            raise ValueError(
-                f"OpenRouter request for '{provider}/{model_id}' failed with HTTP {response.status_code}: "
-                f"{response.text[:500]}"
-            )
-        data = response.json()
-        self.last_model = data.get("model")
-        if "error" in data:  # OpenRouter can return HTTP 200 with an error payload
-            raise ValueError(f"OpenRouter returned an error for '{provider}/{model_id}': {data['error']}")
-        try:
-            text = data["choices"][0]["message"]["content"]
-            parsed = json.loads(text)
-            return response_format(**parsed)
-        except Exception:
-            raise ValueError(f"Failed to parse response: {data}")
 
     def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
         """The model's schema with the fix-ups the routed provider's strict mode needs; nothing it says is left out."""

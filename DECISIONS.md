@@ -1509,3 +1509,37 @@ no column holding more than 16 different values.
   - REJECTED: a table of tiers per model in the repo - it goes stale with every new model
 - not done: no live call. The Anthropic lookup is tested against the SDK with a stand-in
   transport, OpenRouter's against a stand-in catalogue; `run.py --check` does not print the tier
+
+## 36. A call fails in one of three ways; the runner states no default (2026-11-17)
+
+- **Three failures of the `llm` package's own** (`panel/llm/errors.py`), and every client turns
+  what its provider raised into one of them:
+  - `RateLimited` - the runner waits (`2^attempt` s plus jitter) and tries again
+  - `CallFailed` - tried again at once: network, timeout, 408 / 409 / 5xx, an answer that is
+    not JSON or not the schema, a refusal, an answer cut off, a server tool used
+  - `BatchFailed` - the batch stops: any other 4xx (wrong key, no credit, unknown model, a
+    request rejected as such)
+  - `status_error(status, message)` is the one mapping from an HTTP status
+  - why: the runner sorted by Python type and knew only `openai.RateLimitError`, so one failure
+    was handled four ways - OpenRouter's 429 retried with no wait, Anthropic's skipped, a wrong
+    key retried three times per call on one client and skipped on another
+- **Anything else a call raises stops the batch too**: a bug, or a failure no client foresaw.
+  Calls not yet started are dropped, those under way finish, the error is raised; `execute`
+  saves nothing
+  - formerly such a call was skipped and sent again in a rerun round
+  - so `AnthropicClient`'s refusal of a temperature stays a `ValueError`: it is a wrong run, and stops it
+- **A client never returns None.** `OpenAIClient` returned `output_parsed`, None on a refusal;
+  the runner kept it as an answer and the save failed on it after every call was paid for.
+  Now a `CallFailed`; a client that returns None all the same stops the batch (`TypeError`)
+- **`run_llm_batch` and `_process_single_item` take every argument by keyword and default
+  none**; `execute` is the one place `max_workers`, `retries` and `rerun_rounds` have defaults
+  - why: `execute` always passed its own, so the runner's were never in force while reading as
+    if they were; a forgotten `model` went to `gpt-4.1-nano`
+  - this reverses the part of §32 that kept the runner's fallback: `run_llm_batch` no longer
+    builds a client by the model's name. `create_client` stays in the package; the prints stay
+- not done:
+  - a `Retry-After` the provider sends is not read; the wait is the runner's own
+  - `GeminiClient` turns a failed connection into nothing - the SDK names no error for it -
+    so it stops the batch
+  - a call that fails every attempt still loses the run (`execute` raises, nothing saved)
+  - no live call

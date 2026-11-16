@@ -13,7 +13,7 @@ from typing import Type, Union
 
 from pydantic import BaseModel
 
-from panel.llm import BaseLLMClient
+from panel.llm import BaseLLMClient, CallFailed
 
 
 class FakeClient(BaseLLMClient):
@@ -37,7 +37,7 @@ class FakeClient(BaseLLMClient):
             self._seen[prompt] += 1
             attempt = self._seen[prompt]
         if attempt <= self.fail_calls:
-            raise ValueError(f"fake failure {attempt} of {self.fail_calls}")
+            raise CallFailed(f"fake failure {attempt} of {self.fail_calls}")
 
         labels = list(getattr(response_format, "LABELS", {}))
         if not labels:
