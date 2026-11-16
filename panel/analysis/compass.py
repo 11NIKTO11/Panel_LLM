@@ -73,7 +73,7 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
     figure = maps(
         {f"Procrustes r = {fit[R]:.2f} (p = {fit[R_P]:.3f})": placed(tables)}, positions.plane, positions.scale,
         positions.labels[x], positions.labels[y], ("the model's map,\nlaid onto the plane", "experts"),
-        run.style.colors, run.labels,
+        run.style.colors, run.labels, width=7.5,
         title=f"{run.title}: the model's map of the options",
         note=f"MDS of the options' correlation distances over {len(run.subjects)} subjects (stress {fit[STRESS]:.2f}),\nshifted, turned and rescaled to fit the experts' positions",
     )
