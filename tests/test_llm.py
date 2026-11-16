@@ -99,6 +99,17 @@ def test_the_request_is_exactly_what_the_run_declares(kind, temperature, shape):
 
 
 @pytest.mark.parametrize("kind", [AnthropicClient, AnthropicLegacyClient])
+def test_the_client_reports_the_parameters_it_sends(kind, probabilities):
+    model, _ = probabilities
+    client = kind(api_key="test", effort="low", max_tokens=2000)
+    sent = answering(client, model)
+    client.call_llm("claude-test", PROMPT, model, None)
+    body = sent[0]["body"]
+    assert client.parameters() == {"max_tokens": 2000, "effort": "low", "api_version": kind.API_VERSION, "tools": []}
+    assert (body["max_tokens"], body["output_config"]["effort"], body["tools"]) == (2000, "low", [])
+
+
+@pytest.mark.parametrize("kind", [AnthropicClient, AnthropicLegacyClient])
 def test_what_a_run_does_not_set_is_not_sent(kind, probabilities):
     model, _ = probabilities
     client = kind(api_key="test")

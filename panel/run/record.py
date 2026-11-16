@@ -58,7 +58,7 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         resolved: the run as sent.
         n: how many calls came back.
         saved_at: when the files were written.
-        client: the client that made the calls, for the model id the provider reported and the
+        client: the client that made the calls, for its parameters, the model id the provider reported and the
             schema as that client sends it - `response_schema` is the one the run generated.
     """
     spec, dataset, description, framing = resolved.spec, resolved.dataset, resolved.description, resolved.framing
@@ -90,6 +90,7 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         },
         "response_schema": resolved.response_model.model_json_schema(),
         "response_schema_sent": client.schema_sent(spec.model, resolved.response_model) if client else None,
+        "client_parameters": client.parameters() if client else None,
         "model_resolved": getattr(client, "last_model", None) if client else None,
         **git_state(),
         "versions": versions(),

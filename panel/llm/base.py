@@ -49,6 +49,10 @@ class BaseLLMClient:
         """
         raise NotImplementedError
 
+    def parameters(self) -> dict:
+        """What every call of this client sends or holds to beside `call_llm`'s arguments; a run record copies it."""
+        return {}
+
     def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
         """The JSON schema a call for `model` sends for `response_format`: the model's own unless a client rewrites it."""
         return response_format.model_json_schema()

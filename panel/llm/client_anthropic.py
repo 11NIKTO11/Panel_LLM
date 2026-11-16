@@ -32,11 +32,12 @@ class AnthropicClient(BaseLLMClient):
     API_VERSION: Union[str, None] = None
     TAKES_EFFORT = True
 
-    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None):
+    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None, max_tokens: int = 16000):
         """
         Args:
             api_key: Anthropic key; falls back to ANTHROPIC_API_KEY.
             effort: `low` .. `max`, how much the model thinks per call; None leaves the model's default.
+            max_tokens: the most a call may write, thinking included; a call cut off by it raises.
         """
         if Anthropic is None:
             raise ImportError("anthropic package is required for Claude models.")
@@ -46,6 +47,10 @@ class AnthropicClient(BaseLLMClient):
         headers = {"anthropic-version": self.API_VERSION} if self.API_VERSION else None
         self.client = Anthropic(api_key=key, default_headers=headers)
         self.effort = effort
+        self.max_tokens = max_tokens
+
+    def parameters(self) -> dict:
+        return {"max_tokens": self.max_tokens, "effort": self.effort, "api_version": self.API_VERSION, "tools": []}
 
     def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
         """The schema as the SDK's `messages.parse` rewrites it: closed objects, number bounds moved into the descriptions."""
@@ -67,7 +72,7 @@ class AnthropicClient(BaseLLMClient):
                  instructions: Union[str, None] = None) -> BaseModel:
         response = self.client.messages.parse(
             model=model,
-            max_tokens=16000,
+            max_tokens=self.max_tokens,
             messages=[{"role": "user", "content": prompt}],
             tools=[],
             output_format=response_format,

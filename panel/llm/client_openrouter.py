@@ -30,6 +30,9 @@ class OpenRouterClient(BaseLLMClient):
         self.url = "https://openrouter.ai/api/v1/chat/completions"
         self.timeout = timeout
 
+    def parameters(self) -> dict:
+        return {"timeout": self.timeout, "strict": True}
+
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:
         provider, model_id = self._route(model)

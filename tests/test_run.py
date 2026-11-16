@@ -68,7 +68,7 @@ def test_execute_offline(tmp_path):
     assert "question" not in record["framing"] and record["question"]["forms"] == run.question.forms
     assert {name: record["dataset"][f"{name}_sha256"] for name in run.digests} == run.digests
     assert sorted(record["dataset"]["rows"]) == sorted(int(i) for i in run.rows.index)
-    assert record["model_resolved"] == "fake-model-fake" and "pydantic" in record["versions"]
+    assert record["client_parameters"] == {} and record["model_resolved"] == "fake-model-fake" and "pydantic" in record["versions"]
 
     loaded = store.load(run.stem, run.response_model)
     assert set(loaded) == {(int(i), 1) for i in run.rows.index}
