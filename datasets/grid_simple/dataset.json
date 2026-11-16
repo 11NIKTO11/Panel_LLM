@@ -1,6 +1,6 @@
 {
     "name": "grid_simple",
-    "short": "gridsimple",
+    "short": "grid-simple",
     "title": "Synthetic profile grid, the colleague's design in Czech words",
     "language": "cs",
     "source": "dataset.json",

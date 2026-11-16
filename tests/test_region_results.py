@@ -9,8 +9,8 @@ from panel.run.record import DELIVERED
 from tests.conftest import RESULTS_DIR, require
 
 MODELS = ("gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1", "gpt-4o")
-STEMS = [f"regions_citizen_cslegacy_legacy_OpenAI_{model}_Prob_t=0.0_x10" for model in MODELS]
-STEMS += [f"regions_directlegacy_cslegacy_OpenAI_{model}_Prob_t=0.0_x10" for model in MODELS]
+STEMS = [f"regions_citizen_cs-legacy_legacy_OpenAI_{model}_Prob_t=0.0_x10" for model in MODELS]
+STEMS += [f"regions_direct-legacy_cs-legacy_OpenAI_{model}_Prob_t=0.0_x10" for model in MODELS]
 
 
 @pytest.fixture(scope="module")

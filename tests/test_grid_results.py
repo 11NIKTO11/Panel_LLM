@@ -9,11 +9,11 @@ from panel.run.record import DELIVERED
 from tests.conftest import RESULTS_DIR, load_fixture, require
 
 OURS = {
-    "gridsodretired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3": 3,
-    "gridsod45retired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3": 1,
-    "gridsimple_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3": 1,
+    "grid-sod-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3": 3,
+    "grid-sod45-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3": 1,
+    "grid-simple_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3": 1,
 }
-COLLEAGUE = "gridsimpleen_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
+COLLEAGUE = "grid-simple-en_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
 REPORTED = {"ANO": 30.25, "SPOLU": 23.58, "PirSTAN": 16.72, "SPD": 10.96, "Prisaha": 5.28, "CSSD": 5.01, "KSCM": 3.68, "TSS": 2.30, "Other": 2.22}
 REPORTED_TURNOUT = 72.6
 

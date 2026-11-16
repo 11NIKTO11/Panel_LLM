@@ -1,11 +1,11 @@
 """
 Read saved runs as kernels - a matrix from profiles to answers - and analyse them, from the command line.
 
-    python kernel.py election_2021 gridsodretired_ gridsimple_ --name grids  each run by any text only its stem contains
+    python kernel.py election_2021 grid-sod-retired_ grid-simple_ --name grids  each run by any text only its stem contains
     python kernel.py election_2021 --set grids                  a named set of the topic's comparisons.json
-    python kernel.py election_2021 gridsodretired_ --name grids --only pairs
+    python kernel.py election_2021 grid-sod-retired_ --name grids --only pairs
     python kernel.py election_2021 legacy_OpenAI_gpt-4o_Prob --name legacy --factors gender,age,region
-    python kernel.py election_2021 gridsodretired_ --name grids --no-save
+    python kernel.py election_2021 grid-sod-retired_ --name grids --no-save
 
 `python analyze.py <topic>` lists a topic's saved runs. Writes into
 `results/<topic>/comparisons/<name>/`: tables to `analysis/`, figures to `plots/`, named

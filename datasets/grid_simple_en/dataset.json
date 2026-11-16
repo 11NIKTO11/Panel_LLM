@@ -1,6 +1,6 @@
 {
     "name": "grid_simple_en",
-    "short": "gridsimpleen",
+    "short": "grid-simple-en",
     "title": "Synthetic profile grid, the simple design in English ids - the colleague's grid",
     "language": "en",
     "source": "dataset.json",

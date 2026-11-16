@@ -1,6 +1,6 @@
 {
     "name": "grid_sod45_retired",
-    "short": "gridsod45retired",
+    "short": "grid-sod45-retired",
     "title": "RETIRED - synthetic profile grid in the survey's vocabulary, incomes cut at 25 and 45 thousand",
     "language": "cs",
     "source": "dataset.json",

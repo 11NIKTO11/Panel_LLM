@@ -1,6 +1,6 @@
 {
     "name": "grid_sod_retired",
-    "short": "gridsodretired",
+    "short": "grid-sod-retired",
     "title": "RETIRED - synthetic profile grid in the survey's vocabulary whose incomes skip most of the range",
     "language": "cs",
     "source": "dataset.json",

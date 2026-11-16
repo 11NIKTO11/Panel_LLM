@@ -1,5 +1,5 @@
 {
-  "note": "Numbers of CoRe/llm_pushforward for the four GPT runs it read, which are the legacy runs sod_legacy_cslegacy_legacy_OpenAI_<model>_Prob_t=0.0; the kernel analyses reproduce them. scorecard: its results/scorecard.csv (commit 95d7693). shapley and shapley_axes: its shapley_values / player_blocks / svd run on 2026-11-14 at 95d7693 - its cached results/shapley.csv was written by an earlier version of its code and differs from what that code gives today by up to 0.002.",
+  "note": "Numbers of CoRe/llm_pushforward for the four GPT runs it read, which are the legacy runs sod_legacy_cs-legacy_legacy_OpenAI_<model>_Prob_t=0.0; the kernel analyses reproduce them. scorecard: its results/scorecard.csv (commit 95d7693). shapley and shapley_axes: its shapley_values / player_blocks / svd run on 2026-11-14 at 95d7693 - its cached results/shapley.csv was written by an earlier version of its code and differs from what that code gives today by up to 0.002.",
   "scorecard": {
     "gpt-4.1": {
       "national MAE vs election (pp)": 3.3687466538877144,

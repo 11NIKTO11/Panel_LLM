@@ -162,7 +162,7 @@ python analyze.py election_2021 <run> --only effects --predictors gender,age,reg
 python compare.py election_2021 <run> <run> --name haiku
 python compare.py election_2021 --set haiku          # a named set of the topic's comparisons.json
 python benchmark.py election_2021 <run> <run> --name haiku --predictors gender,age,region
-python kernel.py election_2021 gridsodretired_ gridsimple_ --name grids
+python kernel.py election_2021 grid-sod-retired_ grid-simple_ --name grids
 python kernel.py election_2021 <run> <run> --name legacy --reference gpt-4o --draws 100
 ```
 

@@ -1,8 +1,8 @@
 {
     "grids": {
-        "grid sod retired": "gridsodretired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3",
-        "grid sod45 retired": "gridsod45retired_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
-        "grid simple": "gridsimple_default_csgrid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
-        "colleague": "gridsimpleen_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
+        "grid sod retired": "grid-sod-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3",
+        "grid sod45 retired": "grid-sod45-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "grid simple": "grid-simple_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "colleague": "grid-simple-en_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
     }
 }

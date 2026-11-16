@@ -43,7 +43,7 @@ recompute each of these and compare; a difference is drift, not a new truth.
 - after the legacy topic was folded into `election_2021` on 2026-11-13 (`DECISIONS.md` §13),
   deliberately:
   - `legacy_aggregates.json` and `legacy_reparse.json` were rekeyed by the new stems
-    (`sod_legacy_cslegacy_legacy_...`); no number or digest changed.
+    (`sod_legacy_cs-legacy_legacy_...`); no number or digest changed.
   - `schemas/election_2021_legacy/cs.json` moved to `schemas/election_2021/cs_legacy.json`, unchanged.
 - on 2026-11-13 the 200-subject Sonnet run left `results/` with the other trial runs
   (`DECISIONS.md` §14) and its entry left `legacy_aggregates.json` and `legacy_reparse.json`;

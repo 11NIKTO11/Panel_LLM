@@ -10,7 +10,7 @@ from panel.run import ResultStore
 from tests.conftest import RESULTS_DIR, require
 
 TOPIC = "election_2021"
-STEM = "regions_citizen_cslegacy_legacy_OpenAI_gpt-4o_Prob_t=0.0_x10"
+STEM = "regions_citizen_cs-legacy_legacy_OpenAI_gpt-4o_Prob_t=0.0_x10"
 
 
 @pytest.fixture(scope="module")

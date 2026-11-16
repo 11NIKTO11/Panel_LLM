@@ -2,7 +2,7 @@
     "name": "cs_grid",
     "topic": "election_2021",
     "language": "cs",
-    "short": "csgrid",
+    "short": "cs-grid",
     "title": "Volby do Poslanecké sněmovny ČR 2021 (grid runs)",
     "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě demografického a postojového profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2021.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi (věk, vzdělání, bydliště, příjem, postoje k EU/NATO atd.).\n2.  Na základě analýzy odhadni dvě klíčové věci:\n    a) Jaká je pravděpodobnost, že respondent vůbec šel k volbám.\n    b) Pokud volil, jaké jsou pravděpodobnosti pro jednotlivé politické strany.\n3.  Dbej na to, aby součet pravděpodobností účasti byl přesně 1.0.\n4.  Dbej na to, aby součet pravděpodobností VŠECH stran byl přesně 1.0.",
     "labels": {},

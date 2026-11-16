@@ -1,6 +1,6 @@
 {
     "name": "direct_legacy",
-    "short": "directlegacy",
+    "short": "direct-legacy",
     "stored": true,
     "standalone": true,
     "note": "The direct forecast as the runs of 2025 were sent it: the wording of `direct`, but with the preposition never vocalised ('v Středočeském kraji', 'v Zlínském kraji' where `direct` says 've'). Written by direct_prompt of the former election_preferences.ipynb (last at commit 79b2189). The prompt table was written once, by migrate_latent.py on 2026-11-14, and is never rendered.",

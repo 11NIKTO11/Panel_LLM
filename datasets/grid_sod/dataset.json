@@ -1,6 +1,6 @@
 {
     "name": "grid_sod",
-    "short": "gridsod",
+    "short": "grid-sod",
     "title": "Synthetic profile grid in the survey's vocabulary, incomes cut at 25 and 40 thousand",
     "language": "cs",
     "source": "dataset.json",
