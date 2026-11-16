@@ -75,7 +75,8 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
             table.loc[reference], metrics, per_row=3, bars=True,
             percent=[metric for metric in (MAE, RMSE, TURNOUT) if metric in metrics], zero=[TURNOUT] if topic.turnout else [],
             title=f"{topic.name}: distance from the {reference}",
-            note=f"over the {len(options)} options; polls, then the claimed, then the runs; whiskers are 95% bootstrap intervals over a run's subjects",
+            note=f"over the {len(options)} options; polls, then the claimed, then the runs; whiskers are 95% bootstrap intervals over a run's subjects"
+                 + (f"; turnout: a source minus the {reference}" if topic.turnout else ""),
         )
         figures.append(out.figure(f"{NAME}_{reference}", figure))
     return table, figures

@@ -25,7 +25,8 @@ NAME = "distance"
 def compute(run: SavedRun, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Dict[str, pd.DataFrame]:
     """
     `distance` - one row per pair `<source> vs <reference>`, a column per metric over the options,
-    `Turnout difference` (source minus reference) on a topic with turnout, and `<metric>_low`,
+    `Turnout, first - second` on a topic with turnout - signed, source minus reference, above zero where the
+    source's turnout is the higher - and `<metric>_low`,
     `<metric>_high`.
     """
     counted = actual(run)
@@ -55,7 +56,8 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame], level: float = 0.95) ->
     figure = interval_panels(
         tables[NAME], metrics, per_row=3, percent=[metric for metric in (MAE, RMSE, TURNOUT) if metric in metrics], zero=[TURNOUT] if turnout else [], bars=True,
         title=f"{run.title}: distances between sources",
-        note=f"{len(run.subjects)} subjects of '{run.dataset.name}', over the {len(run.options)} options; whiskers are {level:.0%} bootstrap intervals over subjects",
+        note=f"{len(run.subjects)} subjects of '{run.dataset.name}', over the {len(run.options)} options; whiskers are {level:.0%} bootstrap intervals over subjects"
+             + ("; turnout: the first of a pair minus the second" if turnout else ""),
     )
     return {NAME: figure}
 

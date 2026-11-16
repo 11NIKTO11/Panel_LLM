@@ -92,7 +92,7 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame], metrics: Union[Sequence
             labelled, columns, percent=columns if metric in PERCENT else (), zero=columns if metric == TURNOUT else (),
             names={held: pairs[held] for held in columns}, same_scale=True,
             title=f"{run.title}: {metric} by {key}",
-            note=("source minus reference" if metric == TURNOUT else f"over the {len(run.options)} options") + f"; whiskers are {level:.0%} bootstrap intervals over the area's subjects",
+            note=("the first of the pair minus the second, above zero where the first is higher" if metric == TURNOUT else f"over the {len(run.options)} options") + f"; whiskers are {level:.0%} bootstrap intervals over the area's subjects",
         )
     return figures
 

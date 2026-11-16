@@ -21,7 +21,7 @@ PREDICTED, CLAIMED, ACTUAL = "predicted", "claimed", "actual"
 SOURCES = (PREDICTED, CLAIMED, ACTUAL)
 ESTIMATED = (PREDICTED, CLAIMED)
 PAIRS = ((PREDICTED, ACTUAL), (PREDICTED, CLAIMED), (CLAIMED, ACTUAL))
-TURNOUT = "Turnout difference"
+TURNOUT = "Turnout, first - second"
 
 
 def shown(turnout: bool) -> List[str]:
