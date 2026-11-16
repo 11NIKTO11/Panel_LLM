@@ -68,19 +68,8 @@ def independent(kernel: Kernel, surrogate: LogitAdditive, draws: int, seed: int)
 
 def surrogate(kernels: KernelSet, out: Output, factors: Union[Sequence[str], None] = None, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Per kernel: additivity, the largest TV observed and over the full product, the pair reaching
-    it, and the independent-factors population; per outcome its range observed and over the product.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figure.
-        factors: the surrogate's factors, for every kernel; all of each kernel's by default.
-        seed: of the folds, the search's starts and the independent population.
-
-    Returns:
-        The table - a row per kernel - with the outcomes' ranges beside it
-        (`kernel_surrogate_ranges`), and the figure: each outcome's range, observed and over the
-        full product, per kernel.
+    `factors` are the surrogate's, for every kernel, all of each kernel's by default; `seed` is of
+    the folds, the search's starts and the independent population.
     """
     random = np.random.default_rng(seed)
     rows, ranges = {}, {}

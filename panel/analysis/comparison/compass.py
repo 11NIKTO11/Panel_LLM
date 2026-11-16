@@ -18,20 +18,7 @@ NAME = "runs_compass"
 
 
 def compass(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    How well each run's map of the options agrees with the experts' positions.
-
-    Args:
-        runs: the runs to compare.
-        out: takes the table and the figure, both named `runs_compass`.
-
-    Returns:
-        The table - one row per run, the columns of the single-run `compass_fit` - and its
-        figure, a map per run.
-
-    Raises:
-        NotApplicable: if the topic has no expert positions.
-    """
+    """The table is one row per run, the columns of the single-run `compass_fit`."""
     first = next(iter(runs.runs.values()))
     positions = first.positions
     if positions is None:

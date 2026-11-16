@@ -21,16 +21,10 @@ def heatmap(
     """
     A signed square matrix, blue above zero and red below, every cell with its number.
 
-    Args:
-        matrix: indexed and columned by the same keys.
-        bound: the value at full colour, symmetric around zero; the largest drawn magnitude
-            by default.
-        diagonal: draw the diagonal too. Off by default: a thing against itself says
-            nothing and, in a covariance matrix, takes the whole colour range.
-        decimals: of the numbers in the cells.
-        labels: key -> display name; the key itself by default.
-        title: figure title.
-        note: a line under the title.
+    - `bound`: the value at full colour, symmetric around zero; the largest drawn magnitude
+      by default.
+    - `diagonal`: off by default: a thing against itself says nothing and, in a covariance
+      matrix, takes the whole colour range.
     """
     labels = labels or {}
     values = matrix.to_numpy(dtype=float).copy()
@@ -74,15 +68,9 @@ def grid(
     """
     A rows-by-columns table of numbers, coloured by size, every cell with its number.
 
-    Args:
-        table: indexed by row, a column per group.
-        below: the same shape, a text per cell written under its number (e.g. a p-value).
-        decimals: of the numbers in the cells.
-        scale: what the numbers are multiplied by before they are written (100 for shares in percent).
-        cmap: the matplotlib colour range, from zero to the largest number.
-        signed: the numbers may be negative: coloured by how far from zero, written with their sign.
-        title: figure title.
-        note: a line under the title.
+    - `below`: the same shape, a text per cell written under its number (e.g. a p-value).
+    - `scale`: what the numbers are multiplied by before they are written (100 for shares in percent).
+    - `signed`: the numbers may be negative: coloured by how far from zero, written with their sign.
     """
     values = table.to_numpy(dtype=float) * scale
     top = float(np.nanmax(np.abs(values))) or 1.0
@@ -116,15 +104,7 @@ def grids(
 ) -> Figure:
     """
     Several tables of non-negative numbers with the same rows and columns, one under the other
-    on one colour range, every cell with its number.
-
-    Args:
-        tables: panel name -> its table, indexed by row, a column per group.
-        decimals: of the numbers in the cells.
-        scale: what the numbers are multiplied by before they are written.
-        cmap: the matplotlib colour range, from zero to the largest number of all tables.
-        title: figure title.
-        note: a line under the title.
+    on one colour range, from zero to the largest number of all tables; `scale` as in `grid`.
     """
     first = next(iter(tables.values()))
     values = {name: table.to_numpy(dtype=float) * scale for name, table in tables.items()}
@@ -158,16 +138,7 @@ def images(
     title: Union[str, None] = None,
     note: Union[str, None] = None,
 ) -> Figure:
-    """
-    Wide matrices as images, one under the other, a pixel per cell, on one colour range from 0 to 1.
-
-    Args:
-        matrices: name -> rows by many columns, values between 0 and 1.
-        cmap: the matplotlib colour range.
-        xlabel: what the columns are.
-        title: figure title.
-        note: a line under the title.
-    """
+    """Wide matrices as images, one under the other, a pixel per cell; the values lie between 0 and 1, the one colour range."""
     rows = max(len(matrix) for matrix in matrices.values())
     height = (0.22 * rows + 0.9) * len(matrices) + 0.8
     fig = Figure(figsize=(13, height), facecolor=SURFACE)

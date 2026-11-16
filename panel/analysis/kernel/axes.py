@@ -27,16 +27,7 @@ AXIS, SHARE = "axis", "share"
 
 
 def axes(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per kernel the axes' shares and soft ranks; each axis's pattern; what drives the first two.
-
-    Returns:
-        The table - a row per kernel: the share of the first five axes and the three soft ranks -
-        with the patterns (`kernel_axes_loadings`: pp per standard deviation along an axis, first
-        three axes) and the drivers (`kernel_axes_drivers`: ε² of each factor for the scores on
-        the first two) beside it, and the figures: the shares by axis, the patterns, the drivers,
-        and the matrices as images with the profiles sorted by their score on axis 1.
-    """
+    """The loadings are in pp per standard deviation of the profiles along the axis."""
     rows, scree, loadings, drivers, sorted_matrices = {}, {}, {}, {}, {}
     for label, kernel in kernels.kernels.items():
         left, singular, right = centred_svd(kernel.matrix.to_numpy())

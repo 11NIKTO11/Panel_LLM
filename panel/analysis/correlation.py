@@ -50,16 +50,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
 
 
 def correlation(run: SavedRun, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Pearson correlation and covariance between the options' shares, over subjects.
-
-    Args:
-        run: the saved run.
-        out: takes the correlation table and figure, named `correlation`, and the
-            covariance table and figure, named `covariance`.
-
-    Returns:
-        The correlation table of `compute` and the two figures.
-    """
     tables = compute(run)
     return save(out, tables, draw(run, tables))

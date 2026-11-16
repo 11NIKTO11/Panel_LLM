@@ -17,7 +17,6 @@ HALF_SAMPLES, RESAMPLED = "half-samples of the profiles", "resampled repeats"
 
 
 def scheme_of(kernel: Kernel) -> Union[str, None]:
-    """`HALF_SAMPLES` for a sampled kernel, `RESAMPLED` for a designed one with repeats, None for one with neither."""
     if not kernel.designed:
         return HALF_SAMPLES
     return RESAMPLED if kernel.repeats > 1 else None
@@ -29,7 +28,6 @@ def replica_positions(kernel: Kernel, draws: int, seed: int = 0) -> List[np.ndar
 
 
 def replicas(kernel: Kernel, draws: int, seed: int = 0) -> List[Kernel]:
-    """`draws` replicates of the kernel by its scheme (`scheme_of`); none when it has none."""
     scheme = scheme_of(kernel)
     if scheme == HALF_SAMPLES:
         return [kernel.subset(positions) for positions in replica_positions(kernel, draws, seed)]

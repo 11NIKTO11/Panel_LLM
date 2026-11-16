@@ -10,17 +10,7 @@ import numpy as np
 
 
 def sensitivity(values: np.ndarray, population: np.ndarray, shares) -> np.ndarray:
-    """
-    The largest increase of `values · q` over every `q` within total variation `ε` of `population`.
-
-    Args:
-        values: one per profile.
-        population: one weight per profile, summing to 1.
-        shares: one `ε` or several.
-
-    Returns:
-        One increase per `ε`; for a small `ε` it is `ε (max - min)` at most.
-    """
+    """One increase per `ε` of `shares`, one or several, at most `ε (max - min)`; `population` sums to 1."""
     values, population = np.asarray(values, dtype=float), np.asarray(population, dtype=float)
     order = np.argsort(values)
     weights = population[order]

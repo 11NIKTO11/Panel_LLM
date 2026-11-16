@@ -7,6 +7,5 @@ from .clean import process_respondent
 
 
 def build(dataset: Dataset) -> pd.DataFrame:
-    """One values row per respondent, keyed by the survey's own id."""
     raw = pd.read_spss(dataset.dir / dataset.source)
     return pd.DataFrame([process_respondent(raw.loc[i]) for i in raw.index]).set_index("id")

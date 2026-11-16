@@ -16,15 +16,6 @@ def _employment(row) -> str | None:
 
 
 def process_respondent(row) -> dict:
-    """
-    One raw `.sav` row as a values row, keyed by the survey's own respondent `id`.
-
-    Q19 is living standard, Q20 interest in politics, Q21 the 2021 vote, Q18 satisfaction with
-    EU membership, Q17 with NATO membership, Q23 covid vaccination.
-
-    Raises:
-        KeyError: if the raw row lacks a column the survey is known to have.
-    """
     return {
         "id": int(row["id"]),
         "gender": row["GENDER"],

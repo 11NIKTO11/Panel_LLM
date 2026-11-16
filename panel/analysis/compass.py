@@ -34,27 +34,16 @@ def _between(points: np.ndarray) -> np.ndarray:
 
 
 def option_distances(run: SavedRun, options: List[str]) -> pd.DataFrame:
-    """The correlation distance between the named options over the run's subjects."""
     shares = subject_answers(run.normalized, run.topic)[options]
     return np.sqrt((2 * (1 - shares.corr())).clip(lower=0))
 
 
 def compute(run: SavedRun, seed: int = 0) -> Dict[str, pd.DataFrame]:
     """
-    The model's map of the options laid onto the experts' plane, and how well they agree.
-
-    Args:
-        run: the saved run.
-        seed: of the MDS starts.
-
-    Returns:
-        `compass` - one row per rated option: where the model's map puts it in the plane and
-        where the experts do - and `compass_fit`, one row: the map's stress, the Procrustes
-        correlation, and the Spearman correlation of the model's distances with the experts'
-        in the plane and over all items, each with its exact permutation p-value.
-
-    Raises:
-        NotApplicable: if the topic has no expert positions.
+    `compass` - one row per rated option: where the model's map puts it in the plane and where the
+    experts do - and `compass_fit`, one row: the map's stress, the Procrustes correlation, and the
+    Spearman correlation of the model's distances with the experts' in the plane and over all
+    items, each with its exact permutation p-value.
     """
     positions = run.positions
     if positions is None:
@@ -92,19 +81,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
 
 
 def compass(run: SavedRun, out: Output, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The model's map of the options laid onto the experts' plane, and how well they agree.
-
-    Args:
-        run: the saved run.
-        out: takes the table and the figure, both named `compass`, and a second table `compass_fit`.
-        seed: of the MDS starts.
-
-    Returns:
-        The `compass` table of `compute` and its figure.
-
-    Raises:
-        NotApplicable: if the topic has no expert positions.
-    """
     tables = compute(run, seed)
     return save(out, tables, draw(run, tables))

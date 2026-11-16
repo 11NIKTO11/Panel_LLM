@@ -32,23 +32,15 @@ def softmax(scores: np.ndarray) -> np.ndarray:
 class LogitAdditive:
     """
     Attributes:
-        designs: factor -> its design, a row per level.
+        designs: factor -> its design, a row per level (indexed by the raw value), its indicator columns.
         intercept: one per outcome.
         effects: per factor, levels x outcomes, in the order of `designs`.
     """
 
     def __init__(self, designs: Mapping[str, pd.DataFrame], factors: pd.DataFrame, answers: np.ndarray, strength: float = 1.0):
         """
-        Fit the surrogate.
-
-        Args:
-            designs: factor -> a row per level (indexed by the raw value), its indicator columns.
-            factors: one row per observed profile, a column per factor of `designs`.
-            answers: the same profiles' answers, profiles x outcomes, rows summing to 1.
-            strength: the logit's `C`, the inverse of its ridge penalty.
-
-        Raises:
-            ValueError: on a level the designs do not hold, or fewer than two outcomes.
+        `factors` is one row per observed profile, a column per factor; `answers` the same profiles
+        x outcomes, rows summing to 1; `strength` is the logit's `C`, the inverse of its ridge penalty.
         """
         self.designs = dict(designs)
         answers = np.asarray(answers, dtype=float)

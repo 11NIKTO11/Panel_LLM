@@ -1,13 +1,7 @@
 """
 Prepare a dataset from the command line.
 
-    python prepare.py                               asks for everything
-    python prepare.py sod                           values and every description
-    python prepare.py sod -d default                values and one description
-    python prepare.py sod -d default --prompts-only keep the stored values, render again
-    python prepare.py sod --overwrite               replace tables saved runs were built from
-
-Naming the dataset on the command line asks nothing. Writes under `datasets/<dataset>/prepared/`, and says
+Without a dataset it asks for everything; naming one asks nothing. Writes under `datasets/<dataset>/prepared/`, and says
 for each prompt table how many prompts are identical to another subject's. A table that a
 saved run was built from is not replaced by a different one without `--overwrite`.
 """

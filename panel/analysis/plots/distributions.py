@@ -22,14 +22,8 @@ def violins(
     One horizontal violin per column of shares, with the median as a dot and the middle
     half as a bar.
 
-    Args:
-        values: one row per subject, shares between 0 and 1, no missing values.
-        rows: the columns of the main panel, top to bottom.
-        head: columns drawn in a panel of their own above it, on their own scale (e.g. turnout).
-        colors: column -> colour; grey for a column without one.
-        labels: column -> display name; the column itself by default.
-        title: figure title.
-        note: a line under the title.
+    - `values`: one row per subject, shares between 0 and 1, no missing values.
+    - `head`: columns drawn in a panel of their own above the main one, on their own scale (e.g. turnout).
     """
     colors, labels = colors or {}, labels or {}
     panels = [list(part) for part in (head, rows) if len(part)]
@@ -61,16 +55,7 @@ def histograms(
     title: Union[str, None] = None,
     note: Union[str, None] = None,
 ) -> Figure:
-    """
-    One framed histogram per column, side by side, each on its own scale, the mean marked.
-
-    Args:
-        values: a column per panel; missing values are left out.
-        ylabel: what is counted.
-        bins: bars per histogram.
-        title: figure title.
-        note: a line under the title.
-    """
+    """One framed histogram per column, each on its own scale, the mean marked; missing values are left out."""
     height = 4.2
     fig = Figure(figsize=(4.4 * values.shape[1] + 0.6, height), facecolor=SURFACE)
     axes = fig.subplots(1, values.shape[1], squeeze=False)[0]
@@ -100,14 +85,8 @@ def overlaid(
     """
     One panel per name, and in it a density histogram per series, overlaid, with vertical marks.
 
-    Args:
-        panels: panel -> series -> values; a series keeps its colour across panels.
-        marks: panel -> label -> where a vertical line goes; the label is written beside it.
-        bins: shared bin edges; 40 between 0 and 1 by default.
-        xlabel: what the values are.
-        per_row: panels in a row.
-        title: figure title.
-        note: a line under the title.
+    - `panels`: panel -> series -> values; a series keeps its colour across panels.
+    - `marks`: panel -> label -> where a vertical line goes; the label is written beside it.
     """
     bins = np.linspace(0, 1, 41) if bins is None else bins
     series = list(dict.fromkeys(name for found in panels.values() for name in found))
@@ -145,14 +124,9 @@ def strips(
     """
     One panel per name, and in it a horizontal box per group with its values as points over it.
 
-    Args:
-        panels: panel -> group -> values, groups drawn top to bottom in the given order.
-        marks: panel -> where a dashed reference line goes.
-        xlabel: what the values are.
-        per_row: panels in a row.
-        seed: of the points' vertical jitter.
-        title: figure title.
-        note: a line under the title.
+    - `panels`: panel -> group -> values, groups drawn top to bottom in the given order.
+    - `marks`: panel -> where a dashed reference line goes.
+    - `seed`: of the points' vertical jitter.
     """
     random = np.random.default_rng(seed)
     rows = -(-len(panels) // per_row)

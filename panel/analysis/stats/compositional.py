@@ -14,12 +14,7 @@ DELTA = 0.005
 
 
 def helmert_basis(k: int) -> np.ndarray:
-    """
-    Orthonormal Helmert sub-matrix of shape (k, k-1), a basis of the subspace orthogonal to ones.
-
-    Raises:
-        ValueError: if k < 2.
-    """
+    """Orthonormal Helmert sub-matrix of shape (k, k-1), a basis of the subspace orthogonal to ones."""
     if k < 2:
         raise ValueError("k must be >= 2 for an ILR transform")
     basis = np.zeros((k, k - 1), dtype=float)
@@ -31,13 +26,7 @@ def helmert_basis(k: int) -> np.ndarray:
 
 
 def replace_zeros(compositions: np.ndarray, delta: float = DELTA) -> np.ndarray:
-    """
-    Each row rescaled to sum to 1 with its zeros set to `delta` and the rest shrunk to make room.
-
-    Raises:
-        ValueError: on a negative entry, a row summing to zero, or a `delta` that leaves no
-            room for the non-zero parts.
-    """
+    """Each row rescaled to sum to 1 with its zeros set to `delta` and the rest shrunk to make room."""
     values = np.asarray(compositions, dtype=float)
     if (values < 0).any() or (values.sum(axis=1) <= 0).any():
         raise ValueError("a composition has a negative entry or sums to zero")

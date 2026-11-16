@@ -36,10 +36,8 @@ NAME, OUTCOMES = "kernel_agreement", "kernel_agreement_outcomes"
 def trained_kernel(kernels: KernelSet) -> Kernel:
     """
     The model trained on the subjects' own answers, given the first kernel's factors, as a kernel
-    over that kernel's profiles.
-
-    Raises:
-        NotApplicable: if the runs are of different datasets or theirs has no answers to the topic.
+    over that kernel's profiles. `load_ground` raises NotApplicable when the runs are of different
+    datasets or theirs has no answers to the topic.
     """
     first = next(iter(kernels.kernels.values()))
     trained = load_ground({label: kernel.run for label, kernel in kernels.kernels.items()}, predictors=list(first.factors.columns)).trained
@@ -57,24 +55,9 @@ def _by_values(kernel: Kernel) -> pd.DataFrame:
 
 def agreement(kernels: KernelSet, out: Output, reference: Union[str, None] = None) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Every kernel against the reference on the profiles they share.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figures.
-        reference: a kernel's label, or `trained on claims`; the trained model when the runs'
-            dataset has answers to the topic, else the first kernel.
-
-    Returns:
-        The table - a row per kernel: shared profiles, the mean, median and 90th percentile of
-        their TV, the TV of the two mean answers, the mean correlation and the median ratio of
-        standard deviations over the outcomes - with the outcomes' table beside it
-        (`kernel_agreement_outcomes`), and the figures: the TV per profile, and per outcome
-        the correlations and the ratios.
-
-    Raises:
-        NotApplicable: if no kernel shares a profile with the reference.
-        KeyError: on a reference that is neither a label nor the trained model.
+    `reference` is a kernel's label or `benchmark.ground.TRAINED`; by default the trained model when the
+    runs are of one dataset with answers to the topic, else the first kernel. A kernel of other factors
+    than the reference's, or sharing fewer than three profiles with it, is left out.
     """
     first = next(iter(kernels.kernels.values()))
     if reference is None:

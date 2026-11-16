@@ -21,21 +21,8 @@ RUN, COLUMN = "run", "column"
 
 def effects(runs: RunSet, out: Output, predictors: Union[Sequence[str], None] = None, delta: float = DELTA) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Each grouping column's MANOVA and PERMANOVA effect, per run.
-
-    Args:
-        runs: the runs to compare.
-        predictors: the columns to test, as the single-run `effects` takes them.
-        delta: what a zero share is replaced by before a log-ratio transform.
-        out: takes the table, named `runs_effects`, and three heatmaps, columns by runs:
-            `runs_effects_pillai` and `runs_effects_r2` with p-values, `runs_effects_eta2`.
-
-    Returns:
-        The table - indexed by run and grouping column, the columns of the single-run
-        `effects` - and the two figures.
-
-    Raises:
-        NotApplicable: if a run has nothing to test.
+    The table is indexed by run and grouping column, the columns of the single-run `effects`,
+    which raises `NotApplicable` for a run with nothing to test.
     """
     own = {label: single(run, predictors, delta=delta)[SINGLE] for label, run in runs.runs.items()}
     table = pd.concat(own, names=[RUN, COLUMN])

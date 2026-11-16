@@ -78,11 +78,8 @@ def json_shape(raw: Dict) -> str:
 
 def reparse(raw: Dict, model: Type, columns: Sequence[str]) -> pd.DataFrame:
     """
-    Every saved response parsed through `model`, as a frame sorted by id in `columns` order.
-
-    Raises:
-        pydantic.ValidationError: if a saved response no longer fits the model.
-        KeyError: if the model's rows lack one of `columns`.
+    Every saved response parsed through `model`, as a frame sorted by id in `columns` order;
+    a response that no longer fits the model raises pydantic's ValidationError.
     """
     wrapped = json_shape(raw) == "wrapped"
     rows = {

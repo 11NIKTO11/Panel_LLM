@@ -19,12 +19,8 @@ from .template import PromptTemplate, load_template
 
 def render(dataset: Dataset, template: PromptTemplate, values: pd.DataFrame, forms: Forms) -> pd.Series:
     """
-    One description per row of `values`, named for the template.
-
-    Raises:
-        ValueError: if the template names a column the dataset does not have, or a row
-            renders empty - an empty description is a data problem, not a short profile.
-        KeyError: if a value has no form; see `Forms.phrase`.
+    One description per row of `values`, named for the template. A row that renders empty raises: it
+    is a data problem, not a short profile. A value without a form raises KeyError in `Forms.phrase`.
     """
     stray = [column for column in template.columns if column not in values.columns]
     if stray:
@@ -42,14 +38,8 @@ def render_all(
     dataset: Dataset, values: pd.DataFrame, names: Union[Sequence[str], None] = None
 ) -> Dict[str, Path]:
     """
-    Descriptions from the dataset's folder, rendered over `values` and stored; name -> table path.
-
-    Args:
-        names: which descriptions; None renders every one the dataset has that is rendered
-            at all (a `stored` description keeps the table it has).
-
-    Raises:
-        ValueError: if a name is not one of the dataset's descriptions, or names a stored one.
+    name -> the table written. `names=None` renders every description the dataset has that is rendered
+    at all (a `stored` description keeps the table it has).
     """
     templates = {name: load_template(dataset.description_path(name)) for name in dataset.descriptions}
     names = tuple(name for name in dataset.descriptions if not templates[name].stored) if names is None else tuple(names)
@@ -74,17 +64,8 @@ def read_prompts(
     dataset: Dataset, description: str, expected_index: Union[pd.Index, None] = None
 ) -> pd.DataFrame:
     """
-    A stored prompt table, as a one-column frame to join onto the values.
-
-    Args:
-        dataset: whose rendering.
-        description: which description; also the column name.
-        expected_index: the subjects about to be run; coverage is checked here rather than
-            discovered as a missing prompt in the middle of a paid run.
-
-    Raises:
-        FileNotFoundError: if that description has not been rendered.
-        ValueError: if the table repeats a key or does not cover exactly `expected_index`.
+    A one-column frame, the column named for the description. `expected_index` is the subjects about to
+    be run: coverage is checked here rather than discovered as a missing prompt in the middle of a paid run.
     """
     path = dataset.prompts_path(description)
     if not path.exists():

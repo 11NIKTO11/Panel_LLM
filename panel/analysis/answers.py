@@ -23,20 +23,9 @@ def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
 
 
 def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
-    """No figure."""
     return {}
 
 
 def answers(run: SavedRun, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The mean of every topic column and how often each option is an answer's highest.
-
-    Args:
-        run: the saved run.
-        out: takes the table, named `answers`.
-
-    Returns:
-        The table of `compute`, and no figure.
-    """
     tables = compute(run)
     return save(out, tables, draw(run, tables))

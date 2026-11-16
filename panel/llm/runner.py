@@ -29,9 +29,6 @@ def _process_single_item(
         retries: int = 3,
         instructions: Union[str, None] = None,
 ) -> Tuple[int, Union[Tuple[str, BaseModel], None]]:
-    """
-    Process a single row with retry logic and return prompt with result.
-    """
     prompt = prompt_creator(row)
 
     for attempt in range(retries):
@@ -74,10 +71,8 @@ def run_llm_batch(
         instructions: Union[str, None] = None,
 ) -> Tuple[Dict[int, Tuple[str, BaseModel]], List[int]]:
     """
-    Run parallel LLM calls across DataFrame rows, selecting the right client by model unless provided explicitly.
-    Returns a dict of row index -> (prompt, parsed_result) and a list of skipped row indices.
-
-    `instructions` is the system prompt, sent with every call.
+    Row index -> (prompt, parsed result), and the indices of the rows skipped. Without a `client` one is
+    picked by the model's name; `instructions` is the system prompt, sent with every call.
     """
     results: Dict[int, Tuple[str, BaseModel]] = {}
     now_skipped: List[int] = []

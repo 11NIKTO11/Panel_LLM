@@ -58,14 +58,6 @@ def _differences(groups) -> np.ndarray:
 
 
 def noise_floor(kernel: Kernel, draws: int = 20000, seed: int = 0) -> Noise:
-    """
-    A kernel's noise floor.
-
-    Args:
-        kernel: the kernel.
-        draws: random pairs of subjects.
-        seed: of the random pairs.
-    """
     calls, outcomes = kernel.calls, kernel.outcomes
     subjects = calls.groupby([PROFILE, SUBJECT])[outcomes].mean()
     if kernel.repeats > 1:
@@ -86,17 +78,6 @@ def noise_floor(kernel: Kernel, draws: int = 20000, seed: int = 0) -> Noise:
 
 
 def noise(kernels: KernelSet, out: Output, draws: int = 20000, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Each kernel's noise floor against random pairs of its subjects.
-
-    Returns:
-        The table - a row per kernel: where the pairs come from, how many, how many differ at
-        all, the noise floor, the largest pair, random pairs, and the floor's share of
-        those - and the figure: per kernel, the two distributions of TV overlaid.
-
-    Raises:
-        NotApplicable: if no kernel has two answers to one profile.
-    """
     found = {label: noise_floor(kernel, draws, seed) for label, kernel in kernels.kernels.items()}
     if not any(len(each.pairs) for each in found.values()):
         why = {label: f"means over {kernel.averaged} repeats" if kernel.averaged else "one answer per profile" for label, kernel in kernels.kernels.items()}

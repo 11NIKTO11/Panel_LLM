@@ -37,12 +37,11 @@ def _git(*args: str) -> str:
 
 
 def git_state() -> Dict[str, Any]:
-    """The repo's commit, and whether tracked files differ from it."""
+    """`git_dirty` is whether tracked files differ from the commit; untracked ones do not count."""
     return {"git_commit": _git("rev-parse", "HEAD") or None, "git_dirty": bool(_git("status", "--porcelain", "--untracked-files=no"))}
 
 
 def versions() -> Dict[str, str]:
-    """Python, the data stack and every provider SDK that is installed."""
     out = {"python": sys.version.split()[0], "pandas": pd.__version__, "pydantic": pydantic.__version__}
     for package in SDKS:
         try:
@@ -54,14 +53,8 @@ def versions() -> Dict[str, str]:
 
 def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[BaseLLMClient, None]) -> Dict[str, Any]:
     """
-    Everything a saved run should carry beside its results.
-
-    Args:
-        resolved: the run as sent.
-        n: how many calls came back.
-        saved_at: when the files were written.
-        client: the client that made the calls, for its parameters, the model id the provider reported and the
-            schema as that client sends it - `response_schema` is the one the run generated.
+    `n` is how many calls came back. `client` gives its parameters, the model id the provider reported and
+    the schema as it sends it; `response_schema` is the one the run generated.
     """
     spec, dataset, description, framing = resolved.spec, resolved.dataset, resolved.description, resolved.framing
     question = resolved.question

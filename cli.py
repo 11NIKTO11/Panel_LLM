@@ -13,14 +13,12 @@ from panel.topic import topic_names
 
 
 def list_runs(topic: Union[str, None]) -> None:
-    """Print the saved runs of one topic, or of every topic."""
     for name in [topic] if topic else topic_names():
         for stem in ResultStore(paths.RESULTS_DIR, name).runs():
             print(f"  {name:<22} {stem}")
 
 
 def add_run_set(parser: argparse.ArgumentParser) -> None:
-    """The arguments that name several runs of one topic: the runs one by one, or a set of its comparisons.json."""
     parser.add_argument("topic", help="a folder under results/")
     parser.add_argument("runs", nargs="*", help="per run, a stem or any text only one stem contains")
     parser.add_argument("--set", help="a named set of the topic's comparisons.json, in place of runs; its labels name the runs, its name the files")
@@ -49,7 +47,6 @@ def add_effects(parser: argparse.ArgumentParser) -> None:
 
 
 def effects_settings(args: argparse.Namespace) -> Dict[str, Dict[str, Any]]:
-    """What `add_effects` set, as the keyword arguments of the `effects` analysis."""
     return {"effects": {**({"predictors": args.predictors.split(",")} if args.predictors else {}), **({"delta": args.delta} if args.delta is not None else {})}}
 
 
@@ -58,7 +55,6 @@ def suffix(args: argparse.Namespace) -> str:
 
 
 def run_each(analyses: Mapping[str, Callable], only: Union[str, None], subject: Any, out: Output, settings: Union[Mapping[str, Dict[str, Any]], None] = None) -> None:
-    """Run every analysis, or the one named, over `subject`; print each table, or why it was skipped, then what was written."""
     for name, analysis in analyses.items():
         if only in (None, name):
             try:

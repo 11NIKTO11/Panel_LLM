@@ -22,15 +22,8 @@ NAME = "runs_shares"
 
 def shares(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    One column per source over the topic's columns: actual, claimed, each run, each poll.
-
-    Args:
-        runs: the runs to compare.
-        out: takes the table and the figure, both named `runs_shares`.
-
-    Returns:
-        The table - one row per topic column; `<source>_low` and `<source>_high` for the
-        runs and the claimed; a poll has no turnout - and its figure, polls not drawn.
+    The table is one row per topic column, a column per source: actual, claimed, each run, each
+    poll. A poll has no turnout and is not drawn.
     """
     topic = runs.topic
     own = {label: country(run)[COUNTRY] for label, run in runs.runs.items()}

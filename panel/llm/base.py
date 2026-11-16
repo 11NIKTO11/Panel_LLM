@@ -9,7 +9,6 @@ GOOGLE = "google"
 
 
 def detect_provider(model: str) -> str:
-    """Guess the provider from a bare model name; returns "" when unknown."""
     lower = model.lower()
     if "claude" in lower:
         return ANTHROPIC
@@ -37,16 +36,7 @@ class BaseLLMClient:
         temperature: Union[float, None],
         instructions: Union[str, None] = None,
     ) -> BaseModel:
-        """
-        One structured call.
-
-        Args:
-            model: provider model id.
-            prompt: the user message.
-            response_format: Pydantic model the provider must return.
-            temperature: sampling temperature, or None to send none.
-            instructions: system prompt, if the caller frames the task with one.
-        """
+        """`prompt` is the user message, `instructions` the system prompt; `temperature=None` sends none."""
         raise NotImplementedError
 
     def parameters(self) -> dict:

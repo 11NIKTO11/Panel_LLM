@@ -22,17 +22,7 @@ NAME = "country"
 
 
 def compute(run: SavedRun, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Dict[str, pd.DataFrame]:
-    """
-    The run's distribution over all its subjects beside the claimed and the actual one.
-
-    Args:
-        run: the saved run.
-        draws, seed, level: of the bootstrap intervals.
-
-    Returns:
-        `country` - one row per topic column, a column per source, `<source>_low` and
-        `<source>_high` for predicted and claimed.
-    """
+    """`country` - one row per topic column, a column per source, `<source>_low` and `<source>_high` for predicted and claimed."""
     found = distributions(run, frame(run))
     edges = intervals(frame(run), lambda rows: pd.concat(estimated(run, rows)), draws, seed, level)
     table = pd.DataFrame(index=run.topic.columns)
@@ -59,16 +49,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame], level: float = 0.95) ->
 
 
 def country(run: SavedRun, out: Output, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The run's distribution over all its subjects beside the claimed and the actual one.
-
-    Args:
-        run: the saved run.
-        out: takes the table and the figure, both named `country`.
-        draws, seed, level: of the bootstrap intervals.
-
-    Returns:
-        The table of `compute` and its figure.
-    """
     tables = compute(run, draws, seed, level)
     return save(out, tables, draw(run, tables, level))

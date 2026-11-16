@@ -26,19 +26,11 @@ def maps(
     One square map per panel: each point a dot where the panel puts it, a cross where the
     target has it, the two joined by a line.
 
-    Args:
-        panels: panel title -> two columns (x, y), indexed by point.
-        target: the same points and columns, where they were expected.
-        limits: both axes' range.
-        xlabel, ylabel: of the axes.
-        names: legend entries for the dot and the cross.
-        colors: point -> colour; grey without one.
-        labels: point -> the text beside it; the point itself by default.
-        per_row: maps in a row; further maps go on further rows.
-        width: of the figure, in inches, whatever the number of maps: one map fills it, two
-            in a row are half the size each. Text keeps its size.
-        title: figure title.
-        note: a line under the title.
+    - `panels`: panel title -> two columns (x, y), indexed by point; `target` has the same
+      points and columns.
+    - `names`: legend entries for the dot and the cross.
+    - `width`: of the figure, in inches, whatever the number of maps: one map fills it, two
+      in a row are half the size each. Text keeps its size.
     """
     colors, labels = colors or {}, labels or {}
     across = min(per_row, len(panels))

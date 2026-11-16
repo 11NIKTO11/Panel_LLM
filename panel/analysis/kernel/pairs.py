@@ -46,17 +46,6 @@ def minimal_pairs(kernel: Kernel) -> pd.DataFrame:
 
 
 def pairs(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per kernel and factor, the TV of its minimal pairs against the kernel's noise floor.
-
-    Returns:
-        The table - indexed by kernel and factor: pairs, mean, median, 90th percentile and
-        largest TV, and the mean over the noise floor; every pair goes beside it
-        (`kernel_pairs_each`) - and the figure: per kernel, a box per factor with its pairs.
-
-    Raises:
-        NotApplicable: if no kernel has a minimal pair.
-    """
     rows, each, panels, marks = {}, {}, {}, {}
     for label, kernel in kernels.kernels.items():
         found = minimal_pairs(kernel)

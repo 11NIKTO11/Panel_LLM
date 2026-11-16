@@ -13,9 +13,6 @@ Saved files are keyed by the class names `Probabilities` and `Pick`, their `SHOR
 rename orphans what is saved. None of them names a topic: the classes are general, and what
 the options are is the framing's text.
 
-Until 2026-11-10 the classes were `VotingProbabilities` / `VotingPick`, the shorts `VProb` /
-`VPick` and the list `parties`. No saved run is of that shape any more: the legacy runs were
-migrated to today's (`DECISIONS.md` §10), and a saved `parties` is no longer read.
 `to_series()` writes a results row keyed by option id, whatever label the model saw.
 
 The turnout field carries no description of its own: a description beside a `$ref` is dropped by
@@ -33,8 +30,6 @@ from .vocabulary import Topic
 
 class TopicResponse(BaseModel):
     """
-    What every generated response model can do, whatever its topic.
-
     `OPTIONS`, `LABELS` and `TURNOUT` are set by `make_response_models`; `voted_or_not` exists
     only on the models of a topic that has an attendance dimension.
     """
@@ -43,7 +38,6 @@ class TopicResponse(BaseModel):
     TURNOUT: ClassVar[Union[Tuple[str, str], None]] = None
 
     def turnout_row(self) -> dict:
-        """{yes column: p, no column: p}, or empty for a topic without attendance."""
         if not self.TURNOUT:
             return {}
         yes, no = self.TURNOUT
@@ -51,7 +45,6 @@ class TopicResponse(BaseModel):
 
 
 class ProbabilityResponse(TopicResponse):
-    """Base of the per-option probability model."""
     SHORT_NAME: ClassVar[str] = "Prob"
 
     def to_series(self) -> pd.Series:
@@ -65,11 +58,9 @@ class ProbabilityResponse(TopicResponse):
 
 
 class PickResponse(TopicResponse):
-    """Base of the single-choice model."""
     SHORT_NAME: ClassVar[str] = "Pick"
 
     def to_series(self) -> pd.Series:
-        """One results row: attendance if any, then 1 for the chosen option id, 0 elsewhere."""
         row = self.turnout_row()
         chosen = self.LABELS[self.choice]
         for option in self.OPTIONS:
@@ -79,14 +70,8 @@ class PickResponse(TopicResponse):
 
 def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[ProbabilityResponse], Type[PickResponse]]:
     """
-    Build a topic's two response models as one framing words them.
-
-    Returns:
-        (probabilities, pick). Their `__name__` and `SHORT_NAME` are fixed, because the
-        results filename stem and the run record are built from them.
-
-    Raises:
-        ValueError: if the framing words another topic.
+    (probabilities, pick); their `__name__` and `SHORT_NAME` are fixed, because the results filename
+    stem and the run record are built from them.
     """
     if framing.topic != topic.name:
         raise ValueError(f"framing '{framing.name}' words topic '{framing.topic}', not '{topic.name}'")

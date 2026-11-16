@@ -22,18 +22,7 @@ def factor_columns(run: SavedRun) -> tuple:
 
 
 def kernel_of(run: SavedRun, label: str, factors: Union[Sequence[str], None] = None) -> Kernel:
-    """
-    Read one saved run as a kernel.
-
-    Args:
-        run: the run.
-        label: what to call it.
-        factors: the profile's columns; those the description reads by default.
-
-    Raises:
-        NotApplicable: if the description names no column, so there is no profile.
-        ValueError: on a factor the dataset does not have, or a numeric factor with a gap.
-    """
+    """`factors` are the profile's columns, those the description reads by default."""
     columns = list(factors or factor_columns(run))
     if not columns:
         raise NotApplicable(f"'{run.stem}': its description reads no column, so its subjects have no profile")
@@ -64,21 +53,13 @@ def kernel_of(run: SavedRun, label: str, factors: Union[Sequence[str], None] = N
 
 
 def load_kernels(runs: RunSet, factors: Union[Sequence[str], Mapping[str, Sequence[str]], None] = None) -> KernelSet:
-    """
-    Every run of a run set as a kernel.
-
-    Args:
-        runs: from `panel.analysis.comparison.load_runs`.
-        factors: the profile's columns for every run, or label -> columns per run; the
-            description's by default.
-    """
+    """`factors` are the profile's columns for every run, or label -> columns per run; the description's by default."""
     chosen = (lambda label: factors.get(label)) if isinstance(factors, Mapping) else (lambda label: factors)
     kernels = {label: kernel_of(run, label, chosen(label)) for label, run in runs.runs.items()}
     return KernelSet(topic=runs.topic, kernels=kernels, style=runs.style)
 
 
 def describe(kernels: KernelSet) -> str:
-    """What was loaded, a line per kernel."""
     width = max(len(label) for label in kernels.kernels)
     lines = [f"{kernels.topic.name}: {len(kernels.kernels)} kernels, {len(next(iter(kernels.kernels.values())).outcomes)} outcomes"]
     for label, kernel in kernels.kernels.items():

@@ -1,15 +1,5 @@
 """
-Analyze a saved run from the command line.
-
-    python analyze.py                               lists every topic's saved runs
-    python analyze.py election_2021                 lists that topic's saved runs
-    python analyze.py election_2021 haiku-5-5       the run whose stem contains that text
-    python analyze.py election_2021 haiku-5-5 --only country
-    python analyze.py election_2021 haiku-5-5 --only effects --predictors gender,age,region
-    python analyze.py election_2021 haiku-5-5 --only effects --delta 0.001
-    python analyze.py election_2021 haiku-5-5 --unweighted   option shares not weighted by turnout
-    python analyze.py election_2021 haiku-5-5 --no-save
-    python analyze.py election_2021 haiku-5-5 --plain      ignore the topic's plot.json
+Analyze a saved run from the command line; without a run, the saved runs are listed.
 
 Reads `results/<topic>/runs/<run>/` and writes tables to its `analysis/`, figures to its
 `plots/`. `analyze.ipynb` is the same thing one block at a time.

@@ -3,29 +3,9 @@ A topic's vocabulary: what a run may answer with, as data.
 
 `config/topics/<name>/topic.json` holds the language-neutral half of a topic: the option ids,
 each with its native name and foreign aliases, the turnout roles, and where the reference
-results are. Everything the model reads - system prompt, question, labels, schema text - is a
-framing (`panel.topic.framing`), one file per language beside it. `RunSpec.topic` holds the
-name, so a saved run reproduces its own vocabulary from its record.
-
-Config shape:
-
-    {
-        "name": "election_2021",
-        "reference": {                          null when there is nothing to compare to
-            "path": "reference.csv",            relative to the topic's folder
-            "key": "region",                    the column naming each row
-            "total": "Česko"                    the key of the row that is the whole
-        },
-        "turnout": {                            null for a topic with no attendance dimension
-            "yes": {"column": "Voted", "aliases": ["p_voted"]},
-            "no":  {"column": "Not Voted"}
-        },
-        "options": {
-            "ANO": {"name": "ANO 2011", "aliases": ["p_ANO"]},
-            ...
-        },
-        "note": "free text, ignored by code"
-    }
+results are. Everything the model reads - system prompt, labels, schema text, question - is a
+framing or a question (`panel.topic.framing`, `panel.topic.question`), in folders beside it.
+`RunSpec.topic` holds the name, so a saved run reproduces its own vocabulary from its record.
 
 - **option ids are the keys**: pure ASCII, and the columns of every result table, so runs in
   two languages on one topic stack. `name` is the official label, which a framing shows unless
@@ -59,7 +39,7 @@ TURNOUT_ROLES = ("yes", "no")
 
 @dataclass(frozen=True)
 class Reference:
-    """Where a topic's real-world results are, which column keys the rows, and which row is the whole."""
+    """`path` is relative to the topic's folder; `key` is the column naming each row, `total` the key of the row that is the whole."""
     path: str
     key: str
     total: str
@@ -68,15 +48,12 @@ class Reference:
 @dataclass(frozen=True)
 class Topic:
     """
-    Attributes:
-        name: the folder under `config/topics/`, the results folder, and `RunSpec.topic`.
-        options: option ids, in the order the model sees them; also the result columns.
-        names: option id -> its native name, the label a framing shows by default.
-        aliases: foreign column name -> our column, over options and turnout.
-        turnout: (yes column, no column) for a topic with an attendance dimension, else None.
-        reference: the real-world results to compare against, or None.
-        dir: the topic's folder.
-        note: free text; not used by code.
+    name: the folder under `config/topics/`, the results folder, and `RunSpec.topic`.
+    options: option ids, in the order the model sees them; also the result columns.
+    names: option id -> its native name, the label a framing shows by default.
+    aliases: foreign column name -> our column, over options and turnout.
+    turnout: (yes column, no column) for a topic with an attendance dimension, else None.
+    reference: None when there is nothing to compare to.
     """
     name: str
     options: Tuple[str, ...]
@@ -89,34 +66,24 @@ class Topic:
 
     @property
     def columns(self) -> List[str]:
-        """Result columns in canonical order: attendance first, if any, then the option ids."""
         return list(self.turnout or ()) + list(self.options)
 
     @property
     def normalize_groups(self) -> List[List[str]]:
-        """Column groups that each have to sum to 1 per row, for `ResultStore.save`."""
+        """Column groups that each have to sum to 1 per row."""
         groups = [list(self.turnout)] if self.turnout else []
         groups.append(list(self.options))
         return groups
 
     @property
     def rename_map(self) -> Dict[str, str]:
-        """Native name or alias -> our column, what `rename` applies."""
         return {**{name: option for option, name in self.names.items()}, **self.aliases}
 
     def rename(self, frame: pd.DataFrame) -> pd.DataFrame:
-        """A results frame with native names and aliases turned into our columns."""
         return frame.rename(columns=self.rename_map)
 
     def load_reference(self) -> pd.DataFrame:
-        """
-        The topic's real-world results in our columns, one row per key, the total row included.
-
-        Raises:
-            ValueError: if the topic declares no reference, or the file lacks the key column,
-                a topic column, or the total row.
-            FileNotFoundError: if the declared file is missing.
-        """
+        """In our columns, one row per key, the total row included."""
         if not self.reference:
             raise ValueError(f"topic '{self.name}' declares no reference results")
         frame = self.rename(pd.read_csv(self.dir / self.reference.path, encoding="utf-8-sig"))
@@ -129,26 +96,17 @@ class Topic:
 
 
 def topic_names(topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
-    """Every folder under `topics_dir` that declares a topic, sorted."""
     return sorted(path.parent.name for path in Path(topics_dir).glob(f"*/{CONFIG_NAME}"))
 
 
 def _claim(taken: Dict[str, str], foreign: str, ours: str, path: Path) -> None:
-    """Record one alias, refusing a name that is already taken."""
     if foreign in taken:
         raise ValueError(f"{path}: '{foreign}' is claimed by both '{taken[foreign]}' and '{ours}'")
     taken[foreign] = ours
 
 
 def load_topic(name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> Topic:
-    """
-    Read one topic's vocabulary. Option order is the order in the file (see the module docstring).
-
-    Raises:
-        FileNotFoundError: if there is no topic of that name.
-        ValueError: on unknown or missing keys, a name that disagrees with the folder, an id
-            that is not ASCII, a name or alias claimed twice or colliding with our own columns.
-    """
+    """Option order is the order in the file (see the module docstring)."""
     path = Path(topics_dir) / name / CONFIG_NAME
     if not path.exists():
         raise FileNotFoundError(f"no topic at {path}")

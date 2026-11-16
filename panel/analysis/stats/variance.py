@@ -30,16 +30,7 @@ def _matrix(values: np.ndarray, rows: int) -> np.ndarray:
 
 
 def eps2(values: np.ndarray, groups: Sequence) -> Tuple[float, np.ndarray]:
-    """
-    The share of variance one grouping explains, bias-corrected; pooled and per outcome.
-
-    Args:
-        values: n x k, or n.
-        groups: one label per row.
-
-    Returns:
-        (pooled, one per column); NaN where a column does not vary.
-    """
+    """(pooled, one per column) of `values`, n x k or n; NaN where a column does not vary."""
     labels = np.asarray(groups)
     values = _matrix(values, len(labels))
     means = pd.DataFrame(values).groupby(labels).transform("mean").to_numpy()
@@ -54,12 +45,7 @@ def eps2(values: np.ndarray, groups: Sequence) -> Tuple[float, np.ndarray]:
 
 
 def cv_r2(features: np.ndarray, values: np.ndarray, folds: int = 5, seed: int = 0) -> Tuple[np.ndarray, float]:
-    """
-    Out-of-sample R² of a ridge regression (penalty chosen inside each fold), per outcome and pooled.
-
-    Returns:
-        (one per column, pooled).
-    """
+    """(one per column, pooled) - the other way round from `eps2`; the penalty is chosen inside each fold."""
     values = _matrix(values, len(features))
     predicted = cross_val_predict(RidgeCV(alphas=CV_ALPHAS, gcv_mode="eigen"), features, values, cv=KFold(folds, shuffle=True, random_state=seed))
     total = ((values - values.mean(axis=0)) ** 2).sum(axis=0)
@@ -78,19 +64,8 @@ def loo_r2(features: np.ndarray, values: np.ndarray) -> float:
 
 def factorial(values: np.ndarray, factors: pd.DataFrame) -> Dict[str, np.ndarray]:
     """
-    The exact split of the variance of a complete factorial design: each factor's main effect,
-    each pair's interaction, and what is left (the higher interactions).
-
-    Args:
-        values: one row per cell, n x k.
-        factors: the same rows, a column per factor; every combination of levels exactly once.
-
-    Returns:
-        name -> sum of squares per outcome: one entry per factor, one per pair named
-        `a x b`, `rest`, and `total`; the entries add up to `total`.
-
-    Raises:
-        ValueError: if the rows are not every combination of the levels, once.
+    name -> sum of squares per outcome: one entry per factor, one per pair named `a x b`, `rest`
+    (the higher interactions) and `total`, which the others add up to.
     """
     values = _matrix(values, len(factors))
     sizes = [factors[column].nunique() for column in factors.columns]

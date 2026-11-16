@@ -25,15 +25,6 @@ NAME = "kernel_electorates"
 
 
 def electorates(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per kernel, the distance between every two options' electorates.
-
-    Returns:
-        The table - indexed by kernel and option, a column per option - and a figure per kernel.
-
-    Raises:
-        NotApplicable: if the topic has fewer than three options.
-    """
     options = list(kernels.topic.options)
     if len(options) < 3:
         raise NotApplicable(f"'{kernels.topic.name}' has {len(options)} options; a map of distances between them needs three")

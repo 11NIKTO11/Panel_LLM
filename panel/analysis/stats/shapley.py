@@ -20,17 +20,8 @@ from .variance import loo_r2
 
 def shapley_values(players: Mapping[str, np.ndarray], values: np.ndarray) -> Tuple[pd.Series, float]:
     """
-    Exact Shapley effects.
-
-    Args:
-        players: name -> its design columns, rows aligned with `values`.
-        values: n x k, or n.
-
-    Returns:
-        (the effects, by player; the value of all players together).
-
-    Raises:
-        ValueError: on no players.
+    (the effects by player, the value of all players together); `players` is name -> its design
+    columns, rows aligned with `values`, n x k or n.
     """
     names = list(players)
     count = len(names)

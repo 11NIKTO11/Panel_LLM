@@ -39,20 +39,7 @@ def measured(losses: pd.DataFrame, statistic: Callable[[pd.DataFrame], pd.Series
 
 
 def scores(ground: Ground, out: Output, draws: int = 1000, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The log-loss and the Brier score of every source on the subjects' own answers.
-
-    Args:
-        ground: what `load_ground` made.
-        out: takes the table and the figure, both named `benchmark_scores`.
-        draws: bootstrap resamples of the subjects.
-        seed: of the resampling.
-
-    Returns:
-        The table - a row per source: the claimed shares, the trained model, and per run its
-        answers, its mean answer and its recalibrated answers; `log-loss` and `Brier`, each
-        with `_low` and `_high` - and its figure.
-    """
+    """A row per source of `ground.sources`: `log-loss` and `Brier`, each with `_low` and `_high`."""
     table = out.table(SCORES, measured(ground.losses, lambda frame: frame.mean(), ground.sources, MEASURES, SOURCE, draws, seed))
     figure = interval_panels(
         table, list(MEASURES), same_scale=False,
@@ -63,21 +50,7 @@ def scores(ground: Ground, out: Output, draws: int = 1000, seed: int = 0) -> Tup
 
 
 def knowledge(ground: Ground, out: Output, draws: int = 1000, seed: int = 0) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per run, what the subject's description bought and how much of the trained model's
-    knowledge the run holds.
-
-    Args:
-        ground: what `load_ground` made.
-        out: takes the table and the figure, both named `benchmark_knowledge`.
-        draws: bootstrap resamples of the subjects.
-        seed: of the resampling.
-
-    Returns:
-        The table - a row per run: `conditioning gain` (nats) and `knowledge ratio`, each
-        with `_low` and `_high`; the ratio and its interval are empty when the trained
-        model does not beat the claimed shares - and its figure.
-    """
+    """A row per run: `conditioning gain` (nats) and `knowledge ratio`, each with `_low` and `_high`."""
     labels = list(ground.predicted)
 
     def statistic(frame: pd.DataFrame) -> pd.Series:

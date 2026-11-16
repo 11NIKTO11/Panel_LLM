@@ -34,22 +34,9 @@ def manova(
     several: Union[Mapping[str, str], None] = None, delta: float = DELTA,
 ) -> pd.DataFrame:
     """
-    Each predictor's multivariate test, given the other predictors.
-
-    Args:
-        subjects: one row per subject with the predictor columns, no missing values.
-        shares: the same subjects' compositions, a column per part.
-        predictors: columns of `subjects`.
-        several: predictor -> the separator of its cells holding several answers.
-        delta: what a zero share is replaced by before the log-ratio transform.
-
-    Returns:
-        One row per predictor: `df` (hypothesis degrees of freedom), `Pillai`, `partial
-        eta2`, `F` and `p`.
-
-    Raises:
-        ValueError: if the two frames are not the same subjects, a predictor does not vary,
-            or there are too few subjects for the design.
+    One row per predictor, tested given the others; `df` is the hypothesis's degrees of freedom.
+    The predictors have no missing values; `several` is predictor -> the separator of its cells
+    holding several answers. A predictor that does not vary raises in `design.block`.
     """
     if not subjects.index.equals(shares.index):
         raise ValueError("subjects and shares are not the same rows")

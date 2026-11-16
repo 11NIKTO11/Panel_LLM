@@ -1,17 +1,6 @@
 """
 Send a run from the command line: the base run of config/presets.json with presets laid over it.
 
-    python run.py                                   lists the base and the presets
-    python run.py -d sod -m nano                    a data preset and a model preset
-    python run.py -m nano                           the base's data, that model
-    python run.py -d citizen                        that data, the base's model
-    python run.py -d sod -m nano --sample 200       200 subjects of it; a trial
-    python run.py -d sod -m nano --question neutral with a field replaced
-    python run.py -d sod -m nano --show             the system prompt and one prompt; no call
-    python run.py -d sod -m nano --one              one call, printed; nothing saved
-    python run.py -d sod -m nano --yes              send without asking
-    python run.py -d sod -m nano --check            look over the saved run; no call
-
 Later replaces earlier: base, `-d`, `-m`, single fields. Every field of a run is an option;
 `none` stands for no value (`--temperature none`). Anything but the Fake client asks before
 sending. Writes under `results/<topic>/`, then prints a check of what was saved.

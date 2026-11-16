@@ -36,7 +36,6 @@ PAIRS = 20000
 
 
 def statistics(kernel: Kernel, pairs: int = PAIRS, seed: int = 0) -> pd.Series:
-    """The statistics one replicate is summed up by; see the module docstring."""
     values = kernel.matrix.to_numpy().T
     found = {f"ε² {column}": eps2(values, kernel.grouping(column).to_numpy())[0] for column in kernel.factors.columns}
     _, singular, _ = centred_svd(kernel.matrix.to_numpy())
@@ -52,23 +51,8 @@ def statistics(kernel: Kernel, pairs: int = PAIRS, seed: int = 0) -> pd.Series:
 
 def intervals(kernels: KernelSet, out: Output, draws: int = 200, seed: int = 0, reference: Union[str, None] = None) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Per kernel and statistic, the estimate and its interval; with a reference, the paired differences.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figure.
-        draws: replicates per kernel.
-        seed: of the replicates and the random pairs.
-        reference: a kernel's label; the kernels of the same profiles and scheme get paired
-            differences from it.
-
-    Returns:
-        The table - indexed by kernel and statistic: the estimate, low, high, and how the
-        interval was made - with the differences beside it (`kernel_intervals_differences`),
-        and the figure: every statistic with its interval, a panel per kernel.
-
-    Raises:
-        KeyError: on a reference that is not a kernel's label.
+    `reference` is a kernel's label: the half-sampled kernels of the same profiles as it, itself
+    half-sampled, get paired differences from it. `seed` is of the replicates and of the random pairs.
     """
     if reference is not None and reference not in kernels.kernels:
         raise KeyError(f"no kernel '{reference}'; there are {list(kernels.kernels)}")

@@ -5,20 +5,7 @@ A question: what follows a description, in one or several forms, in each languag
 and is separate from the framing so that a run can change it and nothing else. One file holds
 the question in every language; a run takes the one its framing is written in.
 
-    {
-        "name": "default",            the file stem
-        "short": "default",           its part of a results stem: ASCII, no underscore
-        "languages": {
-            "en": {"text": "... I voted for:"},                         one wording for everyone
-            "cs": {                                                     or worded by a vocabulary
-                "by": "gender",                                         a dataset may share
-                "text": {"male": "... volil:", "female": "... volila:"},
-                "fallback": "male",                                     for a subject without a key
-                "note": "free text, ignored by code"
-            }
-        }
-    }
-
+- a language's `text` is one wording for everyone, or key -> wording when `by` says what the keys are.
 - `by` names a shared vocabulary (`panel.dataset.SharedRef`); each language decides for itself
   whether it needs one.
 - `fallback` is optional. Without it a dataset that does not share the vocabulary, or a
@@ -49,15 +36,9 @@ class Question:
     """
     One question in one language.
 
-    Attributes:
-        name: the file stem.
-        short: the question's part of a results stem.
-        language: which of the file's languages this is.
-        text: the one wording, or None when the question is worded `by` a vocabulary.
-        by: the shared vocabulary the forms are keyed by, or None.
-        forms: key -> wording; empty for a question with one wording.
-        fallback: the key used for a subject without one, or None.
-        note: free text; not used by code.
+    text: the one wording, or None when the question is worded `by` a vocabulary.
+    forms: key -> wording; empty for a question with one wording.
+    fallback: the key used for a subject without one, or None.
     """
     name: str
     short: str
@@ -69,16 +50,7 @@ class Question:
     note: str = ""
 
     def wording(self, key: Union[str, None] = None) -> str:
-        """
-        The question as one subject reads it.
-
-        Args:
-            key: the subject's key in the `by` vocabulary; None or missing for a subject without one.
-
-        Raises:
-            ValueError: if the subject has no key and the question no fallback, or the
-                question has no form for the key.
-        """
+        """`key` is the subject's key in the `by` vocabulary; None or missing for a subject without one."""
         if self.by is None:
             return self.text
         if key is None or pd.isna(key):
@@ -91,7 +63,6 @@ class Question:
 
 
 def _read(path: Path) -> dict:
-    """A question file with exactly its keys."""
     config = json.loads(path.read_text(encoding="utf-8"))
     if set(config) != KEYS:
         raise ValueError(f"{path} needs exactly the keys {sorted(KEYS)}")
@@ -99,21 +70,11 @@ def _read(path: Path) -> dict:
 
 
 def question_names(topic: str, language: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
-    """Every question a topic has in one language, sorted."""
     folder = Path(topics_dir) / topic / QUESTIONS_DIR
     return sorted(path.stem for path in folder.glob("*.json") if language in _read(path)["languages"])
 
 
 def load_question(topic: Topic, language: str, name: str) -> Question:
-    """
-    Read one question of a topic in one language.
-
-    Raises:
-        FileNotFoundError: if the topic has no such question.
-        ValueError: if the question does not exist in that language; on unknown or missing
-            keys, a name that disagrees with the file, a short that could not sit in a stem,
-            forms without `by` or `by` without forms, or a fallback that is not one of the forms.
-    """
     path = topic.dir / QUESTIONS_DIR / f"{name}.json"
     if not path.exists():
         raise FileNotFoundError(f"no question '{name}' for topic '{topic.name}' at {path}")

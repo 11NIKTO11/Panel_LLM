@@ -24,20 +24,7 @@ RUN, AREA = "run", "area"
 
 
 def spreads(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The standard deviation of each option's share within each area, per run.
-
-    Args:
-        runs: the runs to compare.
-        out: takes the table and the figure, both named `runs_spread`.
-
-    Returns:
-        The table - indexed by run and area, a column per option - and the figure: per run
-        a panel of options by areas, in percentage points, on one colour range.
-
-    Raises:
-        NotApplicable: if no run has several subjects in an area.
-    """
+    """The table is indexed by run and area, a column per option; the figure's panels share one colour range."""
     found = {}
     for label, run in runs.runs.items():
         areas = ordered(run)

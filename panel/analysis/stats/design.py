@@ -20,16 +20,7 @@ from pandas.api.types import is_numeric_dtype
 
 
 def block(values: pd.Series, several: Union[str, None] = None) -> np.ndarray:
-    """
-    The design columns of one predictor.
-
-    Args:
-        values: the predictor, no missing values.
-        several: the separator of a cell holding several answers, or None.
-
-    Raises:
-        ValueError: if the predictor does not vary.
-    """
+    """`values` has no missing values; `several` is the separator of a cell holding several answers."""
     if is_numeric_dtype(values):
         columns = values.to_numpy(dtype=float)[:, None]
     elif several:
@@ -45,16 +36,8 @@ def block(values: pd.Series, several: Union[str, None] = None) -> np.ndarray:
 
 def indicators(values: pd.Series, several: Union[str, None] = None, missing: str = "(missing)") -> np.ndarray:
     """
-    One predictor as an indicator per level, none left out.
-
-    Args:
-        values: the predictor. A numeric one stays one column; a categorical gets a column per
-            category, in their order, held or not; in any other a missing value is a level of its own.
-        several: the separator of a cell holding several answers, or None.
-        missing: the name of the level a missing value is at.
-
-    Raises:
-        ValueError: on a numeric or categorical predictor with a missing value.
+    A numeric predictor stays one column; a categorical gets a column per category, in their
+    order, held or not; in any other a missing value is the level `missing`.
     """
     categorical = isinstance(values.dtype, pd.CategoricalDtype)
     if categorical or is_numeric_dtype(values):
@@ -66,11 +49,7 @@ def indicators(values: pd.Series, several: Union[str, None] = None, missing: str
 
 
 def with_interactions(blocks: Sequence[np.ndarray]) -> np.ndarray:
-    """
-    The predictors' indicator blocks side by side, then the product of every column of one
-    with every column of another, for each pair of predictors; products that are zero for
-    every row are left out.
-    """
+    """The blocks side by side, then every pair's column products, without those that are zero in every row."""
     products = [(first[:, :, None] * second[:, None, :]).reshape(len(first), -1) for first, second in itertools.combinations(blocks, 2)]
     joined = np.hstack(products) if products else np.empty((len(blocks[0]), 0))
     return np.hstack([*blocks, joined[:, joined.any(axis=0)]])

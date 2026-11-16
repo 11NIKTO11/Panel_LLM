@@ -18,21 +18,9 @@ SHIFT = 0.01
 
 def cross_validated(features: np.ndarray, answers: np.ndarray, outcomes: Sequence[str], strength: float, folds: int = 5, seed: int = 0) -> np.ndarray:
     """
-    Each subject's probabilities over the outcomes, from a logit fitted without that subject's fold.
-
-    Args:
-        features: subjects by design columns.
-        answers: each subject's outcome.
-        outcomes: every outcome, in the order of the columns returned.
-        strength: the logit's `C`: the inverse of its ridge penalty.
-        folds: how many parts the subjects are split into.
-        seed: of the split.
-
-    Returns:
-        Subjects by outcomes; an outcome no subject of a fit answered gets zero there.
-
-    Raises:
-        ValueError: if a fit is left with a single outcome.
+    Subjects by outcomes, in the order of `outcomes`; `strength` is the logit's `C`, the inverse of its
+    ridge penalty. An outcome no subject of a fit answered gets zero there; a fit left with a single
+    outcome raises in sklearn.
     """
     outcomes = list(outcomes)
     found = np.zeros((len(answers), len(outcomes)))
@@ -43,30 +31,14 @@ def cross_validated(features: np.ndarray, answers: np.ndarray, outcomes: Sequenc
 
 
 def recalibrated(probabilities: np.ndarray, answers: np.ndarray, outcomes: Sequence[str], folds: int = 5, seed: int = 0, shift: float = SHIFT) -> np.ndarray:
-    """
-    The probabilities read through a cross-validated logit on their logarithms: what they
-    know about the answers, whatever their calibration.
-
-    Args:
-        probabilities: subjects by outcomes.
-        answers: each subject's outcome.
-        outcomes: every outcome, in column order.
-        folds: of the cross-validation.
-        seed: of the split.
-        shift: added before the logarithm, so a zero has one.
-    """
+    """What the probabilities know about the answers, whatever their calibration; `shift` gives a zero a logarithm."""
     return cross_validated(np.log(np.asarray(probabilities, dtype=float) + shift), answers, outcomes, strength=1.0, folds=folds, seed=seed)
 
 
 def losses(probabilities: np.ndarray, answered: np.ndarray, floor: float = FLOOR) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Per subject, the log-loss (nats) and the Brier score of the probabilities.
-
-    Args:
-        probabilities: subjects by outcomes, rows summing to 1.
-        answered: the same shape, 1 at each subject's outcome and 0 elsewhere.
-        floor: the share of a uniform distribution mixed in first, so a zero on the
-            answered outcome costs a finite amount.
+    Per subject, the log-loss (nats) and the Brier score; `answered` is 1 at each subject's outcome, 0 elsewhere.
+    `floor` is the share of a uniform distribution mixed in first, so a zero on that outcome costs a finite amount.
     """
     mixed = (1 - floor) * np.asarray(probabilities, dtype=float) + floor / answered.shape[1]
     return -np.log((mixed * answered).sum(axis=1)), ((mixed - answered) ** 2).sum(axis=1)

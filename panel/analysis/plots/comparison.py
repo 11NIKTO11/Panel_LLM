@@ -25,20 +25,11 @@ def source_bars(
     """
     One group of horizontal bars per row, one bar per source, shares as percentages.
 
-    Args:
-        table: indexed by row; a column per source, and optionally `<source>_low` and
-            `<source>_high`, drawn as a whisker on that source's bar.
-        sources: the columns drawn, in order from the top of each group.
-        rows: the rows of the main panel, in display order.
-        colors: source -> colour.
-        head: rows drawn in a panel of their own above the main one (e.g. turnout).
-        row_colors: row -> colour. When given, a bar wears its row's colour (grey for a row
-            without one) and the sources differ by strength, the first the strongest;
-            `colors` is then not used.
-        labels: row -> display name; the row itself by default.
-        names: source -> legend entry; the source itself by default.
-        title: figure title.
-        note: a line under the title.
+    - `table`: indexed by row; a column per source, and optionally `<source>_low` and
+      `<source>_high`, drawn as a whisker on that source's bar.
+    - `head`: rows drawn in a panel of their own above the main one (e.g. turnout).
+    - `row_colors`: when given, a bar wears its row's colour (grey for a row without one) and
+      the sources differ by strength, the first the strongest; `colors` is then not used.
     """
     labels, names = labels or {}, names or {}
     panels = [list(part) for part in (head, rows) if len(part)]

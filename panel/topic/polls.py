@@ -1,17 +1,8 @@
 """
 What others estimated for a topic's options: published polls, as data.
 
-`config/topics/<name>/polls.json`, optional:
-
-    {
-        "polls": {
-            "STEM": {"shares": {"ANO": 0.324, ...}, "url": "https://..."},
-            ...
-        },
-        "note": "free text, ignored by code"
-    }
-
-`shares` holds a share for every option of the topic; `url` says where it was published. A
+`config/topics/<name>/polls.json`, optional: `polls` is name -> `shares` and `url`. `shares`
+holds a share for every option of the topic; `url` says where it was published. A
 poll is one more source to hold against the actual result, beside the runs. No model sees it.
 """
 import json
@@ -26,12 +17,7 @@ POLL_KEYS = {"shares", "url"}
 
 
 def load_polls(topic: Topic) -> pd.DataFrame:
-    """
-    The topic's polls, one row per poll, a column per option; no rows if it has no `polls.json`.
-
-    Raises:
-        ValueError: on unknown keys, or a poll whose shares are not exactly the topic's options.
-    """
+    """One row per poll, a column per option; no rows if the topic has no `polls.json`."""
     path = topic.dir / CONFIG_NAME
     options = list(topic.options)
     if not path.exists():

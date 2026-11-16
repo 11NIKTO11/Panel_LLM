@@ -25,14 +25,7 @@ VALUES = "values"
 
 @dataclass(frozen=True)
 class PromptCount:
-    """
-    How far a prompt table tells its subjects apart.
-
-    Attributes:
-        prompts: one per subject.
-        identical: prompts that are word for word another subject's.
-        distinct: different texts among them.
-    """
+    """`identical` counts the prompts that are word for word another subject's, `distinct` the different texts among all."""
     prompts: int
     identical: int
     distinct: int
@@ -71,27 +64,10 @@ def prepare(
     overwrite: bool = False, results_dir: Union[str, Path] = paths.RESULTS_DIR,
 ) -> Dict[str, Path]:
     """
-    Write a dataset's prepared output under `datasets/<name>/prepared/`.
+    What was written: `values` (when rebuilt) and each description name -> its path.
 
-    Args:
-        name: the dataset, a folder under `datasets/`.
-        descriptions: which of its descriptions to render; None renders all of them.
-        rebuild_values: build the values table from the raw source; False renders over the
-            stored one, for when only a template or a form changed.
-        overwrite: replace a table even if a saved run was built from it and it comes out
-            different.
-        results_dir: where the saved runs are looked for.
-
-    Returns:
-        What was written: `values` (when rebuilt) and each description name -> its path.
-
-    Raises:
-        FileNotFoundError: if the dataset, its builder or - with `rebuild_values=False` - its
-            stored values table is missing.
-        ValueError: if the values are not what the dataset declares, a description is unknown,
-            or the dataset has no source to rebuild from.
-        FileExistsError: if a table a saved run was built from would change, without `overwrite`;
-            every table is then as it was before.
+    `descriptions=None` renders all of them; `rebuild_values=False` renders over the stored values,
+    for when only a template or a form changed; `results_dir` is where the saved runs are looked for.
     """
     dataset = load_dataset(name)
     before = _stored(dataset)
@@ -108,11 +84,5 @@ def prepare(
 
 
 def count_prompts(name: str, description: str) -> PromptCount:
-    """
-    Count the identical prompts of a stored prompt table.
-
-    Raises:
-        FileNotFoundError: if the dataset or that prompt table is missing.
-    """
     prompts = read_prompts(load_dataset(name), description)[description]
     return PromptCount(len(prompts), int(prompts.duplicated(keep=False).sum()), int(prompts.nunique()))

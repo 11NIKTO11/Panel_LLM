@@ -29,19 +29,6 @@ DOBRUSHIN, ROBUST = "Dobrushin δ", "q99 pairwise TV"
 
 
 def scales(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Each kernel's scales of TV, and each outcome's spread over the profiles.
-
-    Returns:
-        The table - a row per kernel: `δ`, the 50th, 90th and 99th percentile and the mean of
-        pairwise TV, the mean and largest TV from the mean answer, the noise floor, the mean
-        entropy (bits) and largest probability of a profile's answer, and the pair that sets
-        `δ`; the outcomes' table (`kernel_scales_outcomes`) goes beside it - and two figures:
-        the pairwise TV per kernel with its marks, and each outcome's standard deviation.
-
-    Raises:
-        NotApplicable: if a kernel has a single profile.
-    """
     rows, outcomes, panels, marks = {}, {}, {}, {}
     for label, kernel in kernels.kernels.items():
         columns = kernel.matrix.to_numpy().T

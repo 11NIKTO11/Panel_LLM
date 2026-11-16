@@ -19,18 +19,8 @@ def curves(
     note: Union[str, None] = None,
 ) -> Figure:
     """
-    One line with a dot per row for every series.
-
-    Args:
-        lines: series name -> its points, in the order they are joined.
-        x: the column along the horizontal axis.
-        y: the column along the vertical axis.
-        colors: series name -> colour; the palette in order by default.
-        diagonal: draw the dotted line where both are equal, and give both axes one scale.
-        xlabel: horizontal axis label.
-        ylabel: vertical axis label.
-        title: figure title.
-        note: a line under the title.
+    `lines` is series name -> its points, in the order they are joined; `diagonal` draws the
+    dotted line where both are equal, and gives both axes one scale.
     """
     colors = colors or {}
     height = 5.6
@@ -64,17 +54,11 @@ def line_panels(
     """
     One panel per measure; in each, a line per series across the same places.
 
-    Args:
-        tables: measure -> its table, indexed by place in the order drawn, a column per series.
-        levels: measure -> a value per series, drawn as that series' dashed level line
-            (e.g. its value for the whole).
-        colors: series -> colour; the palette in order by default.
-        percent: measures holding shares, shown times 100, the panel title saying `unit`.
-        zero: measures that are signed, drawn with a line at zero.
-        per_row: panels in a row of the grid.
-        unit: what a `percent` measure is in.
-        title: figure title.
-        note: a line under the title.
+    - `tables`: measure -> its table, indexed by place in the order drawn, a column per series.
+    - `levels`: measure -> a value per series, drawn as that series' dashed level line
+      (e.g. its value for the whole).
+    - `percent`: measures holding shares, shown times 100, the panel title saying `unit`.
+    - `zero`: measures that are signed, drawn with a line at zero.
     """
     levels, colors = levels or {}, colors or {}
     across = min(per_row, len(tables))

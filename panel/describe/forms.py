@@ -3,26 +3,15 @@ Forms: how a dataset's values are worded inside a sentence.
 
 The values table holds each answer as the dataset writes it. A sentence needs another form of
 it - a case, agreement with the respondent's gender, a whole clause - and a closed set of
-answers is cheaper to write down than to derive. A dataset's `forms.json` is that table.
-
-    {
-        "columns": {
-            "gender":  {"forms": {"nom": {"Muž": "muž", "Žena": "žena"}}},
-            "region":  {"forms": {"in": {"Zlínský kraj": "ve Zlínském kraji"},
-                                  "of": {"Zlínský kraj": "Zlínského kraje"}}},
-            "opinion": {"by": "gender", "none": ["Nevím"],
-                        "forms": {"nom": {"Spokojený/á": {"Muž": "spokojený", "Žena": "spokojená"}}}},
-            "jobs":    {"split": "; ", "join": " a zároveň ",
-                        "forms": {"nom": {"Student": "student"}}}
-        }
-    }
+answers is cheaper to write down than to derive. A dataset's `forms.json` is that table:
+`columns` -> column -> `forms` -> form name -> answer -> phrase.
 
 - a column may have several named forms; a template slot picks one, `{region|in}`. The names
   are the dataset's own: a case (`nom`, `acc`), a use (`in`, `of`), a `clause`.
 - a column with one form can be named without it, `{gender}`.
 - a column without an entry is spliced as it stands (a number, a place name).
 - `none` lists the answers that say nothing about the subject; a sentence needing one is dropped.
-- `by` names the column a phrase agrees with; each phrase is then one per value of it.
+- `by` names the column a phrase agrees with; each phrase is then a map, value of that column -> phrase.
 - `split` / `join` are for a cell holding several answers.
 - an answer that is neither in `none` nor in the form raises: the vocabulary changed, and a
   guess would reach a prompt.
@@ -47,22 +36,12 @@ class ColumnForms:
 
 @dataclass(frozen=True)
 class Forms:
-    """A dataset's forms, by column."""
     columns: Dict[str, ColumnForms]
 
     def phrase(self, column: str, value, row: Mapping, form: Union[str, None] = None) -> Union[str, None]:
         """
-        The value as a sentence needs it, or None if it says nothing about the subject.
-
-        Args:
-            column: the values column.
-            value: the cell.
-            row: the subject's row, for a column whose phrase agrees with another.
-            form: which of the column's forms; may be left out when it has exactly one.
-
-        Raises:
-            KeyError: on a form the column does not have, no form named where there are
-                several, or a value - or the value of the `by` column - with no phrase.
+        The value as a sentence needs it, or None if it says nothing about the subject. `row` is the
+        subject's row, for a column whose phrase agrees with another.
         """
         if column not in self.columns:
             if form:
@@ -96,15 +75,6 @@ class Forms:
 
 
 def load_forms(path: Union[str, Path]) -> Forms:
-    """
-    Read a dataset's forms file.
-
-    Raises:
-        FileNotFoundError: if there is no such file.
-        ValueError: on an unknown key, a column without forms, forms of one column covering
-            different answers, an answer both worded and listed in `none`, or a phrase whose
-            shape disagrees with the column's `by`.
-    """
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"no forms at {path}")

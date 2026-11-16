@@ -23,13 +23,8 @@ from panel.run import ResultStore
 class Output:
     """
     The derived tables and figures of one run, or of one named comparison of runs; with `save`
-    off nothing touches the disk. `written` lists what was saved.
-
-    Args:
-        folder: the run's or the comparison's folder; may be None when nothing is saved.
-        save: write what is handed in.
-        dpi: of the figures.
-        suffix: added to every file name, for a variant kept beside the plain output.
+    off nothing touches the disk, and `folder` may be None. `written` lists what was saved;
+    `suffix` is added to every file name, for a variant kept beside the plain output.
     """
 
     def __init__(self, folder: Union[Path, None], save: bool = True, dpi: int = 150, suffix: str = ""):
@@ -46,7 +41,6 @@ class Output:
         return self.folder / ResultStore.PLOTS_DIR / f"{name}{self.suffix}.png"
 
     def table(self, name: str, frame: pd.DataFrame) -> pd.DataFrame:
-        """The frame, written as `analysis/<name>.csv` when saving is on."""
         if self.save:
             path = self.table_path(name)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,7 +49,6 @@ class Output:
         return frame
 
     def figure(self, name: str, figure: Figure) -> Figure:
-        """The figure, written as `plots/<name>.png` when saving is on."""
         if self.save:
             path = self.figure_path(name)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -65,11 +58,6 @@ class Output:
 
 
 def save(out: Output, tables: Mapping[str, pd.DataFrame], figures: Mapping[str, Figure]) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Hand an analysis's tables and figures to an output, each under its name.
-
-    Returns:
-        The first table - the analysis's main one - and the figures, in their order.
-    """
+    """The first table - the analysis's main one - and the figures, in their order."""
     written = [out.table(name, table) for name, table in tables.items()]
     return written[0], [out.figure(name, figure) for name, figure in figures.items()]

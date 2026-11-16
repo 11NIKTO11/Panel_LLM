@@ -25,21 +25,9 @@ AREA, SOURCE = "area", "source"
 
 def areas(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Every metric of the `area` analysis from the actual result per area, for each run and for the claimed.
-
-    Args:
-        runs: the runs to compare.
-        out: takes the table, named `runs_areas`, a heatmap per metric, named
-            `runs_areas_<metric>`, and `runs_areas_lines`: every metric as a line per
-            source across the areas, the source's value for the whole dashed.
-
-    Returns:
-        The table - indexed by area and source, the whole first, then the areas in the
-        first run's order: `subjects`, and per metric its value with `_low` and `_high` -
-        and the figures: areas by sources, each cell its value with its interval underneath.
-
-    Raises:
-        NotApplicable: if a run has no area column or the topic no reference.
+    The table is indexed by area and source, the whole first, then the areas in the first run's
+    order. A run without an area column, or a topic without a reference, raises `NotApplicable`
+    in the `area` analysis.
     """
     own = {label: area(run)[SINGLE] for label, run in runs.runs.items()}
     stands = runs.stands

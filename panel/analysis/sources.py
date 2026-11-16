@@ -55,25 +55,15 @@ def actual(run: SavedRun, area: Union[str, None] = None) -> Dict[str, pd.Series]
 
 
 def distributions(run: SavedRun, rows: pd.DataFrame, area: Union[str, None] = None) -> Dict[str, pd.Series]:
-    """
-    Each source's distribution over the topic's columns, for the given rows of `frame(run)`;
-    the caller hands in the rows that belong to `area`.
-    """
+    """Source -> its distribution, for the given rows of `frame(run)`; the caller hands in the rows that belong to `area`."""
     return {**estimated(run, rows), **actual(run, area)}
 
 
 def pair_distances(run: SavedRun, found: Dict[str, pd.Series], metrics: Sequence[str]) -> Dict[Tuple[str, str, str], float]:
     """
-    Each measure between the sources of every pair that is there.
-
-    Args:
-        run: the saved run.
-        found: source -> its distribution over the topic's columns, as `distributions` gives them.
-        metrics: of `stats.metrics.METRICS`, over the options, and `TURNOUT`, source minus
-            reference, on a topic with turnout.
-
-    Returns:
-        (source, reference, measure) -> value, pair by pair, the turnout difference last in each.
+    (source, reference, measure) -> value for every pair in `found` (as `distributions` gives it), the
+    turnout difference, source minus reference, last in each. `metrics` are of `stats.metrics.METRICS`
+    and `TURNOUT`, which needs a topic with turnout.
     """
     options, turnout = run.options, run.topic.turnout
     over = [metric for metric in metrics if metric != TURNOUT]

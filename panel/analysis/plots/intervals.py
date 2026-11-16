@@ -26,21 +26,14 @@ def interval_panels(
     """
     One panel per column, in a grid; in each, a dot per row of the table with its interval.
 
-    Args:
-        table: indexed by what is measured; a column per measure, and `<column>_low`,
-            `<column>_high` where there is an interval.
-        columns: the measures, one panel each, left to right, then down.
-        percent: columns holding shares, shown times 100, the title saying `unit`.
-        zero: columns that are signed, drawn with a line at zero.
-        names: column -> panel title; the column itself by default.
-        same_scale: one value axis for all panels, for measures in the same unit; each
-            panel has its own otherwise.
-        per_row: panels in a row of the grid; all in one row by default.
-        unit: what a `percent` column is in: percentage points, or `%` for a share of a whole.
-        marks: column -> a text per row, written under the row's value (e.g. a p-value).
-        bars: a bar from zero per row instead of a dot, for measures read by their length.
-        title: figure title.
-        note: a line under the title.
+    - `table`: indexed by what is measured; a column per measure, and `<column>_low`,
+      `<column>_high` where there is an interval.
+    - `percent`: columns holding shares, shown times 100, the title saying `unit`: percentage
+      points, or `%` for a share of a whole.
+    - `zero`: columns that are signed, drawn with a line at zero.
+    - `same_scale`: one value axis for all panels, for measures in the same unit.
+    - `marks`: column -> a text per row, written under the row's value (e.g. a p-value).
+    - `bars`: a bar from zero per row instead of a dot, for measures read by their length.
     """
     names, marks = names or {}, marks or {}
     across = min(per_row or len(columns), len(columns))

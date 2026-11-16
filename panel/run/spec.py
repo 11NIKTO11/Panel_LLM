@@ -17,22 +17,17 @@ EFFORTS = ("low", "medium", "high", "xhigh", "max")
 @dataclass(frozen=True)
 class RunSpec:
     """
-    Attributes:
-        dataset: whose subjects; a folder under `datasets/`.
-        description: which description template; a file in the dataset's `descriptions/` folder.
-        topic: what the run is about; a folder under `config/topics/`, and the results folder.
-        framing: which wording of the topic; a file in the topic folder.
-        question: what follows the description; a file under the topic's `questions/`.
-            None for a standalone description, which is the whole prompt.
-        client: the LLM client, by its short name (`OpenRouter`, `OpenAI`, `Fake`, ...).
-        model: provider model id.
-        shape: which response model: `Prob` (a distribution) or `Pick` (one choice).
-        temperature: sampling temperature; None sends none, for a provider that takes no such setting.
-        effort: how much the model thinks per call, `low` .. `max`; None sends none and leaves the
-            model's default. Only a client that takes an effort can be given one.
-        repeats: calls per subject; each becomes its own results row.
-        sample: run this many subjects instead of all of them.
-        random_state: seed for `sample`.
+    dataset: a folder under `datasets/`.
+    description: a file in the dataset's `descriptions/` folder.
+    topic: a folder under `config/topics/`, and the results folder.
+    framing: a file in the topic's `framings/`.
+    question: a file in the topic's `questions/`; None for a standalone description, which is the whole prompt.
+    client: by its short name (`OpenRouter`, `OpenAI`, `Fake`, ...).
+    shape: `Prob` (a distribution) or `Pick` (one choice).
+    temperature: None sends none, for a provider that takes no such setting.
+    effort: None sends none and leaves the model's default; only a client that takes an effort can be given one.
+    repeats: calls per subject; each becomes its own results row.
+    sample: run this many subjects instead of all of them.
     """
     dataset: str
     description: str
@@ -49,10 +44,6 @@ class RunSpec:
     random_state: Union[int, None] = 42
 
     def __post_init__(self):
-        """
-        Raises:
-            ValueError: on an unknown shape or effort, or a repeats or sample below 1.
-        """
         if self.shape not in SHAPES:
             raise ValueError(f"shape must be one of {SHAPES}, not {self.shape!r}")
         if self.effort is not None and self.effort not in EFFORTS:
@@ -63,19 +54,11 @@ class RunSpec:
             raise ValueError("sample must be at least 1")
 
     def variant(self, **changes) -> "RunSpec":
-        """A copy with some fields changed, for declaring a family of runs."""
         return replace(self, **changes)
 
     def to_dict(self) -> Dict[str, Any]:
-        """The spec as the run record stores it."""
         return asdict(self)
 
     @classmethod
     def from_dict(cls, record: Dict[str, Any]) -> "RunSpec":
-        """
-        The spec a record stores, back as an object.
-
-        Raises:
-            TypeError: on a record whose spec has other fields than these.
-        """
         return cls(**record)

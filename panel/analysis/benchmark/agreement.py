@@ -22,18 +22,7 @@ RUN, OUTCOME = "run", "outcome"
 
 
 def agreement(ground: Ground, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Each run's probabilities against the trained model's, outcome by outcome.
-
-    Args:
-        ground: what `load_ground` made.
-        out: takes the table, named `benchmark_agreement`, and two heatmaps, outcomes by
-            runs: `benchmark_agreement_correlation` and `benchmark_agreement_spread`.
-
-    Returns:
-        The table - indexed by run and outcome: `correlation`, `spread ratio`; empty where
-        a side does not vary - and the two figures.
-    """
+    """The table is indexed by run and outcome, empty where a side does not vary; the two heatmaps are outcomes by runs."""
     found = {
         label: pd.DataFrame({CORRELATION: shares.corrwith(ground.trained), SPREAD: shares.std() / ground.trained.std().where(ground.trained.std() > 0)})
         for label, shares in ground.predicted.items()

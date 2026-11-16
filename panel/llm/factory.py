@@ -8,7 +8,6 @@ from .client_openrouter import OpenRouterClient
 
 
 def create_client(model: Union[str, None] = None, api_key: Union[str, None] = None) -> BaseLLMClient:
-    """Pick the native provider client for a model name; fall back to OpenRouter."""
     if model:
         provider = detect_provider(model)
         if provider == ANTHROPIC:

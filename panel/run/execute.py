@@ -20,26 +20,9 @@ def execute(
     overwrite: bool = False,
 ) -> RunPaths:
     """
-    Run every call of a resolved spec and save the results under its stem.
-
-    Args:
-        resolved: the run, from `resolve`.
-        store: the results folder of the run's topic.
-        client: makes the calls; constructed by the caller, which is where keys live.
-        max_workers: parallel calls.
-        retries: attempts per call within one batch.
-        rerun_rounds: how many times the skipped calls are batched again.
-        overwrite: replace a run of a different spec that already holds the stem.
-
-    Returns:
-        The plain paths written; an archived copy is written beside them.
-
-    Raises:
-        RuntimeError: if calls are still unprocessed after the rerun rounds.
-        ValueError: if the client cannot say what schema it sends, before any call is made.
-        FileExistsError: if the stem already holds a run of a different spec, or one that was
-            brought in (`migrated`, `delivered`) - before any call is made.
-        ValueError: if the store belongs to another topic, before any call is made.
+    Refused before any call is made: a stem that holds a run of a different spec or one brought in
+    (`FileExistsError`), a store of another topic, a client that cannot say what schema it sends
+    (`ValueError`). Returns the plain paths; an archived copy is written beside them.
     """
     calls = resolved.calls
     spec = resolved.spec

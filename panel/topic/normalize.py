@@ -5,13 +5,6 @@ import pandas as pd
 
 
 def normalize_groups(df: pd.DataFrame, groups: Sequence[Sequence[str]]) -> pd.DataFrame:
-    """
-    Rescale each group of columns to sum to 1 per row.
-
-    Args:
-        df: wide results, one row per call.
-        groups: column groups, e.g. `topic.normalize_groups`.
-    """
     out = df.copy()
     for columns in groups:
         columns = list(columns)

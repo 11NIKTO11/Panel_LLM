@@ -19,19 +19,7 @@ def intervals(
     seed: int = 0,
     level: float = 0.95,
 ) -> pd.DataFrame:
-    """
-    The percentile bootstrap interval of each entry of `statistic(frame)`.
-
-    Args:
-        frame: rows indexed by subject; a subject may hold several rows.
-        statistic: turns such a frame into one series.
-        draws: resamples.
-        seed: for the resampling.
-        level: coverage of the interval.
-
-    Returns:
-        A frame indexed like the statistic, with the columns `low` and `high`.
-    """
+    """The percentile interval of each entry of `statistic(frame)`, indexed like it; `frame` is indexed by subject."""
     rng = np.random.default_rng(seed)
     rows = list(pd.Series(np.arange(len(frame))).groupby(frame.index.to_numpy()).indices.values())
     drawn = []

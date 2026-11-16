@@ -14,11 +14,8 @@ class OpenRouterClient(BaseLLMClient):
 
     def __init__(self, api_key: Union[str, None] = None, timeout: float = 120.0):
         """
-        Args:
-            api_key: OpenRouter key; falls back to OPENROUTER_API_KEY.
-            timeout: seconds to wait for a response. Without one, a hung request holds a
-                worker thread of the batch runner's pool forever and the batch never
-                finishes; a timeout surfaces as a retryable error instead.
+        Without a `timeout` (seconds) a hung request holds a worker thread of the batch runner's pool
+        forever and the batch never finishes; a timeout surfaces as a retryable error instead.
         """
         key = api_key or os.getenv("OPENROUTER_API_KEY")
         if not key:
@@ -85,7 +82,6 @@ class OpenRouterClient(BaseLLMClient):
         return schema
 
     def _route(self, model: str) -> Tuple[str, str]:
-        """Split a model name into (provider, model_id); accepts full 'provider/model' ids as-is."""
         if "/" in model:
             provider, model_id = model.split("/", 1)
             return provider, model_id

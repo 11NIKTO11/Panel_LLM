@@ -25,18 +25,8 @@ EPS2, LEVELS, SPREAD = "ε²", "levels", "largest TV between level means"
 
 def importance(kernels: KernelSet, out: Output, least: int = 30) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Per kernel and factor, ε² pooled over the outcomes and the largest TV between level means.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figures.
-        least: levels held by fewer profiles are left out of the largest TV, which a level of a
-            few profiles would set by their noise.
-
-    Returns:
-        The table - indexed by kernel and factor: ε², the number of levels, the largest TV - with
-        ε² per outcome beside it (`kernel_importance_outcomes`), and the figures: pooled ε² of
-        every factor by kernel, then per kernel ε² by factor and outcome.
+    Levels held by fewer than `least` profiles are left out of the largest TV, which a level of a
+    few profiles would set by their noise.
     """
     rows, outcomes = {}, {}
     for label, kernel in kernels.kernels.items():

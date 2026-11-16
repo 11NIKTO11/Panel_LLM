@@ -1,38 +1,15 @@
 """
-A framing: everything the model reads that is not the description, in one language.
+A framing: everything the model reads that is not the description or the question, in one language.
 
 `config/topics/<topic>/framings/<name>.json` carries the system prompt, the labels the options are shown under, and the wording of the response
 schema - class titles and field descriptions - which the provider sees in the JSON schema and
 which therefore are prompt content. A topic has one framing per language (`cs`, `en`) and may
 have more (`cs-terse`); the framing's `short` goes into the results stem.
 
-Config shape:
-
-    {
-        "name": "cs",                          the file stem
-        "topic": "election_2021",              the folder
-        "language": "cs",
-        "short": "cs",                         stem part: ASCII, no underscore
-        "title": "...",                        human label, for figures and reports
-        "instructions": "<system prompt>",     null for a framing whose runs send none
-        "labels": {"SPOLU": "SPOLU coalition"},   option id -> label; the native name by default
-        "schema": {
-            "turnout": {"title": "TurnoutProbability", "description": "...",      only for a topic
-                        "voted": "...", "not_voted": "...", "field": "..."},     with turnout
-            "option": {"title": "OptionProbability", "description": "...", "name": "...", "probability": "..."},
-            "probabilities": {"description": "...", "options": "..."},
-            "pick": {"description": "...", "choice": "..."}
-        },
-        "note": "free text, ignored by code"
-    }
-
 The system prompt can depend on what else a run names, and nothing links them: a prompt that
 lists the profile's attributes fits one description, one that speaks of probabilities fits
 one response shape. Nothing checks this; a framing that makes such an assumption says so in
 its `note`.
-
-The loader raises on a label for an id the topic lacks, on labels that are not unique after
-defaults, and on schema text that disagrees with the topic about turnout.
 """
 import json
 from dataclasses import dataclass
@@ -67,7 +44,6 @@ class TurnoutText:
 
 @dataclass(frozen=True)
 class OptionText:
-    """The per-option probability model's title and descriptions."""
     title: str
     description: str
     name: str
@@ -76,14 +52,12 @@ class OptionText:
 
 @dataclass(frozen=True)
 class ProbabilitiesText:
-    """`Probabilities`: its description and that of `options`."""
     description: str
     options: str
 
 
 @dataclass(frozen=True)
 class PickText:
-    """`Pick`: its description and that of `choice`."""
     description: str
     choice: str
 
@@ -100,16 +74,11 @@ class SchemaText:
 @dataclass(frozen=True)
 class Framing:
     """
-    Attributes:
-        name: the file stem under the topic's `framings/`.
-        topic: the topic it words.
-        language: language code of every text here.
-        short: the framing's part of a results stem.
-        title: human label, for figures and reports.
-        instructions: system prompt; None for a framing whose runs send none.
-        labels: option id -> the label the model sees, complete over the topic's options.
-        schema: the response schema wording.
-        note: free text; not used by code.
+    short: the framing's part of a results stem.
+    title: human label, for figures and reports.
+    instructions: the system prompt; None for a framing whose runs send none.
+    labels: option id -> the label the model sees, complete over the topic's options (the native name by default).
+    note: free text; not used by code.
     """
     name: str
     topic: str
@@ -123,13 +92,11 @@ class Framing:
 
 
 def framing_names(topic: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
-    """Every framing in a topic's `framings/`, sorted."""
     folder = Path(topics_dir) / topic / FRAMINGS_DIR
     return sorted(path.stem for path in folder.glob("*.json"))
 
 
 def _text(config: dict, block: str, path: Path) -> dict:
-    """One block of schema text with exactly its keys."""
     entry = config.get(block)
     if not isinstance(entry, dict) or set(entry) != TEXT_KEYS[block]:
         raise ValueError(f"{path}: schema.{block} needs exactly the keys {sorted(TEXT_KEYS[block])}")
@@ -137,15 +104,6 @@ def _text(config: dict, block: str, path: Path) -> dict:
 
 
 def load_framing(topic: Topic, name: str) -> Framing:
-    """
-    Read one framing of a topic, from the topic's own folder.
-
-    Raises:
-        FileNotFoundError: if the topic's `framings/` holds no framing of that name.
-        ValueError: on unknown or missing keys, a name or topic that disagrees with the file, a
-            short that could not sit in a stem, a label for an unknown option, labels that are
-            not unique after defaults, or schema text that disagrees with the topic on turnout.
-    """
     path = topic.dir / FRAMINGS_DIR / f"{name}.json"
     if not path.exists():
         raise FileNotFoundError(f"no framing '{name}' for topic '{topic.name}' at {path}")

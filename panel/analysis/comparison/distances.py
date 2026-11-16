@@ -29,20 +29,8 @@ AGAINST, SOURCE = "against", "source"
 
 def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Every metric of `stats.metrics` for each source against the actual result and against the claimed.
-
-    Args:
-        runs: the runs to compare.
-        out: takes the table, named `runs_distances`, and a figure per reference, named
-            `runs_distances_actual` and `runs_distances_claimed`.
-
-    Returns:
-        The table - indexed by what is measured against and the source: polls first,
-        closest by MAE first, then the claimed, then the runs as named; a column per metric
-        with `_low` and `_high` - and the figures.
-
-    Raises:
-        NotApplicable: if the topic has neither a reference nor claims.
+    The table is indexed by what is measured against and the source: polls first, closest by MAE
+    first, then the claimed, then the runs as named; one figure per reference.
     """
     topic, options = runs.topic, list(runs.topic.options)
     own = {}

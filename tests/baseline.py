@@ -63,12 +63,7 @@ def schemas() -> Dict[str, Dict]:
 
 
 def legacy_runs() -> Tuple[Dict, Dict]:
-    """
-    Aggregates for every legacy run, and a reparse digest for every run that has raw JSON.
-
-    Raises:
-        RuntimeError: if a run's raw JSON does not reparse to its stored CSV.
-    """
+    """Aggregates for every legacy run, and a reparse digest for every run that has raw JSON."""
     topic = load_topic(LEGACY_TOPIC, TOPICS_DIR)
     models = models_by_name(topic, load_framing(topic, LEGACY_FRAMING))
     store = ResultStore(RESULTS_DIR, LEGACY_TOPIC)

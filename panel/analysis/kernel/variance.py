@@ -43,13 +43,7 @@ def _noise_share(kernel: Kernel, spread: np.ndarray) -> np.ndarray:
 
 
 def decompose(kernel: Kernel, factors: Union[Sequence[str], None] = None) -> pd.DataFrame:
-    """
-    One kernel's split, a row per outcome and one pooled, a column per part, each row summing to 1.
-
-    Args:
-        kernel: the kernel.
-        factors: those the split is over; all of the kernel's by default.
-    """
+    """A row per outcome and one pooled, a column per part, each row summing to 1; `factors` are those the split is over."""
     columns = list(factors or kernel.factors.columns)
     values = kernel.matrix.to_numpy().T
     spread = values.var(axis=0)
@@ -77,19 +71,6 @@ def decompose(kernel: Kernel, factors: Union[Sequence[str], None] = None) -> pd.
 
 
 def variance(kernels: KernelSet, out: Output, factors: Union[Sequence[str], None] = None) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Each kernel's split of the variance over its profiles.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figure.
-        factors: the factors the split is over, for every kernel; all of each kernel's by default.
-
-    Returns:
-        The table - a row per kernel, the pooled split, the method, and the summed variance -
-        with every outcome's split beside it (`kernel_variance_outcomes`), and the figure:
-        a stacked bar per kernel and outcome.
-    """
     split = {label: decompose(kernel, factors) for label, kernel in kernels.kernels.items()}
     rows = {}
     for label, kernel in kernels.kernels.items():

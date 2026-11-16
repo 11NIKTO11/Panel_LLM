@@ -26,12 +26,9 @@ QUANTILES = (0.05, 0.25, 0.5, 0.75, 0.95)
 
 def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
     """
-    The distribution of every topic column over subjects, and the subjects' distances from the mean.
-
-    Returns:
-        `spread` - one row per topic column: mean, standard deviation, minimum, the 5th,
-        25th, 50th, 75th and 95th percentile, maximum - and `spread_distances`: per subject,
-        the Euclidean and the cosine distance of its option shares from their mean over subjects.
+    `spread` - one row per topic column: mean, standard deviation, minimum, the percentiles of
+    `QUANTILES`, maximum - and `spread_distances`: per subject, the Euclidean and the cosine
+    distance of its option shares from their mean over subjects.
     """
     found = subject_answers(run.normalized, run.topic)
     shares = found[run.options].to_numpy()
@@ -64,16 +61,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
 
 
 def spread(run: SavedRun, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The distribution of every topic column over subjects, and the subjects' distances from the mean.
-
-    Args:
-        run: the saved run.
-        out: takes the table and the violin figure, named `spread`, and a second table and
-            the histogram figure, named `spread_distances`.
-
-    Returns:
-        The `spread` table of `compute` and the two figures.
-    """
     tables = compute(run)
     return save(out, tables, draw(run, tables))

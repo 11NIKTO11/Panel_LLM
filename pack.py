@@ -1,13 +1,6 @@
 """
 Pack a saved run from the command line.
 
-    python pack.py                                  lists every topic's saved runs
-    python pack.py election_2021 haiku-5-5          the run whose stem contains that text
-    python pack.py election_2021 haiku-5-5 --zip    and a zip of the pack beside it
-    python pack.py election_2021 haiku-5-5 --copy   the saved analysis/ and plots/ as they are, none made again
-    python pack.py election_2021 haiku-5-5 --to D:/packs
-    python pack.py --verify packs/election_2021/<stem>
-
 Writes `packs/<topic>/<stem>/`: the run, the dataset and topic files it names, its tables and
 figures made again, and `MANIFEST.json` with the sha256 of every file (`panel/pack.py`). A pack
 of a survey run holds the survey's values - mind where it goes.

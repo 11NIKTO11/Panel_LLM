@@ -2,10 +2,6 @@
 
 
 def set_additional_properties_false(schema: dict) -> dict:
-    """
-    Recursively traverses a JSON schema and sets 'additionalProperties'
-    to False for all objects.
-    """
     if isinstance(schema, dict):
         if schema.get("type") == "object" and "properties" in schema:
             schema["additionalProperties"] = False
@@ -22,9 +18,6 @@ def move_ref_descriptions(schema: dict) -> dict:
     A description beside a `$ref` appended to the description of the definition it refers to,
     where strict mode accepts it (required for models like gpt-4.1-nano). Nothing is dropped:
     a definition that has a description keeps it, the moved one following after a blank line.
-
-    Raises:
-        ValueError: on a described `$ref` that does not point into the schema's own `$defs`.
     """
     definitions = schema.get("$defs", {})
 

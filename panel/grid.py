@@ -14,13 +14,7 @@ from panel.dataset import INDEX, Dataset
 
 
 def full_factorial(dataset: Dataset) -> pd.DataFrame:
-    """
-    One values row per combination of the columns' levels, numbered from 1, the first column
-    varying slowest.
-
-    Raises:
-        ValueError: if a column declares no order of levels.
-    """
+    """Rows are numbered from 1, the first column varying slowest."""
     unordered = [column for column in dataset.columns if column not in dataset.levels or not dataset.levels[column].order]
     if unordered:
         raise ValueError(f"grid '{dataset.name}': columns without an order of levels: {unordered}")

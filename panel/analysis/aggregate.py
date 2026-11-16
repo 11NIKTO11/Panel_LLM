@@ -10,32 +10,15 @@ import pandas as pd
 
 
 def subject_answers(normalized: pd.DataFrame, topic) -> pd.DataFrame:
-    """
-    One row per subject with the topic's columns: the mean of the subject's answers over
-    its repeats, without the subjects that have no preference in any of them.
-
-    Args:
-        normalized: one row per call, indexed by subject, each column group summing to 1;
-            a call whose options summed to zero is empty there.
-        topic: `panel.topic.Topic`.
-    """
+    """One row per subject of `normalized`'s index: the mean over its repeats, without the subjects with no preference in any."""
     return normalized[topic.columns].groupby(level=0, sort=False).mean().dropna(subset=list(topic.options))
 
 
 def predicted_distribution(normalized: pd.DataFrame, topic, weighted: bool = True) -> pd.Series:
     """
-    What a run predicts for a group of subjects: turnout, then each option's share.
-
-    Args:
-        normalized: one row per call with the topic's columns, each group summing to 1; a
-            row whose options summed to zero is empty there and counts for no option.
-        topic: `panel.topic.Topic`.
-        weighted: weight each row's option shares by its probability of voting, so a likely
-            abstainer counts for less. Nothing to weight by on a topic without turnout.
-
-    Returns:
-        The mean of each turnout column (if the topic has turnout), then the options,
-        summing to 1.
+    Turnout (if the topic has it), then each option's share, summing to 1. `weighted` weights each
+    row's option shares by its probability of voting, so a likely abstainer counts for less; a row
+    whose options summed to zero is empty in `normalized` and counts for no option.
     """
     options = list(topic.options)
     turnout = pd.Series(dtype=float)
@@ -50,21 +33,9 @@ def predicted_distribution(normalized: pd.DataFrame, topic, weighted: bool = Tru
 
 def claimed_distribution(subjects: pd.DataFrame, claims, topic, count_excluded_as_abstained: bool = False) -> pd.Series:
     """
-    What a group of subjects said they chose, in the topic's columns.
-
-    Args:
-        subjects: values rows carrying the claims' answer column.
-        claims: `panel.dataset.Claims`: answers sorted into option ids, abstained, excluded.
-        topic: `panel.topic.Topic`.
-        count_excluded_as_abstained: keep answers that say nothing ("don't know") in the
-            turnout denominator as non-voters instead of dropping them.
-
-    Returns:
-        Turnout (if the topic has it), then each option's share of those who named one.
-
-    Raises:
-        ValueError: on an answer the claims map does not sort, or an option id in the map
-            that the topic does not have.
+    Turnout (if the topic has it), then each option's share of those who named one.
+    `count_excluded_as_abstained` keeps answers that say nothing ("don't know") in the turnout
+    denominator as non-voters instead of dropping them.
     """
     answers = subjects[claims.column]
     unknown = sorted(set(answers) - set(claims.options) - set(claims.abstained) - set(claims.excluded))
@@ -89,14 +60,7 @@ def claimed_distribution(subjects: pd.DataFrame, claims, topic, count_excluded_a
 
 
 def outcome_rows(normalized: pd.DataFrame, topic) -> pd.DataFrame:
-    """
-    One row per call, a column per outcome, summing to 1; a call is left out if it says no
-    option while it might take part.
-
-    Args:
-        normalized: one row per call, indexed by subject, each column group summing to 1.
-        topic: `panel.topic.Topic`.
-    """
+    """One row per call, a column per outcome, summing to 1; a call is left out if it says no option while it might take part."""
     options = list(topic.options)
     if not topic.turnout:
         return normalized[options].dropna()

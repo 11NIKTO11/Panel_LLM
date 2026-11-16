@@ -34,10 +34,8 @@ class AnthropicClient(BaseLLMClient):
 
     def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None, max_tokens: int = 16000):
         """
-        Args:
-            api_key: Anthropic key; falls back to ANTHROPIC_API_KEY.
-            effort: `low` .. `max`, how much the model thinks per call; None leaves the model's default.
-            max_tokens: the most a call may write, thinking included; a call cut off by it raises.
+        `effort` is `low` .. `max`, how much the model thinks per call; None leaves the model's default.
+        `max_tokens` is the most a call may write, thinking included; a call cut off by it raises.
         """
         if Anthropic is None:
             raise ImportError("anthropic package is required for Claude models.")
@@ -57,10 +55,6 @@ class AnthropicClient(BaseLLMClient):
         return transform_schema(response_format)
 
     def _sampling(self, temperature: Union[float, None]) -> dict:
-        """
-        Raises:
-            ValueError: on a set temperature, which this API version rejects.
-        """
         if temperature is not None:
             raise ValueError(
                 "the Anthropic API takes no temperature; declare the run with temperature=None, "

@@ -1,18 +1,7 @@
 """
 Where experts place a topic's options: positions on rated items, as data.
 
-`config/topics/<name>/positions.json`, optional:
-
-    {
-        "scale": [0, 10],
-        "axes": {
-            "x": {"item": "lrecon", "label": "economic left (0) - right (10)"},
-            "y": {"item": "galtan", "label": "GAL (0) - TAN (10)"}
-        },
-        "positions": {"ANO": {"lrecon": 4.5, "galtan": 5.73, ...}, ...},
-        "spread": {"lrecon": {"mean": 4.6, "std": 2.1}, ...},
-        "note": "free text, ignored by code"
-    }
+`config/topics/<name>/positions.json`, optional.
 
 `positions` rates some of the topic's options, every one on the same items; `scale` is the
 lowest and the highest rating an item can get, which a map's axes span; `axes` names the
@@ -34,12 +23,9 @@ KEYS = {"scale", "axes", "positions", "spread", "note"}
 @dataclass(frozen=True)
 class Positions:
     """
-    Attributes:
-        table: one row per rated option, in the topic's order, a column per item.
-        axes: the two items of the map, x then y.
-        labels: item -> axis label, for the two axes.
-        spread: indexed by item, the columns `mean` and `std`.
-        scale: the lowest and the highest rating an item can get.
+    table: one row per rated option, in the topic's order, a column per item.
+    axes: the two items of the map, x then y; `labels` is item -> axis label for them.
+    spread: indexed by item, the columns `mean` and `std`.
     """
     table: pd.DataFrame
     axes: Tuple[str, str]
@@ -49,23 +35,14 @@ class Positions:
 
     @property
     def plane(self) -> pd.DataFrame:
-        """The rated options in the two map items."""
         return self.table[list(self.axes)]
 
     @property
     def standardized(self) -> pd.DataFrame:
-        """Every item standardised by `spread`."""
         return (self.table - self.spread["mean"]) / self.spread["std"]
 
 
 def load_positions(topic: Topic) -> Union[Positions, None]:
-    """
-    The topic's expert positions, or None if it has no `positions.json`.
-
-    Raises:
-        ValueError: on unknown or missing keys, an option the topic does not have, options
-            rated on different items, or an axis or spread that does not match the items.
-    """
     path = topic.dir / CONFIG_NAME
     if not path.exists():
         return None

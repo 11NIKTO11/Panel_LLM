@@ -18,20 +18,7 @@ def stacked_bars(
     title: Union[str, None] = None,
     note: Union[str, None] = None,
 ) -> Figure:
-    """
-    One horizontal bar per row of the table, its columns stacked left to right.
-
-    Args:
-        table: indexed by what a bar stands for; a column per part, rows summing to about 1.
-        colors: part -> colour; the default palette in column order without it.
-        labels: part -> legend entry; the part itself by default.
-        least: a segment at least this wide carries its percentage.
-        title: figure title.
-        note: a line under the title.
-
-    Raises:
-        ValueError: without colours, on more parts than the palette has.
-    """
+    """The rows of `table` sum to about 1; a segment at least `least` wide carries its percentage."""
     labels = labels or {}
     if not colors:
         if table.shape[1] > len(SERIES):

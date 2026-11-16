@@ -41,13 +41,7 @@ def chance(p: float) -> str:
 
 
 def tested(run: SavedRun, predictors: Union[Sequence[str], None] = None) -> Tuple[List[str], pd.DataFrame, pd.DataFrame]:
-    """
-    What the tests work on: the predictors that vary, the subjects complete in them, and those subjects' option shares.
-
-    Raises:
-        NotApplicable: if no named column varies among the subjects.
-        ValueError: on a predictor the dataset does not have.
-    """
+    """What the tests work on: the predictors that vary, the subjects complete in them, and those subjects' option shares."""
     named = list(predictors or [*run.dataset.groups, *([run.claims.column] if run.claims and run.claims.column not in run.dataset.groups else [])])
     unknown = sorted(set(named) - set(run.subjects.columns))
     if unknown:
@@ -64,29 +58,12 @@ def compute(
     run: SavedRun, predictors: Union[Sequence[str], None] = None, distance: str = "hellinger", permutations: int = 999, most: int = 1000, seed: int = 0, delta: float = DELTA,
 ) -> Dict[str, pd.DataFrame]:
     """
-    Each grouping column's effect on the option shares, by MANOVA and by PERMANOVA.
-
-    Args:
-        run: the saved run.
-        predictors: the columns to test, of the dataset's values. MANOVA tests each given
-            the others, so the set changes every number. By default the dataset's
-            grouping columns and its claims column for the topic.
-        distance: of `stats.permanova.DISTANCES`.
-        permutations: for the PERMANOVA p-values.
-        most: PERMANOVA works on a subjects-by-subjects matrix, so above this many subjects
-            it takes a sample of this size; MANOVA always uses all.
-        seed: of the sample and the permutations.
-        delta: what a zero share is replaced by before a log-ratio transform.
-
-    Returns:
-        `effects` - one row per grouping column and one for the claims column, largest
-        partial eta squared first: `MANOVA df`, `Pillai`, `partial eta2`, `F`, `p`, and
-        `PERMANOVA R2`, `F`, `p`.
-
-    Raises:
-        NotApplicable: if the dataset names no grouping columns, or the run has too few
-            subjects for them.
-        ValueError: on a predictor the dataset does not have.
+    `effects` - one row per predictor, largest partial eta squared first: `MANOVA df`, `Pillai`,
+    `partial eta2`, `F`, `p`, and `PERMANOVA R2`, `F`, `p`. MANOVA tests each predictor given the
+    others, so the set changes every number; by default the dataset's grouping columns and its
+    claims column for the topic. PERMANOVA works on a subjects-by-subjects matrix, so above `most`
+    subjects it takes a sample of that size; MANOVA always uses all. `distance` is of
+    `stats.permanova.DISTANCES`.
     """
     predictors, subjects, shares = tested(run, predictors)
     several = {column: levels.several for column, levels in run.dataset.levels.items() if levels.several}
@@ -124,21 +101,5 @@ def draw(
 def effects(
     run: SavedRun, out: Output, predictors: Union[Sequence[str], None] = None, distance: str = "hellinger", permutations: int = 999, most: int = 1000, seed: int = 0, delta: float = DELTA,
 ) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Each grouping column's effect on the option shares, by MANOVA and by PERMANOVA.
-
-    Args:
-        run: the saved run.
-        out: takes the table and the figure, both named `effects`.
-        predictors, distance, permutations, most, seed, delta: as `compute` takes them.
-
-    Returns:
-        The table of `compute` and its figure.
-
-    Raises:
-        NotApplicable: if the dataset names no grouping columns, or the run has too few
-            subjects for them.
-        ValueError: on a predictor the dataset does not have.
-    """
     tables = compute(run, predictors, distance, permutations, most, seed, delta)
     return save(out, tables, draw(run, tables, predictors, distance, most, delta))

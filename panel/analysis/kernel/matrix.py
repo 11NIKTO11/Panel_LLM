@@ -10,10 +10,6 @@ model says that population chooses.
 
 A kernel is `designed` when its profiles are every combination of the factors' levels - a
 grid - and `sampled` otherwise; it is read off the profiles, not declared.
-
-This module is the kernel itself: what it holds, how one is put together from answers, and the
-push-forward. Reading a run as one is `loaded`, its factors as a design `factors`, its
-replicates `replicates`.
 """
 from dataclasses import dataclass
 from typing import Dict, Sequence, Union
@@ -36,8 +32,6 @@ PROFILE = "profile"
 class Kernel:
     """
     Attributes:
-        label: what the run is called beside others.
-        run: the saved run it was read from.
         matrix: outcomes x profiles, each column summing to 1.
         factors: profiles x factor columns, the values as the dataset writes them, a missing
             one as `(missing)`.
@@ -71,11 +65,9 @@ class Kernel:
 
     @property
     def population(self) -> pd.Series:
-        """The run's own population as a distribution over the profiles."""
         return self.weights / self.weights.sum()
 
     def profile(self, number: int) -> str:
-        """One profile's values, `column=value` joined."""
         return ", ".join(f"{column}={value}" for column, value in self.factors.loc[number].items())
 
     def grouping(self, column: str) -> pd.Series:
@@ -110,17 +102,7 @@ class KernelSet:
 
 
 def assembled(label: str, run: SavedRun, calls: pd.DataFrame, factors: pd.DataFrame, designed: bool, averaged: Union[int, None] = None) -> Kernel:
-    """
-    A kernel from answers: its matrix the mean answer per profile, its weights the subjects per profile.
-
-    Args:
-        label: what the kernel is called.
-        run: the saved run the answers are of.
-        calls: one row per answer: `profile`, `id`, `repeat`, then the outcomes.
-        factors: the profiles' values, by profile; those without an answer are left out.
-        designed: whether the profiles are every combination of the factors' levels.
-        averaged: for a delivered run whose rows are means, over how many repeats.
-    """
+    """`calls` and `factors` as `Kernel` holds them; profiles of `factors` without an answer are left out."""
     outcomes = [column for column in calls.columns if column not in (PROFILE, SUBJECT, REPEAT)]
     means = calls.groupby(PROFILE)[outcomes].mean()
     means = means.div(means.sum(axis=1), axis=0)
@@ -129,16 +111,7 @@ def assembled(label: str, run: SavedRun, calls: pd.DataFrame, factors: pd.DataFr
 
 
 def push(kernel: Kernel, population: pd.Series) -> pd.Series:
-    """
-    What a population chooses by the kernel: `M q`.
-
-    Args:
-        kernel: the kernel.
-        population: weights over the kernel's profiles, by profile; renormalised.
-
-    Raises:
-        ValueError: on a profile the kernel does not have, or weights that are negative or sum to zero.
-    """
+    """`M q`; `population` is weights by profile, any sum, and need not name every profile."""
     unknown = population.index.difference(kernel.matrix.columns)
     if len(unknown):
         raise ValueError(f"'{kernel.label}' has no profiles {list(unknown[:5])}")

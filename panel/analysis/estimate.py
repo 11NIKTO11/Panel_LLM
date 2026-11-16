@@ -23,5 +23,4 @@ def bounds(name: str) -> Tuple[str, str, str]:
 
 
 def is_end(column: str) -> bool:
-    """Whether a column holds an end of an interval and not a value."""
     return column.endswith(ENDS)

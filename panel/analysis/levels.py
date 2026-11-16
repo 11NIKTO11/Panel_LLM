@@ -22,9 +22,6 @@ def banded(values: pd.Series, levels: Union[Levels, None] = None) -> pd.Series:
     """
     A numeric column cut into the bands its dataset declares, as a categorical in the bands'
     order; any other column, and a numeric one without bands, as it is. A missing value stays missing.
-
-    Raises:
-        ValueError: on a value above the last band.
     """
     if not (levels and levels.bands and is_numeric_dtype(values)):
         return values
@@ -35,16 +32,7 @@ def banded(values: pd.Series, levels: Union[Levels, None] = None) -> pd.Series:
 
 
 def members(values: pd.Series, levels: Union[Levels, None] = None) -> Dict[str, pd.Index]:
-    """
-    Level -> the subjects at it, in display order; a level nobody is at is left out.
-
-    Args:
-        values: one grouping column, indexed by subject; missing values belong nowhere.
-        levels: the dataset's declaration for the column, or None.
-
-    Raises:
-        ValueError: on a value the declared order does not hold or above the last band.
-    """
+    """Level -> the subjects at it, in display order; a level nobody is at is left out, and missing values belong nowhere."""
     values = values.dropna()
     if levels and levels.several:
         held = values.str.split(levels.several, regex=False).explode()

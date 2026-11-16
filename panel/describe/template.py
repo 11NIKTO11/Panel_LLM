@@ -6,19 +6,6 @@ because it names that dataset's columns. It is a list of **sentences**, each a l
 **alternatives in priority order**; the first alternative whose slots can all be filled wins,
 which is how a sentence degrades when an answer is missing, and disappears when none fits.
 
-    {
-        "name": "self_v1",          the file stem, the prompt table's name and its column
-        "short": "v1",              its part of a results stem: ASCII, no underscore
-        "standalone": false,        true when the description is the whole prompt
-        "note": "...",
-        "sentences": [
-            ["Jsem {gender}, je mi {age} let, mé vzdělání je {education_level}."],
-            ["Z hlediska zaměstnání jsem {employment_status} a příjem je {income_range}.",
-             "Z hlediska zaměstnání jsem {employment_status}.",
-             "Příjem naší domácnosti je {income_range}."]
-        ]
-    }
-
 - `{column}` splices that column's value as the dataset's forms word it (`panel.describe.forms`);
   `{column|form}` picks one of several forms, e.g. `{region|in}` and `{region|of}`.
 - a slot stays unfilled when the value is absent or is one of the column's non-answers; that
@@ -53,14 +40,10 @@ class PromptTemplate:
     """
     One description variant.
 
-    Attributes:
-        name: names the file, the prompt table and its column.
-        short: the description's part of a results stem.
-        sentences: alternatives in priority order, per sentence.
-        standalone: the description is the whole prompt; no question follows it.
-        stored: the prompt table is kept as it was sent and never rendered; no sentences.
-        note: free text; not used by code.
-        reads: a stored description's values columns, the ones its prompts were built from.
+    - name: names the file, the prompt table and its column.
+    - standalone: the description is the whole prompt; no question follows it.
+    - stored: the prompt table is kept as it was sent and never rendered; no sentences.
+    - reads: a stored description's values columns, the ones its prompts were built from.
     """
     name: str
     short: str
@@ -111,15 +94,7 @@ class PromptTemplate:
 
 
 def load_template(path: Union[str, Path]) -> PromptTemplate:
-    """
-    Read a template file. Its `name` must match its filename, so the variant has one name.
-
-    Raises:
-        FileNotFoundError: if there is no such file.
-        ValueError: on unknown or missing keys, a name that disagrees with the filename, a
-            short that could not sit in a stem, a sentence without alternatives, a stored
-            description with sentences, or `reads` on a rendered one.
-    """
+    """Its `name` must match its filename, so the variant has one name."""
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"no description template at {path}")

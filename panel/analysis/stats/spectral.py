@@ -26,16 +26,7 @@ def centred_svd(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]
 
 
 def soft_ranks(singular: np.ndarray) -> Dict[str, float]:
-    """
-    Three ways of counting the directions a matrix has, each 1 for one direction:
-
-    - `sum s / s1`: the singular values against the largest;
-    - `stable rank`: `Σ s² / s1²`;
-    - `effective number of axes`: `exp` of the entropy of the shares `s² / Σ s²`.
-
-    Raises:
-        ValueError: if every singular value is zero.
-    """
+    """Three ways of counting the directions a matrix has, each 1 for one direction."""
     singular = np.asarray(singular, dtype=float)
     if singular[0] <= 0:
         raise ValueError("the matrix has no direction: every singular value is zero")

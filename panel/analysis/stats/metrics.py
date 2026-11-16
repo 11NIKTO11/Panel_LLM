@@ -35,15 +35,7 @@ MEASURES: Dict[str, Callable[[np.ndarray, np.ndarray], float]] = {
 
 
 def distances(reference: Sequence[float], source: Sequence[float], metrics: Sequence[str] = METRICS) -> Dict[str, float]:
-    """
-    The named metrics (all by default) between a source and the reference it is held against.
-
-    Both are rescaled to sum to 1 first. A distribution that sums to zero (nobody chose
-    anything) has no distance to anything: every metric is NaN.
-
-    Raises:
-        ValueError: on a negative entry.
-    """
+    """A distribution that sums to zero (nobody chose anything) has no distance to anything: every metric is NaN."""
     p, q = np.asarray(reference, dtype=float), np.asarray(source, dtype=float)
     if (p < 0).any() or (q < 0).any():
         raise ValueError("a distribution has a negative entry")

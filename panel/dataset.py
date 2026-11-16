@@ -12,31 +12,7 @@ A dataset is a folder under `datasets/`. Everything that knows its vocabulary li
             values.csv                one row per subject, the dataset's own values - read by analysis
             prompts/<description>.csv one rendered text per subject - read by a run
 
-Declaration shape:
-
-    {
-        "name": "sod",                    the folder name, and the dataset's name in a run
-        "short": "sod",                   stem part: ASCII, no underscore
-        "title": "...",
-        "language": "cs",                 the language its values and descriptions are written in
-        "source": "SoD-CZ/....sav",       what prepare reads, relative to the folder; null for a
-                                          dataset that is prepared data only and is never rebuilt;
-                                          "dataset.json" for a grid, built from its levels (panel.grid)
-        "columns": ["gender", "age"],     every column of the values table, in order
-        "optional": ["employment"],       columns a subject may lack; the rest must be filled
-        "groups": ["gender", "region"],   columns analysis may group subjects by
-        "area": "region",                 the column whose values name a row of reference results
-        "levels": {                       how analysis reads a grouping column; a column with no entry
-            "age": {"bands": {"18-24": 24, "25-34": 34}},        is its values, largest group first
-            "town_size": {"order": ["small", "large"]},
-            "employment": {"several": "; "}
-        },
-        "claims": {"election_2021": {"column": "voted_party", "map": "claims/election_2021.json"}},
-        "shared": {"gender": {"column": "gender", "map": {"Muž": "male", "Žena": "female"}}},
-        "together": {"geography": ["region", "district"]},   columns that share credit in an
-                                          attribution (kernel's Shapley effects) as one factor
-        "note": "free text, ignored by code"
-    }
+What the keys of a declaration mean is on `Dataset`.
 """
 import json
 from dataclasses import dataclass, field
@@ -64,7 +40,7 @@ INDEX = "id"
 
 @dataclass(frozen=True)
 class ClaimRef:
-    """Where a dataset keeps its answer to one topic: the values column, and the map file."""
+    """Where a dataset keeps its answer to one topic: the values column, and the map file relative to its folder."""
     column: str
     map: str
 
@@ -85,11 +61,9 @@ class Levels:
     """
     How analysis reads one grouping column as levels; exactly one of the three is set.
 
-    Attributes:
-        bands: label -> the highest value it holds, for a numeric column, lowest band first.
-        order: the column's values along their scale, low to high, non-answers last.
-        several: the separator of a cell that holds several answers; a subject then belongs
-            to each of them.
+    - bands: label -> the highest value it holds, for a numeric column, lowest band first.
+    - order: the column's values along their scale, low to high, non-answers last.
+    - several: the separator of a cell that holds several answers; a subject then belongs to each.
     """
     bands: Dict[str, float]
     order: Tuple[str, ...]
@@ -99,23 +73,19 @@ class Levels:
 @dataclass(frozen=True)
 class Dataset:
     """
-    Attributes:
-        name: folder under `datasets/`, and what a run records.
-        short: the dataset's part of a results stem.
-        title: human label.
-        language: language code of its values and descriptions.
-        source: what prepare reads, relative to `dir`; None when the prepared data is all there is.
-        columns: every column of the values table.
-        optional: columns a subject may lack.
-        groups: columns analysis may group by.
-        area: the column naming a row of a topic's reference results, or None.
-        levels: column -> how analysis reads it as levels (`Levels`), for the columns that say.
-        claims: topic name -> where the dataset's answer to it lives.
-        shared: shared vocabulary name -> the column carrying it and its map; often empty.
-        together: name -> columns that share credit as one factor when effects are attributed;
-            often empty.
-        dir: the dataset's folder.
-        note: free text; not used by code.
+    - name: the folder under `datasets/`, and what a run records.
+    - language: of its values and descriptions.
+    - source: what prepare reads, relative to `dir`; None for prepared data that is never rebuilt;
+      `dataset.json` for a grid, built from its levels (`panel.grid`).
+    - columns: every column of the values table, in order.
+    - optional: columns a subject may lack; the rest must be filled.
+    - groups: columns analysis may group subjects by.
+    - area: the column whose values name a row of a topic's reference results, or None.
+    - levels: column -> how analysis reads it; a column with no entry is its values, largest group first.
+    - claims: topic name -> where the dataset's answer to it lives.
+    - shared: shared vocabulary name -> the column carrying it and its map.
+    - together: name -> columns that share credit as one factor in an attribution (kernel's Shapley effects).
+    - note: not used by code.
     """
     name: str
     short: str
@@ -135,7 +105,6 @@ class Dataset:
 
     @property
     def descriptions(self) -> Tuple[str, ...]:
-        """The description templates in the dataset's folder, by name."""
         return tuple(sorted(path.stem for path in (self.dir / DESCRIPTIONS_DIR).glob("*.json")))
 
     @property
@@ -144,7 +113,6 @@ class Dataset:
 
     @property
     def data_dir(self) -> Path:
-        """Where everything prepare writes for this dataset lives."""
         return self.dir / PREPARED_DIR
 
     @property
@@ -174,19 +142,10 @@ class Claims:
 
 
 def dataset_names(datasets_dir: Union[str, Path] = paths.DATASETS_DIR) -> List[str]:
-    """Every folder under `datasets_dir` that declares a dataset, sorted."""
     return sorted(path.parent.name for path in Path(datasets_dir).glob(f"*/{CONFIG_NAME}"))
 
 
 def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR) -> Dataset:
-    """
-    Read one dataset declaration.
-
-    Raises:
-        FileNotFoundError: if there is no declaration of that name.
-        ValueError: on unknown or missing keys, a name that disagrees with the folder, a short
-            that could not sit in a stem, or a role naming a column the dataset does not have.
-    """
     directory = Path(datasets_dir) / name
     path = directory / CONFIG_NAME
     if not path.exists():
@@ -236,13 +195,6 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
 
 
 def load_claims(dataset: Dataset, topic: str) -> Claims:
-    """
-    The dataset's claims map for one topic.
-
-    Raises:
-        KeyError: if the dataset declares no answer for that topic.
-        ValueError: on unknown or missing keys, or an answer sorted into two groups.
-    """
     if topic not in dataset.claims:
         raise KeyError(f"dataset '{dataset.name}' declares no claims for topic '{topic}'")
     ref = dataset.claims[topic]
@@ -259,13 +211,7 @@ def load_claims(dataset: Dataset, topic: str) -> Claims:
 
 
 def shared_keys(dataset: Dataset, vocabulary: str, values: pd.DataFrame) -> pd.Series:
-    """
-    Each subject's key in a shared vocabulary; a subject without an answer has none.
-
-    Raises:
-        KeyError: if the dataset does not declare that vocabulary.
-        ValueError: if an answer in the column is not in the map.
-    """
+    """Each subject's key in a shared vocabulary; a subject without an answer has none."""
     if vocabulary not in dataset.shared:
         raise KeyError(f"dataset '{dataset.name}' declares no shared '{vocabulary}'")
     ref = dataset.shared[vocabulary]
@@ -279,13 +225,6 @@ def shared_keys(dataset: Dataset, vocabulary: str, values: pd.DataFrame) -> pd.S
 
 
 def validate_values(dataset: Dataset, frame: pd.DataFrame) -> None:
-    """
-    Refuse a values table that is not what the dataset declares.
-
-    Raises:
-        ValueError: if the index is not a unique `id`, the columns are not exactly the declared
-            ones, or a column that is not optional has gaps.
-    """
     problems = []
     if frame.index.name != INDEX:
         problems.append(f"index is named {frame.index.name!r}, not '{INDEX}'")
@@ -305,12 +244,6 @@ def validate_values(dataset: Dataset, frame: pd.DataFrame) -> None:
 
 
 def write_values(dataset: Dataset, frame: pd.DataFrame) -> Path:
-    """
-    Validate and store a dataset's values table at `datasets/<name>/prepared/values.csv`.
-
-    Raises:
-        ValueError: see `validate_values`.
-    """
     validate_values(dataset, frame)
     dataset.values_path.parent.mkdir(parents=True, exist_ok=True)
     frame[list(dataset.columns)].to_csv(dataset.values_path, index=True, encoding="utf-8")
@@ -318,13 +251,6 @@ def write_values(dataset: Dataset, frame: pd.DataFrame) -> Path:
 
 
 def read_values(dataset: Dataset) -> pd.DataFrame:
-    """
-    A dataset's stored values table, validated on the way in.
-
-    Raises:
-        FileNotFoundError: if the dataset has not been prepared.
-        ValueError: see `validate_values`.
-    """
     if not dataset.values_path.exists():
         raise FileNotFoundError(f"no values table at {dataset.values_path}; run the dataset's prepare step first")
     frame = pd.read_csv(dataset.values_path, index_col=INDEX, encoding="utf-8")

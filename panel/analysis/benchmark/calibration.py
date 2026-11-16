@@ -24,18 +24,7 @@ EDGES = (0.0, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0)
 
 
 def calibration(ground: Ground, out: Output, edges: Sequence[float] = EDGES) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The calibration curve of the trained model and of every run.
-
-    Args:
-        ground: what `load_ground` made.
-        out: takes the table and the figure, both named `benchmark_calibration`.
-        edges: the bins' edges, from 0 to 1.
-
-    Returns:
-        The table - indexed by source and bin: the bin's mean `predicted` probability, the
-        `observed` frequency and how many `pairs` it holds; empty bins left out - and its figure.
-    """
+    """The table is indexed by source and bin, empty bins left out; `edges` run from 0 to 1."""
     answered = pd.get_dummies(ground.answers).reindex(columns=ground.outcomes, fill_value=0).to_numpy(dtype=float).ravel()
     names = [f"{low:g}-{high:g}" for low, high in zip(edges[:-1], edges[1:])]
     found = {}

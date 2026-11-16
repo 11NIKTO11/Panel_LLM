@@ -47,16 +47,6 @@ def evened(kernel: Kernel, column: str) -> pd.Series:
 
 
 def populations(kernels: KernelSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per kernel, `M q` for its own population, for every profile once, and the claimed choice;
-    per kernel and factor, how far evening that factor out moves the answer.
-
-    Returns:
-        The table - indexed by kernel and population, a column per outcome, and the TV from
-        the own population's answer - with the factors' table beside it
-        (`kernel_populations_factors`: per kernel and factor, the TV and the largest change of
-        an outcome, in shares), and the figure: the outcomes by population and kernel.
-    """
     rows, factors = {}, {}
     for label, kernel in kernels.kernels.items():
         own = push(kernel, kernel.weights)

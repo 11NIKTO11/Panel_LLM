@@ -87,11 +87,9 @@ class ResultStore:
         return self.results_dir / self.topic
 
     def run_dir(self, stem: str) -> Path:
-        """One run's folder: its four files, its archive, and what was derived from it."""
         return self.topic_dir / self.RUNS_DIR / stem
 
     def comparison_dir(self, name: str) -> Path:
-        """One named comparison's folder: what was derived from several runs, and which."""
         return self.topic_dir / self.COMPARISONS_DIR / name
 
     def paths(self, stem: str, timestamp: Union[str, None] = None) -> RunPaths:
@@ -115,34 +113,22 @@ class ResultStore:
         )
 
     def runs(self) -> List[str]:
-        """Stems of this topic's saved runs: every run folder with a run record."""
         return sorted(path.parent.name for path in (self.topic_dir / self.RUNS_DIR).glob(f"*/{self.RECORD_NAME}"))
 
     def save_comparison(self, name: str, runs: Mapping[str, str]) -> Path:
-        """Write which runs a named comparison was made from, `label -> stem`, as its `runs.json`."""
         path = self.comparison_dir(name) / self.MEMBERS_NAME
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(dict(runs), ensure_ascii=False, indent=4), encoding="utf-8")
         return path
 
     def record(self, stem: str) -> Dict[str, Any]:
-        """
-        Raises:
-            FileNotFoundError: if the run has no record file.
-        """
         path = self.paths(stem).record
         if not path.exists():
             raise FileNotFoundError(f"no run record for '{stem}' at {path}; saved runs: {self.runs()}")
         return json.loads(path.read_text(encoding="utf-8"))
 
     def frame(self, stem: str, normalized: bool = False) -> pd.DataFrame:
-        """
-        A run's CSV as stored, under the option ids of the day it was saved; `Topic.rename`
-        turns them into today's.
-
-        Raises:
-            FileNotFoundError: if that run has no such CSV.
-        """
+        """As stored, under the option ids of the day it was saved; `Topic.rename` turns them into today's."""
         paths = self.paths(stem)
         path = paths.normalized_csv if normalized else paths.results_csv
         if not path.exists():
@@ -150,12 +136,6 @@ class ResultStore:
         return pd.read_csv(path, index_col=0, encoding="utf-8")
 
     def raw(self, stem: str) -> Dict[str, Any]:
-        """
-        A run's raw results JSON, as written.
-
-        Raises:
-            FileNotFoundError: if the run has no JSON.
-        """
         path = self.paths(stem).results_json
         if not path.exists():
             raise FileNotFoundError(f"{path} not found; saved runs: {self.runs()}")
@@ -163,11 +143,8 @@ class ResultStore:
 
     def load(self, stem: str, response_model: Type[BaseModel]) -> Dict[Tuple[int, int], Tuple[str, BaseModel]]:
         """
-        Every saved response of a run, parsed again, keyed (subject id, repeat), each with its prompt.
-
-        Raises:
-            FileNotFoundError: if the run has no JSON.
-            pydantic.ValidationError: if a saved response no longer fits the model.
+        Keyed (subject id, repeat), each response with its prompt; a saved response that no longer fits the
+        model raises `pydantic.ValidationError`.
         """
         parsed = {}
         for key, item in self.raw(stem).items():
@@ -178,14 +155,8 @@ class ResultStore:
     def refuse(self, resolved: Resolved, overwrite: bool = False) -> None:
         """
         Raise if `resolved` may not be saved here; `execute` asks before any call is made.
-
         A run brought in rather than sent - its record has a `migrated` or a `delivered` block -
         has no archived copy and is never saved over, whatever `overwrite` says.
-
-        Raises:
-            ValueError: if the run's topic is not this store's topic.
-            FileExistsError: if the stem holds a run that was brought in, or a run of a
-                different spec and `overwrite` is False.
         """
         if resolved.topic.name != self.topic:
             raise ValueError(f"run topic '{resolved.topic.name}' does not match store topic '{self.topic}'")
@@ -208,28 +179,11 @@ class ResultStore:
         overwrite: bool = False,
     ) -> RunPaths:
         """
-        Write a run's results under its stem: the archived copy, then the plain files.
+        `results` is {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`; returns the plain paths.
 
-        Both come from one table and one record. The archived copy lands in the run's
-        `archive/`, named by the time of the save, and is what keeps an overwritten run
-        recoverable; it holds the CSV and the record only, because the raw JSON and the
-        normalized CSV are reconstructions of the CSV. The plain set is the handle a stem is
-        loaded by and is overwritten freely by the same spec.
-
-        Args:
-            resolved: the run that produced `results`.
-            results: {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`.
-            client: the client that made the calls, for the record's `model_resolved` and
-                `response_schema_sent`.
-            overwrite: replace a run of a different spec that already holds the stem.
-
-        Returns:
-            The plain paths.
-
-        Raises:
-            ValueError: if the run's topic is not this store's topic.
-            FileExistsError: if the stem holds a run that was brought in, or a run of a
-                different spec and `overwrite` is False.
+        The archived copy is what keeps an overwritten run recoverable; it holds the CSV and the record
+        only, because the raw JSON and the normalized CSV are reconstructions of the CSV. The plain set is
+        the handle a stem is loaded by and is overwritten freely by the same spec.
         """
         self.refuse(resolved, overwrite)
         stem = resolved.stem

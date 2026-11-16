@@ -45,21 +45,8 @@ def one_factor(kernel: Kernel, population: pd.Series, share: float, least: int) 
 
 def sensitivity(kernels: KernelSet, out: Output, share: float = 0.1, uniform: bool = False, least: int = 30) -> Tuple[pd.DataFrame, List[Figure]]:
     """
-    Per kernel and outcome, the largest gain and loss under any shift of `share`, and under a
-    shift of one factor.
-
-    Args:
-        kernels: the kernels.
-        out: takes the tables and the figures.
-        share: `ε`, the share of the population that moves.
-        uniform: start from every profile once instead of the run's own population.
-        least: profiles a level needs to take part in a one-factor shift.
-
-    Returns:
-        The table - indexed by kernel and outcome: the largest gain, the largest loss, `ε` times
-        the range, the largest one-factor gain and its factor, all in shares - with every
-        factor's gains beside it (`kernel_sensitivity_factors`), and a figure per kernel: the
-        one-factor gains, outcomes by factors, in percentage points.
+    `share` is `ε`; `uniform` starts from every profile once instead of the run's own population.
+    The tables are in shares, the figures in percentage points.
     """
     rows, factors = {}, {}
     for label, kernel in kernels.kernels.items():

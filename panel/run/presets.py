@@ -1,21 +1,5 @@
 """
-Presets: a base run, and the data and the models worth a name, kept as data.
-
-`config/presets.json`:
-
-    {
-        "base": {"dataset": "sod", "description": "default", "topic": "election_2021", "framing": "cs",
-                 "question": "default", "shape": "Prob", "repeats": 1,
-                 "client": "Fake", "model": "fake-model", "temperature": 0.0, "effort": null},
-        "data": {
-            "sod-extended": {"dataset": "sod", "description": "extended"},
-            "direct":       {"dataset": "regions", "description": "direct", "question": null, "repeats": 10}
-        },
-        "models": {
-            "nano":      {"client": "OpenRouter", "model": "gpt-4.1-nano", "temperature": 0.0},
-            "haiku-5.5": {"client": "Anthropic", "model": "claude-haiku-5-5", "temperature": null, "effort": "low"}
-        }
-    }
+Presets: a base run, and the data and the models worth a name, kept as data in `config/presets.json`.
 
 The base is a complete run: every field of `DATA` and of `MODEL`. A data preset says what is
 asked, of whom and in what form, and may state fields of `DATA` only; a model preset says which
@@ -43,25 +27,12 @@ NONE = "none"
 
 @dataclass(frozen=True)
 class Presets:
-    """
-    Attributes:
-        base: every field of `DATA` and `MODEL`.
-        data: name -> the `DATA` fields it replaces, in file order.
-        models: name -> the `MODEL` fields it replaces, in file order.
-    """
     base: Dict[str, Any]
     data: Dict[str, Dict[str, Any]]
     models: Dict[str, Dict[str, Any]]
 
 
 def load_presets(path: Union[str, Path]) -> Presets:
-    """
-    Raises:
-        FileNotFoundError: if there is no such file.
-        ValueError: on keys other than `base`, `data` and `models`, a base that does not state
-            exactly the fields of both kinds, or a preset that states nothing or a field that
-            is not of its kind.
-    """
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"no presets at {path}")
@@ -79,25 +50,10 @@ def load_presets(path: Union[str, Path]) -> Presets:
 
 
 def parse(field: str, text: str) -> Union[str, int, float, None]:
-    """
-    A field's value from the text a person typed; `none` is None.
-
-    Raises:
-        ValueError: if a number field gets something else.
-    """
     if text.lower() == NONE:
         return None
     return NUMBERS.get(field, str)(text)
 
 
 def build_spec(base: Dict[str, Any], data: Union[Dict[str, Any], None], model: Union[Dict[str, Any], None], changes: Dict[str, Any]) -> RunSpec:
-    """
-    A spec from the base, with a data preset, a model preset and single fields laid over it.
-
-    Args:
-        base: the base run's fields.
-        data: a data preset's fields, or None.
-        model: a model preset's fields, or None.
-        changes: fields that replace all of those.
-    """
     return RunSpec(**{**base, **(data or {}), **(model or {}), **changes})

@@ -24,19 +24,9 @@ NAME = "distance"
 
 def compute(run: SavedRun, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Dict[str, pd.DataFrame]:
     """
-    Every metric of `stats.metrics` for each pair of sources the run has, with bootstrap intervals.
-
-    Args:
-        run: the saved run.
-        draws, seed, level: of the bootstrap intervals.
-
-    Returns:
-        `distance` - one row per pair `<source> vs <reference>`, a column per metric over the
-        options, `Turnout difference` (source minus reference) on a topic with turnout, and
-        `<metric>_low`, `<metric>_high`.
-
-    Raises:
-        NotApplicable: if the run has neither claims nor a reference, so no pair.
+    `distance` - one row per pair `<source> vs <reference>`, a column per metric over the options,
+    `Turnout difference` (source minus reference) on a topic with turnout, and `<metric>_low`,
+    `<metric>_high`.
     """
     counted = actual(run)
     measures = [*METRICS, *([TURNOUT] if run.topic.turnout else [])]
@@ -71,19 +61,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame], level: float = 0.95) ->
 
 
 def distance(run: SavedRun, out: Output, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Every metric for each pair of sources the run has, with bootstrap intervals.
-
-    Args:
-        run: the saved run.
-        out: takes the table and the figure, both named `distance`.
-        draws, seed, level: of the bootstrap intervals.
-
-    Returns:
-        The table of `compute` and its figure.
-
-    Raises:
-        NotApplicable: if the run has neither claims nor a reference, so no pair.
-    """
     tables = compute(run, draws, seed, level)
     return save(out, tables, draw(run, tables, level))

@@ -26,17 +26,10 @@ GROUP, LEVEL, SUBJECTS = "group", "level", "subjects"
 
 def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
     """
-    The predicted distribution at each level of each grouping column.
-
-    Returns:
-        `groups` - indexed by grouping column and level, levels in the order `levels.members`
-        gives: `subjects`, then the topic's columns as `predicted_distribution` gives them;
-        `groups_spread`, the standard deviation of each column over the level's subjects;
-        and `groups_claimed`, the rows of `groups` for what the subjects claimed, if the
-        dataset has claims.
-
-    Raises:
-        NotApplicable: if the dataset names no grouping columns.
+    `groups` - indexed by grouping column and level, levels in the order `levels.members` gives:
+    `subjects`, then the topic's columns as `predicted_distribution` gives them; `groups_spread`,
+    the standard deviation of each column over the level's subjects; and `groups_claimed`, the
+    rows of `groups` for what the subjects claimed, if the dataset has claims.
     """
     if not run.dataset.groups:
         raise NotApplicable(f"'{run.stem}': the dataset names no grouping columns")
@@ -73,19 +66,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame]) -> Dict[str, Figure]:
 
 
 def groups(run: SavedRun, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The predicted distribution at each level of each grouping column.
-
-    Args:
-        run: the saved run.
-        out: takes the table, named `groups`; `groups_spread`; `groups_claimed`, if the
-            dataset has claims; and a figure per grouping column, named `groups_<column>`.
-
-    Returns:
-        The `groups` table of `compute` and the figures.
-
-    Raises:
-        NotApplicable: if the dataset names no grouping columns.
-    """
     tables = compute(run)
     return save(out, tables, draw(run, tables))

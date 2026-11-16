@@ -41,17 +41,10 @@ QUESTION = "question"
 @dataclass(frozen=True)
 class Resolved:
     """
-    A spec with its artifacts loaded and its rows chosen.
-
-    Attributes:
-        spec: the declaration.
-        dataset, description, topic, framing: the four named artifacts.
-        question: the fifth, or None after a standalone description.
-        client_type: the client class the spec's `client` names.
-        response_model: the generated model the spec's `shape` names.
-        rows: the subjects sent, sampled if asked - the description column, and beside it
-            `question`, the wording each subject reads, when the run has a question.
-        digests: sha256 of the files the prompts came from: `values`, `prompts`, `forms`.
+    question: None after a standalone description.
+    rows: the subjects sent, sampled if asked - the description column, and beside it
+        `question`, the wording each subject reads, when the run has a question.
+    digests: sha256 of the files the prompts came from: `values`, `prompts`, `forms`.
     """
     spec: RunSpec
     dataset: Dataset
@@ -88,7 +81,6 @@ class Resolved:
         return "_".join(parts)
 
     def prompt(self, row: pd.Series) -> str:
-        """What one call sends as the user message: the description, then the question if there is one."""
         return f"{row[self.description.name]} {row[QUESTION]}" if self.question else row[self.description.name]
 
     @property
@@ -107,17 +99,9 @@ def resolve(
     topics_dir: Union[str, Path] = paths.TOPICS_DIR,
 ) -> Resolved:
     """
-    Load what a spec names and lay out its rows.
-
-    Raises:
-        FileNotFoundError: if an artifact, the values or the prompt table is missing.
-        ValueError: if the dataset has no such description, the languages disagree, a
-            question is named after a standalone description or missing after any other,
-            the question cannot be worded for a subject, the prompt table does not cover
-            the values, the model id cannot sit in a filename, the client takes no effort
-            and one is set, or the sample exceeds the
-            subjects.
-        KeyError: if the client is unknown.
+    Raised deeper down: `FileNotFoundError` for a missing artifact, values or prompt table; `KeyError` for an
+    unknown client; `ValueError` for a question that cannot be worded for a subject, a prompt table that
+    does not cover the values, or a sample larger than the subjects.
     """
     dataset = load_dataset(spec.dataset, datasets_dir)
     topic = load_topic(spec.topic, topics_dir)

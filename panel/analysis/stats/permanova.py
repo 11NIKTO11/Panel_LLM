@@ -26,12 +26,6 @@ DISTANCES = ("hellinger", "aitchison", "js", "l1", "correlation")
 
 
 def pairwise(shares: np.ndarray, distance: str, delta: float = DELTA) -> np.ndarray:
-    """
-    The n x n matrix of a named distance between the rows of `shares`, each rescaled to sum to 1.
-
-    Raises:
-        ValueError: on an unknown distance.
-    """
     values = np.asarray(shares, dtype=float)
     values = values / values.sum(axis=1, keepdims=True)
     if distance == "hellinger":
@@ -56,21 +50,9 @@ def gower(distances: np.ndarray) -> np.ndarray:
 
 def permanova(centred: np.ndarray, columns: np.ndarray, permutations: int = 999, seed: int = 0) -> Tuple[int, float, float, float]:
     """
-    One predictor's test on a Gower-centred matrix.
-
-    Args:
-        centred: from `gower`.
-        columns: from `design.block`, the same rows.
-        permutations: for the p-value.
-        seed: of the permutations.
-
-    Returns:
-        Degrees of freedom, R2 (effect over total sum of squares), pseudo-F, and the p-value:
-        the share of permutations, the observed order counted in, whose F is at least the
-        observed one.
-
-    Raises:
-        ValueError: if the predictor leaves no residual to test against.
+    (degrees of freedom, R2, pseudo-F, p) of one predictor: `centred` from `gower`, `columns` from
+    `design.block`. p is the share of permutations, the observed order counted in, whose F is at
+    least the observed one.
     """
     n = len(centred)
     full = np.column_stack([np.ones(n), columns])

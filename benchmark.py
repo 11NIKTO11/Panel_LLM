@@ -1,14 +1,6 @@
 """
 Hold saved runs against a model trained on the subjects' own answers, from the command line.
 
-    python benchmark.py election_2021 haiku-5-5 --name haiku            a run by any text only its stem contains
-    python benchmark.py election_2021 haiku-4-5 haiku-5-5 --name haiku  several, scored beside each other
-    python benchmark.py election_2021 --set grids                         a named set of the topic's comparisons.json
-    python benchmark.py election_2021 haiku-5-5 --name haiku --only scores
-    python benchmark.py election_2021 haiku-5-5 --name haiku --predictors gender,age,region
-    python benchmark.py election_2021 haiku-5-5 --name haiku --no-save
-    python benchmark.py election_2021 haiku-5-5 --name haiku --plain    ignore the topic's plot.json
-
 `python analyze.py <topic>` lists a topic's saved runs. Writes into
 `results/<topic>/comparisons/<name>/`: tables to `analysis/`, figures to `plots/`, named
 `benchmark_<benchmark>`, and `runs.json` saying which runs were scored; the name is the set's, or

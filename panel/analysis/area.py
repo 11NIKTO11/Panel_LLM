@@ -28,7 +28,6 @@ PERCENT = (MAE, RMSE, TURNOUT)
 
 
 def slug(metric: str) -> str:
-    """A metric's name as part of a file name."""
     return metric.lower().replace(" ", "_")
 
 
@@ -38,13 +37,7 @@ def column(metric: str, source: str, reference: str) -> str:
 
 
 def ordered(run: SavedRun) -> List[str]:
-    """
-    The areas the run's subjects are in: in the dataset's declared order, else most subjects first.
-
-    Raises:
-        NotApplicable: if the dataset names no area column.
-        ValueError: on an area the declared order does not hold.
-    """
+    """The areas the run's subjects are in; an area the declared order does not hold raises in `levels.members`."""
     key = run.dataset.area
     if not key:
         raise NotApplicable(f"'{run.stem}': the dataset names no area column")
@@ -55,20 +48,10 @@ def compute(
     run: SavedRun, metrics: Union[Sequence[str], None] = None, draws: int = 300, seed: int = 0, level: float = 0.95,
 ) -> Dict[str, pd.DataFrame]:
     """
-    The distance between each pair of sources per area, the whole first, then the areas as `ordered` gives them.
-
-    Args:
-        run: the saved run.
-        metrics: of `sources.shown`; all of them by default.
-        draws, seed, level: of the bootstrap intervals, resampling subjects within an area.
-
-    Returns:
-        `area` - one row per area, `subjects`, and per metric and pair a column
-        `<metric>: <source> vs <reference>` (`column`) with `_low` and `_high` - and
-        `area_shares`, every source's distribution per area.
-
-    Raises:
-        NotApplicable: if the dataset names no area column or the topic has no reference.
+    `area` - the whole first, then the areas as `ordered` gives them: `subjects`, and per metric and
+    pair a column `<metric>: <source> vs <reference>` (`column`) with `_low` and `_high` - and
+    `area_shares`, every source's distribution per area. `metrics` are of `sources.shown`; the
+    bootstrap resamples subjects within an area.
     """
     key = run.dataset.area
     if not key or run.reference is None:
@@ -117,21 +100,5 @@ def draw(run: SavedRun, tables: Dict[str, pd.DataFrame], metrics: Union[Sequence
 def area(
     run: SavedRun, out: Output, metrics: Union[Sequence[str], None] = None, draws: int = 300, seed: int = 0, level: float = 0.95,
 ) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    The distance between each pair of sources per area, with a figure per metric.
-
-    Args:
-        run: the saved run.
-        out: takes the table, named `area`, a second table `area_shares`, and a figure per
-            metric, named `area_<metric>`.
-        metrics: of `sources.shown`, one figure each; all of them by default.
-        draws, seed, level: of the bootstrap intervals, resampling subjects within an area.
-
-    Returns:
-        The `area` table of `compute` and the figures.
-
-    Raises:
-        NotApplicable: if the dataset names no area column or the topic has no reference.
-    """
     tables = compute(run, metrics, draws, seed, level)
     return save(out, tables, draw(run, tables, metrics, level))

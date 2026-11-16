@@ -14,17 +14,8 @@ def tv(first: np.ndarray, second: np.ndarray) -> np.ndarray:
 
 def pairwise_tv(rows: np.ndarray, chunk: int = 256) -> Tuple[np.ndarray, Tuple[float, int, int]]:
     """
-    Total variation between every two rows, and the largest with its pair.
-
-    Args:
-        rows: n x k, one distribution per row.
-        chunk: rows compared at a time, which bounds the memory to chunk x n x k.
-
-    Returns:
-        The n(n-1)/2 distances of the pairs i < j (float32), and (largest, i, j).
-
-    Raises:
-        ValueError: on fewer than two rows.
+    The n(n-1)/2 distances of the row pairs i < j (float32), and (largest, i, j).
+    `chunk` rows are compared at a time, which bounds the memory to chunk x n x k.
     """
     rows = np.asarray(rows, dtype=float)
     count = len(rows)

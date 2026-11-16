@@ -43,17 +43,12 @@ def reread(label: str) -> str:
 class Ground:
     """
     Attributes:
-        topic: the topic the runs answered.
         outcomes: the options, then not taking part if the topic has turnout.
         answers: each scored subject's own outcome, indexed by subject.
         predicted: run label -> subjects by outcomes, the run's probabilities.
-        trained: subjects by outcomes, the cross-validated probabilities of the model
-            trained on the answers.
-        losses: subjects by (source, measure): the log-loss and Brier score of every
-            source - the claimed shares, the trained model, and per run its answers, its
-            mean answer and its recalibrated answers.
-        predictors: the columns the trained model was given.
-        style: the topic's colours and labels for figures.
+        trained: subjects by outcomes, cross-validated.
+        losses: subjects by (source, measure); the sources are the claimed shares, the trained
+            model, and per run its answers, its mean answer and its recalibrated answers.
     """
     topic: Topic
     outcomes: List[str]
@@ -80,20 +75,9 @@ def own_answers(run: SavedRun) -> pd.Series:
 
 def load_ground(runs: Mapping[str, SavedRun], predictors: Union[Sequence[str], None] = None, strength: float = 0.3, folds: int = 5, seed: int = 0) -> Ground:
     """
-    Fit the trained model and score every source on the subjects all runs share.
-
-    Args:
-        runs: label -> run, the runs to benchmark, all of one topic.
-        predictors: the columns the trained model is given; the dataset's grouping columns
-            by default.
-        strength: the trained logit's `C`, the inverse of its ridge penalty.
-        folds: of both cross-validations (the trained model, the recalibration).
-        seed: of the folds.
-
-    Raises:
-        NotApplicable: if the dataset has no answers to the topic, the runs are of
-            different datasets, or too few subjects are left.
-        ValueError: on a predictor the dataset does not have.
+    The runs are of one topic; `predictors` are the dataset's grouping columns by default;
+    `strength` is the trained logit's `C`, the inverse of its ridge penalty; `folds` and `seed`
+    are of both cross-validations (the trained model, the recalibration).
     """
     first = next(iter(runs.values()))
     topic = first.topic
@@ -138,7 +122,6 @@ def load_ground(runs: Mapping[str, SavedRun], predictors: Union[Sequence[str], N
 
 
 def describe(ground: Ground) -> str:
-    """What the benchmark stands on, in a few lines."""
     counts = ground.answers.value_counts().reindex(ground.outcomes, fill_value=0)
     return "\n".join([
         f"{ground.topic.name}: {len(ground.answers)} subjects with a known answer in every run",

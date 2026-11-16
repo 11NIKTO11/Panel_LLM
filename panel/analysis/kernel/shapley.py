@@ -42,21 +42,7 @@ def _effects(players: Dict[str, np.ndarray], values: np.ndarray) -> pd.Series:
 
 
 def shapley(kernels: KernelSet, out: Output, draws: int = 20, seed: int = 0, jobs: int = -1) -> Tuple[pd.DataFrame, List[Figure]]:
-    """
-    Per kernel and player, its Shapley effect on the answers with an interval, its share of
-    what all explain, and its effects on the first two SVD axes' scores.
-
-    Args:
-        kernels: the kernels.
-        out: takes the table and the figure.
-        draws: replicates for the intervals; 0 for none.
-        seed: of the replicates.
-        jobs: parallel workers (joblib); -1 for all cores.
-
-    Returns:
-        The table - indexed by kernel and player - and the figure: each kernel's effects with
-        their intervals.
-    """
+    """`draws` replicates make the intervals, 0 for none; `jobs` are joblib workers, -1 for all cores."""
     rows, panels = {}, {}
     for label, kernel in kernels.kernels.items():
         players, values = factor_players(kernel), kernel.matrix.to_numpy().T

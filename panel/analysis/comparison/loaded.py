@@ -25,10 +25,8 @@ CLAIMED = "claimed"
 class RunSet:
     """
     Attributes:
-        topic: the topic all the runs answered.
         runs: label -> run, in the order they were named.
         polls: the topic's published polls, one row each, a column per option; may be empty.
-        style: the topic's colours and labels for figures, or the empty style.
     """
     topic: Topic
     runs: Dict[str, SavedRun]
@@ -62,10 +60,6 @@ class RunSet:
 
 
 def labels(runs: Sequence[SavedRun]) -> Dict[str, SavedRun]:
-    """
-    A unique short label per run: the model, then the spec fields the runs differ in where
-    the model alone does not tell them apart.
-    """
     specs = [run.spec.to_dict() for run in runs]
     differing = [field for field in specs[0] if field != "model" and len({str(spec[field]) for spec in specs}) > 1]
     models = [spec["model"] for spec in specs]
@@ -80,19 +74,8 @@ def load_runs(
     datasets_dir: Union[str, Path] = paths.DATASETS_DIR, topics_dir: Union[str, Path] = paths.TOPICS_DIR,
 ) -> RunSet:
     """
-    Read the named runs of a store's topic.
-
-    Args:
-        store: the topic's results.
-        texts: per run, its stem or any text only one stem contains; or label -> such a
-            text, and the runs are called by those labels instead of by their models.
-        styled: draw with the topic's `plot.json`.
-        weighted: as `load_run` takes it.
-        datasets_dir, topics_dir: where the runs' datasets and topic are declared.
-
-    Raises:
-        ValueError: on no run named, a run named twice, or whatever `find_stem` and
-            `load_run` refuse.
+    `texts` is per run its stem or any text only one stem contains; or label -> such a text,
+    and the runs are called by those labels instead of by their models.
     """
     given = list(texts) if isinstance(texts, Mapping) else None
     stems = [find_stem(store, text) for text in (texts.values() if given else texts)]
@@ -113,7 +96,6 @@ def comparison_output(store: ResultStore, name: str, runs: RunSet, save: bool = 
 
 
 def describe(runs: RunSet) -> str:
-    """What was loaded, a line per run, and the polls."""
     width = max(len(label) for label in runs.runs)
     lines = [f"  {label:<{width}}  {len(run.subjects)} subjects, {len(run.results)} answers  {run.stem}" for label, run in runs.runs.items()]
     return "\n".join([f"{runs.topic.name}: {len(runs.runs)} runs", *lines, f"  claimed: {', '.join(runs.claimed) or 'none'}", f"  polls: {', '.join(runs.polls.index) or 'none'}"])

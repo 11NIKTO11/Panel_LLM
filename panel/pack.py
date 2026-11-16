@@ -69,22 +69,8 @@ def pack(
     datasets_dir: Union[str, Path] = paths.DATASETS_DIR, topics_dir: Union[str, Path] = paths.TOPICS_DIR,
 ) -> Path:
     """
-    Write one run's pack.
-
-    Args:
-        store: the topic's results.
-        stem: the run.
-        to: the folder of packs; the pack is `<to>/<topic>/<stem>/`.
-        derive: run every analysis over the run and write its tables and figures into the
-            pack's `run/`, over the copies of those saved with the run.
-
-    Returns:
-        the pack's folder.
-
-    Raises:
-        FileNotFoundError: if the run has no record.
-        FileExistsError: if the pack's folder exists; a pack is never written over.
-        ValueError: if a file the run was built from is not the one its record gives the hash of.
+    The pack's folder, `<to>/<topic>/<stem>/`. `derive` runs every analysis over the run and writes its
+    tables and figures into the pack's `run/`, over the copies of those saved with the run.
     """
     record = store.record(stem)
     spec = RunSpec.from_dict(record["spec"])

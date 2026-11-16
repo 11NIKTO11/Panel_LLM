@@ -33,24 +33,10 @@ class NotApplicable(Exception):
 @dataclass(frozen=True)
 class SavedRun:
     """
-    Attributes:
-        stem: the run's name in its topic's results folder.
-        spec: what the run was declared as.
-        record: the whole run record.
-        topic: the topic it answered.
-        dataset: the dataset its subjects came from.
-        results: one row per call as saved, indexed by subject id: `repeat` if the run
-            repeats, then the topic's columns.
-        normalized: the same rows with each column group rescaled to sum to 1.
-        subjects: the dataset's values for the run's subjects, one row per subject, in the order of `results`.
-        values: the dataset's whole values table.
-        claims: the dataset's answers to the topic sorted by meaning, or None if it has none.
-        reference: the topic's real-world results indexed by area, or None if it has none.
-        style: the topic's colours and short labels for figures; empty when it has none or
-            none was asked for.
-        positions: where experts place the topic's options, or None if it has none.
-        weighted: a predicted distribution weights each answer's option shares by its
-            probability of voting; off, every answer with a preference counts the same.
+    `results` and `normalized` hold `repeat` before the topic's columns if the run repeats;
+    `subjects` is in the order of `results`. `style` is empty when the topic has none or none was
+    asked for. `weighted`: a predicted distribution weights each answer's option shares by its
+    probability of voting; off, every answer with a preference counts the same.
     """
     stem: str
     spec: RunSpec
@@ -78,7 +64,6 @@ class SavedRun:
 
     @property
     def title(self) -> str:
-        """What the run's figures are headed: the model and the topic."""
         return f"{self.spec.model} on {self.topic.name}"
 
     @property
@@ -88,12 +73,7 @@ class SavedRun:
 
 
 def find_stem(store: ResultStore, text: str) -> str:
-    """
-    The one saved run whose stem is `text` or contains it.
-
-    Raises:
-        ValueError: if no stem or more than one contains it.
-    """
+    """The one saved run whose stem is `text` or contains it."""
     stems = store.runs()
     if text in stems:
         return text
@@ -107,23 +87,7 @@ def load_run(
     store: ResultStore, stem: str, styled: bool = True, weighted: bool = True,
     datasets_dir: Union[str, Path] = paths.DATASETS_DIR, topics_dir: Union[str, Path] = paths.TOPICS_DIR,
 ) -> SavedRun:
-    """
-    Read one saved run and what it is compared against.
-
-    Args:
-        store: the topic's results.
-        stem: the run.
-        styled: draw with the topic's `plot.json`; off, figures use their own palette and the
-            native names.
-        weighted: weight each answer's option shares by its probability of voting when
-            they are summed into a predicted distribution.
-        datasets_dir, topics_dir: where the run's dataset and topic are declared.
-
-    Raises:
-        FileNotFoundError: if the run, its normalized table or the dataset's values are missing.
-        ValueError: on values rebuilt since the run was sent, saved rows that
-            are not the subjects the record lists, or a subject's area missing from the reference.
-    """
+    """`styled` draws with the topic's `plot.json`; off, figures use their own palette and the native names."""
     record = store.record(stem)
     spec = RunSpec.from_dict(record["spec"])
     topic, dataset = load_topic(spec.topic, topics_dir), load_dataset(spec.dataset, datasets_dir)

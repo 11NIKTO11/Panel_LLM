@@ -37,7 +37,6 @@ def probabilities():
 
 
 def answer(model) -> dict:
-    """One valid answer of a response model."""
     label = next(iter(model.LABELS))
     found = {"voted_or_not": {"voted": 0.7, "not_voted": 0.3}} if model.TURNOUT else {}
     return {**found, **({"options": [{"name": label, "probability": 1.0}]} if "options" in model.model_fields else {"choice": label})}

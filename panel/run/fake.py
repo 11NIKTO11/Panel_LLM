@@ -20,11 +20,7 @@ class FakeClient(BaseLLMClient):
     SHORT_NAME = "Fake"
 
     def __init__(self, api_key: Union[str, None] = None, fail_calls: int = 0):
-        """
-        Args:
-            api_key: ignored; present so every client constructs the same way.
-            fail_calls: how many times each prompt fails before it is answered.
-        """
+        """`api_key` is ignored; present so every client constructs the same way."""
         self.fail_calls = fail_calls
         self._seen: Counter = Counter()
         self._lock = threading.Lock()
@@ -37,11 +33,6 @@ class FakeClient(BaseLLMClient):
         temperature: Union[float, None],
         instructions: Union[str, None] = None,
     ) -> BaseModel:
-        """
-        Raises:
-            ValueError: for the first `fail_calls` calls on each prompt.
-            TypeError: if `response_format` was not built by `make_response_models`.
-        """
         with self._lock:
             self._seen[prompt] += 1
             attempt = self._seen[prompt]
