@@ -1,9 +1,9 @@
 import os
-from typing import Type, Union
+from typing import Tuple, Type, Union
 
 from pydantic import BaseModel
 
-from .base import BaseLLMClient
+from .base import BaseLLMClient, ordered_efforts
 
 try:
     from anthropic import Anthropic, transform_schema
@@ -49,6 +49,14 @@ class AnthropicClient(BaseLLMClient):
 
     def parameters(self) -> dict:
         return {"max_tokens": self.max_tokens, "effort": self.effort, "api_version": self.API_VERSION, "tools": []}
+
+    def efforts(self, model: str) -> Tuple[str, ...]:
+        """From the Models API's `capabilities.effort`, one `supported` flag per level."""
+        capabilities = self.client.models.retrieve(model).capabilities
+        effort = capabilities.effort.model_dump() if capabilities else {}
+        if not effort.get("supported"):
+            return ()
+        return ordered_efforts(level for level, entry in effort.items() if isinstance(entry, dict) and entry.get("supported"))
 
     def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
         """The schema as the SDK's `messages.parse` rewrites it: closed objects, number bounds moved into the descriptions."""

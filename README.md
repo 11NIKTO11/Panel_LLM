@@ -302,8 +302,11 @@ answers offline and deterministically.
 
 - `Anthropic` takes no temperature (`"temperature": null`); `AnthropicLegacy` pins the API
   version that still accepts one, for Opus 4.6, Sonnet 4.6 and Haiku 4.5.
-- `effort` (`low` .. `max`) is sent by the two Anthropic clients only; any other client
-  refuses a run that sets it. Haiku 4.5 takes none.
+- `effort` (`minimal`, `low`, `medium`, `high`, `xhigh`, `max`) is sent by the two Anthropic
+  clients and by `OpenRouter`; any other client refuses a run that sets it. Which of the levels
+  a model takes is asked of the provider when the run is sent: a level it does not take is
+  refused before the first call, and the record says where the level stood (`high`: 3 of 5).
+  Haiku 4.5 takes none.
 
 ---
 

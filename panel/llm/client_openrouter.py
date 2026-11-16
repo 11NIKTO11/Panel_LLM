@@ -5,17 +5,29 @@ from typing import Tuple, Type, Union
 import requests
 from pydantic import BaseModel
 
-from .base import ANTHROPIC, OPENAI, BaseLLMClient, detect_provider
+from .base import ANTHROPIC, EFFORT_ORDER, OPENAI, BaseLLMClient, detect_provider, ordered_efforts
 from .schema_compat import bounds_as_text, move_ref_descriptions, set_additional_properties_false
 
 
 class OpenRouterClient(BaseLLMClient):
+    """
+    Any provider's model through OpenRouter, which takes one `reasoning.effort` for all of them and
+    turns it into the routed provider's own setting: the same word for OpenAI, the nearest
+    `thinkingLevel` for Gemini, a thinking budget that is a share of `max_tokens` for Claude.
+    It moves a level a model lacks to the nearest one without saying so; `efforts` is how a
+    caller refuses instead.
+    """
     SHORT_NAME = "OpenRouter"
+    TAKES_EFFORT = True
+    EFFORT_MAX_TOKENS = 16000
 
-    def __init__(self, api_key: Union[str, None] = None, timeout: float = 120.0):
+    def __init__(self, api_key: Union[str, None] = None, timeout: float = 120.0, effort: Union[str, None] = None,
+                 max_tokens: Union[int, None] = None):
         """
         Without a `timeout` (seconds) a hung request holds a worker thread of the batch runner's pool
         forever and the batch never finishes; a timeout surfaces as a retryable error instead.
+        `max_tokens` is the most a call may write, thinking included; None sends none, except with an
+        `effort`, where `EFFORT_MAX_TOKENS` is sent so that a budget which is a share of it has a known base.
         """
         key = api_key or os.getenv("OPENROUTER_API_KEY")
         if not key:
@@ -25,10 +37,30 @@ class OpenRouterClient(BaseLLMClient):
             "Content-Type": "application/json",
         }
         self.url = "https://openrouter.ai/api/v1/chat/completions"
+        self.models_url = "https://openrouter.ai/api/v1/models"
         self.timeout = timeout
+        self.effort = effort
+        self.max_tokens = self.EFFORT_MAX_TOKENS if effort and max_tokens is None else max_tokens
 
     def parameters(self) -> dict:
-        return {"timeout": self.timeout, "strict": True}
+        return {"timeout": self.timeout, "strict": True, "effort": self.effort, "max_tokens": self.max_tokens}
+
+    def efforts(self, model: str) -> Tuple[str, ...]:
+        """
+        From the model catalogue's `reasoning.supported_efforts`: no such key is a model without an
+        effort setting, null one that takes every level OpenRouter names.
+        """
+        routed = "/".join(self._route(model))
+        response = requests.get(self.models_url, headers=self.header, timeout=self.timeout)
+        if response.status_code != 200:
+            raise ValueError(f"OpenRouter's model catalogue failed with HTTP {response.status_code}: {response.text[:500]}")
+        found = [entry for entry in response.json()["data"] if entry["id"] == routed]
+        if not found:
+            raise ValueError(f"OpenRouter's model catalogue has no '{routed}'")
+        reasoning = found[0].get("reasoning") or {}
+        if "supported_efforts" not in reasoning:
+            return ()
+        return EFFORT_ORDER if reasoning["supported_efforts"] is None else ordered_efforts(reasoning["supported_efforts"])
 
     def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
                  instructions: Union[str, None] = None) -> BaseModel:
@@ -44,6 +76,8 @@ class OpenRouterClient(BaseLLMClient):
                     [{"role": "system", "content": instructions}] if instructions else []
                 ) + [{"role": "user", "content": prompt}],
                 **({} if temperature is None else {"temperature": temperature}),
+                **({"reasoning": {"effort": self.effort}} if self.effort else {}),
+                **({} if self.max_tokens is None else {"max_tokens": self.max_tokens}),
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {

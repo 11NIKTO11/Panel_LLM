@@ -20,6 +20,7 @@ SOD = RunSpec(dataset="sod", description="default", topic="election_2021", frami
 REPEATED = SOD.variant(sample=5, repeats=3)
 CITIZEN = SOD.variant(dataset="regions", description="citizen", sample=None, repeats=3)
 DIRECT = CITIZEN.variant(description="direct", question=None)
+EFFORT = SOD.variant(client="Anthropic", model="claude-haiku-5-5", temperature=None, effort="low", sample=5)
 FOUR = ("results_csv", "results_json", "normalized_csv", "record")
 PRESETS = paths.CONFIG_DIR / "presets.json"
 
@@ -218,6 +219,52 @@ def test_effort_needs_a_client_that_takes_one():
         prepared(SOD.variant(effort="low"))
     with pytest.raises(ValueError):
         SOD.variant(effort="huge")
+    with pytest.raises(ValueError):
+        SOD.variant(effort="none")
+    assert prepared(SOD.variant(client="OpenRouter", model="gpt-5", effort="minimal")).stem.endswith("_e=minimal_subset=20")
+
+
+class Tiered(FakeClient):
+    """A fake that was built with an effort and reports the levels its model takes."""
+
+    def __init__(self, effort, levels):
+        super().__init__()
+        self.effort, self.levels, self.asked = effort, levels, []
+
+    def efforts(self, model):
+        self.asked.append(model)
+        return self.levels
+
+
+@pytest.mark.parametrize("levels, tier", [
+    (("minimal", "low", "medium", "high"), {"level": "low", "rank": 2, "of": 4, "levels": ["minimal", "low", "medium", "high"]}),
+    (None, {"level": "low", "rank": None, "of": None, "levels": None}),
+], ids=["listed", "no list"])
+def test_the_record_says_where_the_effort_stands(tmp_path, levels, tier):
+    run = prepared(EFFORT)
+    store = ResultStore(tmp_path, EFFORT.topic)
+    client = Tiered("low", levels)
+    execute(run, store, client, max_workers=2)
+    assert store.record(run.stem)["effort"] == tier and client.asked == [EFFORT.model]
+
+
+@pytest.mark.parametrize("built, levels", [("low", ("medium", "high")), ("low", ()), ("high", ("low", "high")), (None, ("low",))],
+                         ids=["not a level", "takes none", "another effort", "no effort"])
+def test_an_effort_the_model_does_not_take_is_refused_before_any_call(tmp_path, built, levels):
+    run = prepared(EFFORT)
+    store = ResultStore(tmp_path, EFFORT.topic)
+    client = Tiered(built, levels)
+    with pytest.raises(ValueError, match="effort"):
+        execute(run, store, client, max_workers=2)
+    assert not client._seen and not store.runs()
+
+
+def test_a_run_without_an_effort_asks_nothing(tmp_path):
+    run = prepared(SOD.variant(sample=5))
+    store = ResultStore(tmp_path, SOD.topic)
+    client = Tiered(None, ("low",))
+    execute(run, store, client, max_workers=2)
+    assert store.record(run.stem)["effort"] is None and client.asked == []
 
 
 def test_registry():

@@ -10,8 +10,11 @@ sending the calls and saving what comes back is `panel.run.execute`.
 from dataclasses import asdict, dataclass, replace
 from typing import Any, Dict, Union
 
+from panel.llm import EFFORT_ORDER
+
 SHAPES = ("Prob", "Pick")
-EFFORTS = ("low", "medium", "high", "xhigh", "max")
+# `none` is a provider's word for no reasoning; here it already stands for "set no effort" (presets.NONE).
+EFFORTS = tuple(level for level in EFFORT_ORDER if level != "none")
 
 
 @dataclass(frozen=True)
@@ -25,7 +28,8 @@ class RunSpec:
     client: by its short name (`OpenRouter`, `OpenAI`, `Fake`, ...).
     shape: `Prob` (a distribution) or `Pick` (one choice).
     temperature: None sends none, for a provider that takes no such setting.
-    effort: None sends none and leaves the model's default; only a client that takes an effort can be given one.
+    effort: None sends none and leaves the model's default; only a client that takes an effort can be given one,
+        and which levels a model takes is asked of the provider when the run is sent (`panel.run.effort`).
     repeats: calls per subject; each becomes its own results row.
     sample: run this many subjects instead of all of them.
     """

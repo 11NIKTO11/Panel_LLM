@@ -6,6 +6,7 @@ capped rerun rounds over the skipped calls, then a refusal if any remain - and t
 """
 from panel.llm import BaseLLMClient, run_llm_batch
 
+from .effort import effort_tier
 from .resolve import Resolved
 from .store import ResultStore, RunPaths
 
@@ -21,13 +22,14 @@ def execute(
 ) -> RunPaths:
     """
     Refused before any call is made: a stem that holds a run of a different spec or one brought in
-    (`FileExistsError`), a store of another topic, a client that cannot say what schema it sends
-    (`ValueError`). Returns the plain paths; an archived copy is written beside them.
+    (`FileExistsError`), a store of another topic, a client that cannot say what schema it sends,
+    an effort the model does not take (`ValueError`). Returns the plain paths; an archived copy is written beside them.
     """
     calls = resolved.calls
     spec = resolved.spec
     store.refuse(resolved, overwrite)
     client.schema_sent(spec.model, resolved.response_model)
+    effort = effort_tier(client, spec)
     settings = dict(
         prompt_creator=resolved.prompt, response_model=resolved.response_model, model=spec.model,
         temperature=spec.temperature, client=client, instructions=resolved.framing.instructions,
@@ -43,4 +45,4 @@ def execute(
         raise RuntimeError(
             f"{len(skipped)} of {len(calls)} calls unprocessed after {rounds} rerun rounds, e.g. calls {skipped[:10]}"
         )
-    return store.save(resolved, results, client, overwrite=overwrite)
+    return store.save(resolved, results, client, overwrite=overwrite, effort=effort)

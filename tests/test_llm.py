@@ -3,7 +3,8 @@ The clients, offline: what a call sends and what it refuses, with the SDK's HTTP
 replaced by a stand-in - no request leaves the machine.
 
 The Anthropic clients are checked on the request as it leaves the SDK: every field of the
-body, and that the schema in it says everything the framing says.
+body, and that the schema in it says everything the framing says. OpenRouter's requests are
+checked where they are handed to `requests`.
 """
 import json
 from dataclasses import asdict
@@ -12,6 +13,7 @@ import httpx2
 import pytest
 from anthropic import Anthropic, DefaultHttpxClient
 
+from panel.llm import client_openrouter, ordered_efforts
 from panel.llm.client_anthropic import AnthropicClient, AnthropicLegacyClient
 from panel.llm.client_openrouter import OpenRouterClient
 from panel.llm.schema_compat import bounds_as_text, move_ref_descriptions
@@ -160,6 +162,79 @@ def test_a_call_that_used_a_server_tool_fails(probabilities):
         client.call_llm("claude-test", "prompt", model, None)
     answering(client, model, server_tool_use={"web_search_requests": 0})
     assert client.call_llm("claude-test", "prompt", model, None).voted_or_not.voted == 0.7
+
+
+@pytest.mark.parametrize("kind", [AnthropicClient, AnthropicLegacyClient])
+@pytest.mark.parametrize("effort, levels", [
+    ({"supported": True, "max": {"supported": True}, "low": {"supported": True}, "medium": {"supported": True},
+      "high": {"supported": True}, "xhigh": {"supported": False}}, ("low", "medium", "high", "max")),
+    ({"supported": False, "low": {"supported": False}, "medium": {"supported": False}, "high": {"supported": False},
+      "max": {"supported": False}, "xhigh": None}, ()),
+], ids=["some", "none"])
+def test_anthropic_reports_the_efforts_a_model_takes(kind, effort, levels):
+    asked = []
+
+    def reply(request):
+        asked.append((request.method, request.url.path))
+        return httpx2.Response(200, json={"id": "claude-test", "type": "model", "display_name": "Test", "created_at": "2026-01-01T00:00:00Z", "capabilities": {"effort": effort}})
+
+    client = kind(api_key="test")
+    client.client = Anthropic(api_key="test", http_client=DefaultHttpxClient(transport=httpx2.MockTransport(reply)))
+    assert client.efforts("claude-test") == levels and asked == [("GET", "/v1/models/claude-test")]
+
+
+class Reply:
+    """What `requests` hands back, as far as the OpenRouter client reads it."""
+
+    def __init__(self, payload: dict, status_code: int = 200):
+        self.payload, self.status_code, self.text = payload, status_code, json.dumps(payload)
+
+    def json(self) -> dict:
+        return self.payload
+
+
+CATALOGUE = {"data": [
+    {"id": "openai/gpt-5", "reasoning": {"mandatory": True, "supported_efforts": ["high", "medium", "low", "minimal"]}},
+    {"id": "openai/gpt-4o"},
+    {"id": "anthropic/claude-sonnet-4.5", "reasoning": {"mandatory": False}},
+    {"id": "google/any-level", "reasoning": {"supported_efforts": None}},
+    {"id": "google/new-level", "reasoning": {"supported_efforts": ["high", "ultra"]}},
+]}
+
+
+def test_openrouter_reports_the_efforts_a_model_takes(monkeypatch):
+    monkeypatch.setattr(client_openrouter.requests, "get", lambda url, **kwargs: Reply(CATALOGUE))
+    client = OpenRouterClient(api_key="test")
+    assert client.efforts("gpt-5") == ("minimal", "low", "medium", "high")
+    assert client.efforts("gpt-4o") == () and client.efforts("claude-sonnet-4-5") == ()
+    assert client.efforts("google/any-level") == ("none", "minimal", "low", "medium", "high", "xhigh", "max")
+    with pytest.raises(ValueError, match="ultra"):
+        client.efforts("google/new-level")
+    with pytest.raises(ValueError, match="no 'google/nobody'"):
+        client.efforts("google/nobody")
+    assert ordered_efforts(["max", "low"]) == ("low", "max")
+
+
+@pytest.mark.parametrize("settings, sent, reported", [
+    ({}, {}, {"effort": None, "max_tokens": None}),
+    ({"effort": "low"}, {"reasoning": {"effort": "low"}, "max_tokens": 16000}, {"effort": "low", "max_tokens": 16000}),
+    ({"effort": "high", "max_tokens": 4000}, {"reasoning": {"effort": "high"}, "max_tokens": 4000}, {"effort": "high", "max_tokens": 4000}),
+    ({"max_tokens": 4000}, {"max_tokens": 4000}, {"effort": None, "max_tokens": 4000}),
+], ids=["plain", "effort", "effort and limit", "limit"])
+def test_openrouter_sends_the_effort_it_was_built_with(monkeypatch, probabilities, settings, sent, reported):
+    model, _ = probabilities
+    bodies = []
+
+    def post(url, **request):
+        bodies.append(request["json"])
+        return Reply({"model": "openai/gpt-5", "choices": [{"message": {"content": json.dumps(answer(model))}}]})
+
+    monkeypatch.setattr(client_openrouter.requests, "post", post)
+    client = OpenRouterClient(api_key="test", **settings)
+    client.call_llm("gpt-5", PROMPT, model, None, instructions=SYSTEM)
+    body = bodies[0]
+    assert {key: body[key] for key in body if key in ("reasoning", "max_tokens", "temperature")} == sent
+    assert client.parameters() == {"timeout": 120.0, "strict": True, **reported}
 
 
 @pytest.mark.parametrize(("topic_name", "framing_name"), FRAMINGS, ids=[f"{topic}/{framing}" for topic, framing in FRAMINGS])

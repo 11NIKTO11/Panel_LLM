@@ -51,10 +51,14 @@ def versions() -> Dict[str, str]:
     return out
 
 
-def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[BaseLLMClient, None]) -> Dict[str, Any]:
+def build_record(
+    resolved: Resolved, n: int, saved_at: datetime, client: Union[BaseLLMClient, None],
+    effort: Union[Dict[str, Any], None] = None,
+) -> Dict[str, Any]:
     """
     `n` is how many calls came back. `client` gives its parameters, the model id the provider reported and
-    the schema as it sends it; `response_schema` is the one the run generated.
+    the schema as it sends it; `response_schema` is the one the run generated. `effort` is where the run's
+    effort stood among the model's levels on the day (`panel.run.effort`), None for a run without one.
     """
     spec, dataset, description, framing = resolved.spec, resolved.dataset, resolved.description, resolved.framing
     question = resolved.question
@@ -86,6 +90,7 @@ def build_record(resolved: Resolved, n: int, saved_at: datetime, client: Union[B
         "response_schema": resolved.response_model.model_json_schema(),
         "response_schema_sent": client.schema_sent(spec.model, resolved.response_model) if client else None,
         "client_parameters": client.parameters() if client else None,
+        "effort": effort,
         "model_resolved": getattr(client, "last_model", None) if client else None,
         **git_state(),
         "versions": versions(),

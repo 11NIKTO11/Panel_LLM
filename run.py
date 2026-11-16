@@ -3,7 +3,8 @@ Send a run from the command line: the base run of config/presets.json with prese
 
 Later replaces earlier: base, `-d`, `-m`, single fields. Every field of a run is an option;
 `none` stands for no value (`--temperature none`). Anything but the Fake client asks before
-sending. Writes under `results/<topic>/`, then prints a check of what was saved.
+sending. A run with an effort first asks the provider which levels the model takes, and is
+refused if its own is not one of them. Writes under `results/<topic>/`, then prints a check of what was saved.
 """
 import argparse
 
@@ -12,6 +13,7 @@ from dotenv import load_dotenv
 from panel import paths
 from panel.run import Resolved, ResultStore, execute, resolve
 from panel.run.check import check, means, report
+from panel.run.effort import effort_tier
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
 
@@ -66,6 +68,9 @@ def main() -> None:
         return
     load_dotenv()
     client = run.client_type(**({"effort": spec.effort} if spec.effort else {}))
+    tier = effort_tier(client, spec)
+    if tier:
+        print(f"effort {tier['level']}" + (f": {tier['rank']} of {tier['of']} ({', '.join(tier['levels'])})" if tier["levels"] else ": the provider lists no levels"))
     if args.one:
         print(client.call_llm(spec.model, run.prompt(subject), run.response_model, spec.temperature, run.framing.instructions))
         return

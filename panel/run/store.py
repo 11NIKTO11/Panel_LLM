@@ -177,9 +177,11 @@ class ResultStore:
         results: Dict[int, Tuple[str, BaseModel]],
         client: Union[BaseLLMClient, None] = None,
         overwrite: bool = False,
+        effort: Union[Dict[str, Any], None] = None,
     ) -> RunPaths:
         """
         `results` is {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`; returns the plain paths.
+        `effort` is `panel.run.effort.effort_tier`'s answer from before the calls, for the record.
 
         The archived copy is what keeps an overwritten run recoverable; it holds the CSV and the record
         only, because the raw JSON and the normalized CSV are reconstructions of the CSV. The plain set is
@@ -191,7 +193,7 @@ class ResultStore:
 
         now = datetime.now()
         frame = _results_frame(results, resolved)
-        record = json.dumps(build_record(resolved, len(results), now, client), ensure_ascii=False, indent=4)
+        record = json.dumps(build_record(resolved, len(results), now, client, effort), ensure_ascii=False, indent=4)
         for paths in (self.paths(stem, now.strftime("%Y-%m-%d-%H-%M-%S")), plain):
             paths.results_csv.parent.mkdir(parents=True, exist_ok=True)
             frame.to_csv(paths.results_csv, index=True, encoding="utf-8")
