@@ -10,6 +10,7 @@ from panel.run import ResultStore, RunSpec, execute, resolve
 from panel.run.check import MEAN, TOP, check, means, report
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
+from panel.run.record import KEPT
 from panel.run.registry import client_class
 
 from tests.conftest import TOPICS_DIR, require
@@ -133,6 +134,16 @@ def test_store_collision(tmp_path):
         execute(other, store, FakeClient(), max_workers=4)
     execute(other, store, FakeClient(), max_workers=4, overwrite=True)
     assert RunSpec.from_dict(store.record(other.stem)["spec"]).random_state == 7
+
+
+@pytest.mark.parametrize("block", KEPT)
+def test_a_run_brought_in_is_never_saved_over(tmp_path, block):
+    store = ResultStore(tmp_path, SOD.topic)
+    run = prepared(SOD)
+    record = execute(run, store, FakeClient(), max_workers=4).record
+    record.write_text(json.dumps({**json.loads(record.read_text(encoding="utf-8")), block: {}}), encoding="utf-8")
+    with pytest.raises(FileExistsError):
+        execute(run, store, FakeClient(fail_calls=len(run.calls)), max_workers=4, overwrite=True)
 
 
 def test_store_refuses_another_topic(tmp_path):

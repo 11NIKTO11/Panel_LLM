@@ -18,12 +18,10 @@ comparison, with the runs it was made from.
     |   |-- analysis/               tables derived from the run: <statistic>.csv
     |   |-- plots/                  figures derived from the run: <name>.png
     |   `-- delivered/              for a run kept only as a table: the table as delivered
-    |-- comparisons/<name>/
-    |   |-- runs.json               label -> stem: the runs this comparison was made from
-    |   |-- analysis/               <statistic>.csv
-    |   `-- plots/                  <name>.png
-    |-- preferences/                pre-RunSpec tables that map to no run, with their figures
-    `-- <name>_claimed_votes.csv    topic-level reference series (legacy)
+    `-- comparisons/<name>/
+        |-- runs.json               label -> stem: the runs this comparison was made from
+        |-- analysis/               <statistic>.csv
+        `-- plots/                  <name>.png
 
 One folder per topic: runs on different topics answer with different vocabularies and cannot
 be compared or concatenated. The dataset stays in the stem rather than becoming a folder - two
@@ -43,7 +41,7 @@ from panel.digest import recorded
 from panel.llm import BaseLLMClient
 from panel.topic.normalize import normalize_groups
 
-from .record import build_record
+from .record import KEPT, build_record
 from .resolve import REPEAT, SUBJECT, Resolved
 
 PROMPT = "Prompt"
@@ -177,6 +175,31 @@ class ResultStore:
             parsed[(int(subject), int(repeat or 1))] = (item["prompt"], response_model.model_validate(item["result"]))
         return parsed
 
+    def refuse(self, resolved: Resolved, overwrite: bool = False) -> None:
+        """
+        Raise if `resolved` may not be saved here; `execute` asks before any call is made.
+
+        A run brought in rather than sent - its record has a `migrated` or a `delivered` block -
+        has no archived copy and is never saved over, whatever `overwrite` says.
+
+        Raises:
+            ValueError: if the run's topic is not this store's topic.
+            FileExistsError: if the stem holds a run that was brought in, or a run of a
+                different spec and `overwrite` is False.
+        """
+        if resolved.topic.name != self.topic:
+            raise ValueError(f"run topic '{resolved.topic.name}' does not match store topic '{self.topic}'")
+        stem = resolved.stem
+        record = self.paths(stem).record
+        if not record.exists():
+            return
+        existing = json.loads(record.read_text(encoding="utf-8"))
+        kept = [block for block in KEPT if block in existing]
+        if kept:
+            raise FileExistsError(f"'{stem}' holds a run that was brought in ({', '.join(kept)}), which is never saved over")
+        if not overwrite and existing.get("spec") != resolved.spec.to_dict():
+            raise FileExistsError(f"'{stem}' already holds a run of a different spec; pass overwrite=True to replace it")
+
     def save(
         self,
         resolved: Resolved,
@@ -205,16 +228,12 @@ class ResultStore:
 
         Raises:
             ValueError: if the run's topic is not this store's topic.
-            FileExistsError: if the stem holds a run of a different spec and `overwrite` is False.
+            FileExistsError: if the stem holds a run that was brought in, or a run of a
+                different spec and `overwrite` is False.
         """
-        if resolved.topic.name != self.topic:
-            raise ValueError(f"run topic '{resolved.topic.name}' does not match store topic '{self.topic}'")
+        self.refuse(resolved, overwrite)
         stem = resolved.stem
         plain = self.paths(stem)
-        if plain.record.exists() and not overwrite:
-            existing = json.loads(plain.record.read_text(encoding="utf-8")).get("spec")
-            if existing != resolved.spec.to_dict():
-                raise FileExistsError(f"'{stem}' already holds a run of a different spec; pass overwrite=True to replace it")
 
         now = datetime.now()
         frame = _results_frame(results, resolved)

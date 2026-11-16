@@ -37,11 +37,13 @@ def execute(
     Raises:
         RuntimeError: if calls are still unprocessed after the rerun rounds.
         ValueError: if the client cannot say what schema it sends, before any call is made.
-        FileExistsError: if the stem already holds a run of a different spec.
-        ValueError: if the store belongs to another topic.
+        FileExistsError: if the stem already holds a run of a different spec, or one that was
+            brought in (`migrated`, `delivered`) - before any call is made.
+        ValueError: if the store belongs to another topic, before any call is made.
     """
     calls = resolved.calls
     spec = resolved.spec
+    store.refuse(resolved, overwrite)
     client.schema_sent(spec.model, resolved.response_model)
     settings = dict(
         prompt_creator=resolved.prompt, response_model=resolved.response_model, model=spec.model,

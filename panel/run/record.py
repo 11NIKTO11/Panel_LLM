@@ -27,6 +27,8 @@ from .resolve import Resolved
 
 SDKS = ("openai", "anthropic", "google-genai", "requests")
 DELIVERED = "delivered"
+MIGRATED = "migrated"
+KEPT = (MIGRATED, DELIVERED)
 
 
 def _git(*args: str) -> str:
