@@ -39,3 +39,24 @@ in `DECISIONS.md`; an entry leaves this file when it is done or dropped, with a 
 - **Where it would be set up: the framing** (Martin, 2026-11-17) - what an answer is the result of, and
   so how answers combine, is said where the question is framed. How, structurally, is NOT discussed yet
 - `answers` still averages over the areas; `effects` skips them for being too few
+
+## Hashes of tracked files change with the checkout (found 2026-11-17, NOT fixed)
+
+- **Seen:** 4 of 312 tests fail, all in `tests/test_pack.py`; `python pack.py election_2021` on
+  `regions_citizen_cs-legacy_legacy_OpenAI_gpt-4o_Prob_t=0.0_x10` is refused the same way:
+  "built from other files than today's `datasets/regions/forms.json`"
+- **Cause, seen:** line endings, not content. `core.autocrlf` is `true` on this machine; the file is LF
+  in git and CRLF on disk since the checkout of `main`. Its sha256 with LF is the one in the run's
+  record (`81fc9b9d...`); on disk it is `724f6db4...`
+- **Reach, read not tried:** every tracked file a record hashes - `forms.json` of each dataset, and the
+  tracked `prepared/values.csv` and `prepared/prompts/` of `regions` and the grids (`values.csv` of
+  `regions` is CRLF on disk too). `load_run` checks the values digest, so those runs may refuse to
+  load, and prepare's guard (`DECISIONS.md` §20) may see a changed table. `sod` is not tracked and
+  not touched
+- **Ways to fix, none chosen**
+  - a `.gitattributes` that keeps these files byte for byte (`*.json -text`, `*.csv -text`), then one
+    fresh checkout of them; the records stay true
+  - or hash with line endings normalised (`panel/run/store.py`, where the digests are named) - then
+    the records of today are still right, but a digest no longer is the file's sha256, and `pack.py`'s
+    `MANIFEST.json` must follow
+- before the full Claude runs: a run recorded now, on CRLF files, carries CRLF hashes
