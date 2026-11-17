@@ -224,6 +224,45 @@ def test_a_run_with_a_call_missing_is_saved_as_incomplete(tmp_path):
     assert store.runs() == [run.stem, stem] and "incomplete" not in store.record(run.stem)
 
 
+def test_missing_sends_only_what_the_incomplete_run_lacks(tmp_path):
+    run = prepared(SOD)
+    store = ResultStore(tmp_path, SOD.topic)
+    with pytest.raises(FileNotFoundError):
+        execute(run, store, FakeClient(), max_workers=1, missing=True)
+    with pytest.raises(BatchFailed):
+        execute(run, store, Broke(paid=7), max_workers=1)
+    partial = store.record(run.stem + store.INCOMPLETE)
+
+    with pytest.raises(BatchFailed):
+        execute(run, store, Broke(paid=5), max_workers=1, missing=True)
+    again = store.record(run.stem + store.INCOMPLETE)
+    assert again["n"] == 12 and again["resumed"]["answers"] == 7 and store.runs() == [run.stem + store.INCOMPLETE]
+
+    client = FakeClient()
+    execute(run, store, client, max_workers=1, missing=True)
+    record = store.record(run.stem)
+    assert sum(client._seen.values()) == 8 and record["n"] == 20 and "incomplete" not in record
+    assert record["resumed"] == {"answers": 12, "saved_at": again["saved_at"], "model_resolved": again["model_resolved"]}
+    assert partial["saved_at"] <= again["saved_at"]
+
+    whole = ResultStore(tmp_path / "whole", SOD.topic)
+    execute(run, whole, FakeClient(), max_workers=1)
+    assert store.raw(run.stem) == whole.raw(run.stem) and store.frame(run.stem).equals(whole.frame(run.stem))
+    assert check(store, run.stem, run.topic, run.framing).same_calls
+
+
+def test_missing_refuses_another_run(tmp_path):
+    run = prepared(BOUNDED)
+    store = ResultStore(tmp_path, BOUNDED.topic)
+    with pytest.raises(BatchFailed):
+        execute(run, store, Broke(paid=2), max_workers=1)
+    with pytest.raises(ValueError, match="different spec"):
+        execute(prepared(BOUNDED.variant(sum_low=0.9)), store, FakeClient(), max_workers=1, missing=True)
+    kept = Altered(scaled(0.5), subjects=5)
+    execute(run, store, kept, max_workers=1, missing=True)
+    assert len(store.record(run.stem)["faulty"]) == 3
+
+
 class Broke(FakeClient):
     """A fake that runs out of credit after a number of calls."""
 

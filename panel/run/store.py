@@ -173,6 +173,28 @@ class ResultStore:
         if not overwrite and existing.get("spec") != resolved.spec.to_dict():
             raise FileExistsError(f"'{stem}' already holds a run of a different spec; pass overwrite=True to replace it")
 
+    def answered(self, resolved: Resolved) -> Tuple[Dict[int, Tuple[str, BaseModel]], Dict[int, Tuple[str, ...]], Dict[str, Any]]:
+        """
+        The incomplete run of `resolved`, as `save` takes it back: {call: (prompt, parsed)}, {call: reasons}
+        for the answers kept though flawed, and its record. Raises unless it is the same run - the same spec,
+        built from the same files, every saved prompt the one that call would send today.
+        """
+        stem = resolved.stem + self.INCOMPLETE
+        record = self.record(stem)
+        if record["spec"] != resolved.spec.to_dict():
+            raise ValueError(f"'{stem}' is a run of a different spec")
+        if recorded(record["dataset"]) != resolved.digests:
+            raise ValueError(f"'{stem}' was built from other files than the dataset holds today")
+        calls = resolved.calls
+        by_key = {_key(calls, call, resolved.spec.repeats): call for call in calls.index}
+        results = {}
+        for key, item in self.raw(stem).items():
+            if key not in by_key or item["prompt"] != resolved.prompt(calls.loc[by_key[key]]):
+                raise ValueError(f"'{stem}': the saved answer '{key}' is not to a call of this run")
+            results[by_key[key]] = (item["prompt"], resolved.response_model.model_validate(item["result"]))
+        flawed = {by_key[key]: tuple(reasons) for key, reasons in record.get("faulty", {}).items()}
+        return results, flawed, record
+
     def save(
         self,
         resolved: Resolved,
@@ -181,11 +203,13 @@ class ResultStore:
         overwrite: bool = False,
         effort: Union[Dict[str, Any], None] = None,
         flawed: Union[Mapping[int, Tuple[str, ...]], None] = None,
+        resumed: Union[Dict[str, Any], None] = None,
     ) -> RunPaths:
         """
         `results` is {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`; returns the plain paths.
         `effort` is `panel.run.effort.effort_tier`'s answer from before the calls, for the record;
-        `flawed` is {call: reasons} for the results kept though flawed.
+        `flawed` is {call: reasons} for the results kept though flawed; `resumed` says which of the
+        results an earlier, incomplete sending gave (`execute`), for the record.
 
         Results that are not all of the run's calls are saved under `<stem>_incomplete`, with the
         calls missing in the record, so that a run's own folder only ever holds the whole run.
@@ -204,6 +228,8 @@ class ResultStore:
         now = datetime.now()
         frame = _results_frame(results, resolved)
         built = build_record(resolved, len(results), now, client, effort, faulty)
+        if resumed:
+            built["resumed"] = resumed
         if missing:
             built.update(stem=stem, incomplete=True, missing=missing)
         record = json.dumps(built, ensure_ascii=False, indent=4)

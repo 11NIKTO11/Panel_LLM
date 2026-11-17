@@ -26,8 +26,13 @@ def execute(
     retries: int = 3,
     rerun_rounds: int = 5,
     overwrite: bool = False,
+    missing: bool = False,
 ) -> RunPaths:
     """
+    `missing` sends only the calls the run's incomplete sending (`<stem>_incomplete`) lacks and saves
+    the whole under the stem; the record's `resumed` block says how many answers are the earlier ones
+    and when and by which model version they were given. Without such a run it raises `FileNotFoundError`.
+
     Refused before any call is made: a stem that holds a run of a different spec or one brought in
     (`FileExistsError`), a store of another topic, a client that cannot say what schema it sends,
     an effort the model does not take (`ValueError`). Returns the plain paths; an archived copy is written beside them.
@@ -47,7 +52,11 @@ def execute(
         temperature=spec.temperature, client=client, instructions=resolved.framing.instructions,
         review=partial(judge, low=spec.sum_low, high=spec.sum_high), max_workers=max_workers, retries=retries,
     )
-    results, flawed, skipped, stopped = {}, {}, list(calls.index), None
+    results, flawed, resumed = {}, {}, None
+    if missing:
+        results, flawed, earlier = store.answered(resolved)
+        resumed = {"answers": len(results), "saved_at": earlier["saved_at"], "model_resolved": earlier.get("model_resolved")}
+    skipped, stopped = [call for call in calls.index if call not in results], None
     rounds, before = -1, -1
     while skipped and len(skipped) != before and rounds < rerun_rounds:
         before, rounds = (len(skipped) if rounds >= 0 else -1), rounds + 1
@@ -59,7 +68,7 @@ def execute(
         flawed.update(more_flawed)
         if stopped:
             break
-    written = store.save(resolved, results, client, overwrite=overwrite, effort=effort, flawed=flawed) if results else None
+    written = store.save(resolved, results, client, overwrite=overwrite, effort=effort, flawed=flawed, resumed=resumed) if results else None
     kept = f"what came back is saved as '{written.stem}'" if written else "nothing came back, nothing is saved"
     if stopped:
         print(f"the run stopped with {len(results)} of {len(calls)} answers; {kept}")

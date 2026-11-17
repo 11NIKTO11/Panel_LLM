@@ -1594,8 +1594,27 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - `run_llm_batch` takes `review` and returns `(results, flawed, skipped)`; `Flaw` is the
   package's word for what a review found
 - not done:
-  - `run.py ... --missing`: send only the missing calls of an incomplete run and save the
-    whole under the stem. Until then an incomplete run is sent again in full
+  - (done, §38) `run.py ... --missing`: send only the missing calls of an incomplete run
   - `run.py --check` does not find the `_incomplete` folder; `check(store, stem + "_incomplete", ...)` does
   - which of the saved runs hold answers that would now be flawed is not counted
   - no live call
+
+## 38. `--missing` completes an incomplete run (2026-11-17)
+
+- **`python run.py <the run's options> --missing`** (`execute(..., missing=True)`) sends only
+  the calls `<stem>_incomplete` lacks and saves the whole run under the stem
+  - `ResultStore.answered(resolved)` reads the incomplete run back as results. It raises
+    unless it is the same run: the same spec (the bounds included), built from files with
+    the same digests, every saved prompt the one that call would send today
+  - the answers kept though flawed stay kept and marked; they are not sent again
+  - still incomplete afterwards - stopped again, or calls still unanswered - it is saved as
+    `<stem>_incomplete` again, with what both sendings gave, so each try can only add
+- **The record says the run was put together**: `"resumed": {answers, saved_at,
+  model_resolved}` - how many answers the earlier sending gave, when, and which model
+  version it reported. `model_resolved` at the top is the later sending's
+  - why: a run completed a week later may hold answers of two model versions; the stem
+    cannot say so
+- the `_incomplete` folder is left where it is once the run is whole; it is deletable
+- checked: a run stopped twice and then completed has the same `results.json` and
+  `results.csv` as the run sent in one go (offline, the fake client)
+- not done: `run.py --check` still does not look at an `_incomplete` folder; no live call
