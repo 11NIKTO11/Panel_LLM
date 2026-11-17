@@ -36,9 +36,12 @@ class BaseLLMClient:
     One structured call per provider. `last_model` is the model id the provider reported for
     the most recent call, when it reports one, so a run record can pin an alias to a version.
     `TAKES_EFFORT` says whether the client is constructed with an `effort`, the level every call sends.
+    `READS_TOKENS` says that the client sends no schema and reads the answer off the token distribution;
+    its `response_format` then has `ANSWERS`, the tokens to look for, and `from_tokens({token: probability})`.
     """
     last_model: Union[str, None] = None
     TAKES_EFFORT: bool = False
+    READS_TOKENS: bool = False
 
     def call_llm(
         self,
@@ -62,6 +65,6 @@ class BaseLLMClient:
         """What every call of this client sends or holds to beside `call_llm`'s arguments; a run record copies it."""
         return {}
 
-    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
-        """The JSON schema a call for `model` sends for `response_format`: the model's own unless a client rewrites it."""
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> Union[dict, None]:
+        """The JSON schema a call for `model` sends for `response_format`: the model's own unless a client rewrites it, None if it sends none."""
         return response_format.model_json_schema()

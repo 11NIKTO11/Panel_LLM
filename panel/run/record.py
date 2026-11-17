@@ -81,7 +81,8 @@ def build_record(
         "framing": {
             "name": framing.name, "short": framing.short, "language": framing.language, "title": framing.title,
             "instructions": framing.instructions, "labels": framing.labels,
-            "schema_text": asdict(framing.schema),
+            "schema_text": framing.schema and asdict(framing.schema),
+            **({"answer": asdict(framing.answer)} if framing.answer else {}),
         },
         "question": question and {
             "name": question.name, "short": question.short, "language": question.language,

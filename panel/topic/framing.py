@@ -10,6 +10,11 @@ The system prompt can depend on what else a run names, and nothing links them: a
 lists the profile's attributes fits one description, one that speaks of probabilities fits
 one response shape. Nothing checks this; a framing that makes such an assumption says so in
 its `note`.
+
+A framing states the answer in one of two ways, and a run sends what it states: `schema`, the
+wording of a structured answer, or `answer`, a menu of one-token answers whose probabilities
+are read off the model's next-token distribution (`DECISIONS.md` §40). The menu is the last
+thing in the prompt.
 """
 import json
 from dataclasses import dataclass
@@ -22,8 +27,11 @@ from panel.config import check_keys, check_short
 from .vocabulary import Topic
 
 FRAMINGS_DIR = "framings"
-REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "labels", "schema"}
-OPTIONAL_KEYS = {"note"}
+REQUIRED_KEYS = {"name", "topic", "language", "short", "title", "instructions", "labels"}
+ANSWER_FORMS = {"schema", "answer"}
+OPTIONAL_KEYS = {"note"} | ANSWER_FORMS
+ANSWER_KEYS = {"tokens", "line"}
+ABSTAIN_KEYS = {"token", "label"}
 TEXT_KEYS = {
     "turnout": {"title", "description", "voted", "not_voted", "field"},
     "option": {"title", "description", "name", "probability"},
@@ -72,12 +80,37 @@ class SchemaText:
 
 
 @dataclass(frozen=True)
+class Abstain:
+    token: str
+    label: str
+
+
+@dataclass(frozen=True)
+class AnswerMenu:
+    """
+    tokens: option id -> the token that stands for it, in the order the menu lists them.
+    abstain: the entry for not having voted, listed last; None for a topic without turnout.
+    line: one menu line, with `{token}` and `{label}`.
+    """
+    tokens: Dict[str, str]
+    abstain: Union[Abstain, None]
+    line: str
+
+    def text(self, labels: Dict[str, str]) -> str:
+        entries = [(token, labels[option]) for option, token in self.tokens.items()]
+        if self.abstain:
+            entries.append((self.abstain.token, self.abstain.label))
+        return "\n".join(self.line.format(token=token, label=label) for token, label in entries)
+
+
+@dataclass(frozen=True)
 class Framing:
     """
     short: the framing's part of a results stem.
     title: human label, for figures and reports.
     instructions: the system prompt; None for a framing whose runs send none.
     labels: option id -> the label the model sees, complete over the topic's options (the native name by default).
+    schema, answer: exactly one is set.
     note: free text; not used by code.
     """
     name: str
@@ -87,8 +120,13 @@ class Framing:
     title: str
     instructions: Union[str, None]
     labels: Dict[str, str]
-    schema: SchemaText
+    schema: Union[SchemaText, None]
+    answer: Union[AnswerMenu, None] = None
     note: str = ""
+
+    @property
+    def menu(self) -> Union[str, None]:
+        return self.answer.text(self.labels) if self.answer else None
 
 
 def framing_names(topic: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
@@ -101,6 +139,36 @@ def _text(config: dict, block: str, path: Path) -> dict:
     if not isinstance(entry, dict) or set(entry) != TEXT_KEYS[block]:
         raise ValueError(f"{path}: schema.{block} needs exactly the keys {sorted(TEXT_KEYS[block])}")
     return entry
+
+
+def _schema(schema: dict, topic: Topic, path: Path) -> SchemaText:
+    blocks = sorted(set(schema) - set(TEXT_KEYS))
+    if blocks:
+        raise ValueError(f"{path}: unknown schema blocks {blocks}")
+    if ("turnout" in schema) != (topic.turnout is not None):
+        raise ValueError(f"{path}: schema.turnout must be present exactly when the topic has turnout")
+    return SchemaText(
+        option=OptionText(**_text(schema, "option", path)),
+        probabilities=ProbabilitiesText(**_text(schema, "probabilities", path)),
+        pick=PickText(**_text(schema, "pick", path)),
+        turnout=TurnoutText(**_text(schema, "turnout", path)) if topic.turnout else None,
+    )
+
+
+def _answer(answer: dict, topic: Topic, path: Path) -> AnswerMenu:
+    """Tokens are compared as a client matches them: case and surrounding space do not tell two apart."""
+    check_keys(answer, ANSWER_KEYS | ({"abstain"} if topic.turnout else set()), set(), f"{path}: answer")
+    tokens = answer["tokens"]
+    if set(tokens) != set(topic.options):
+        raise ValueError(f"{path}: answer.tokens must name exactly the topic's options")
+    abstain = None
+    if topic.turnout:
+        check_keys(answer["abstain"], ABSTAIN_KEYS, set(), f"{path}: answer.abstain")
+        abstain = Abstain(**answer["abstain"])
+    every = [token.strip().casefold() for token in (*tokens.values(), *([abstain.token] if abstain else []))]
+    if not all(every) or len(set(every)) != len(every):
+        raise ValueError(f"{path}: answer tokens must be non-empty and differ by more than case")
+    return AnswerMenu(tokens=dict(tokens), abstain=abstain, line=answer["line"])
 
 
 def load_framing(topic: Topic, name: str) -> Framing:
@@ -120,20 +188,12 @@ def load_framing(topic: Topic, name: str) -> Framing:
     if len(set(labels.values())) != len(labels):
         raise ValueError(f"{path}: option labels are not unique after defaults")
 
-    schema = config["schema"]
-    blocks = sorted(set(schema) - set(TEXT_KEYS))
-    if blocks:
-        raise ValueError(f"{path}: unknown schema blocks {blocks}")
-    if ("turnout" in schema) != (topic.turnout is not None):
-        raise ValueError(f"{path}: schema.turnout must be present exactly when the topic has turnout")
-    text = SchemaText(
-        option=OptionText(**_text(schema, "option", path)),
-        probabilities=ProbabilitiesText(**_text(schema, "probabilities", path)),
-        pick=PickText(**_text(schema, "pick", path)),
-        turnout=TurnoutText(**_text(schema, "turnout", path)) if topic.turnout else None,
-    )
+    if len(ANSWER_FORMS & set(config)) != 1:
+        raise ValueError(f"{path}: a framing states exactly one of {sorted(ANSWER_FORMS)}")
     return Framing(
         name=name, topic=topic.name, language=config["language"], short=short, title=config["title"],
-        instructions=config["instructions"], labels=labels, schema=text,
+        instructions=config["instructions"], labels=labels,
+        schema=_schema(config["schema"], topic, path) if "schema" in config else None,
+        answer=_answer(config["answer"], topic, path) if "answer" in config else None,
         note=config.get("note", ""),
     )

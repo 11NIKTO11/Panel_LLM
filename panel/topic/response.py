@@ -18,8 +18,19 @@ the options are is the framing's text.
 The turnout field carries no description of its own: a description beside a `$ref` is dropped by
 some providers' SDKs and inlined by others, so the framing's `turnout.field` text follows
 `turnout.description` in the turnout model's own description, where every provider reads it.
+
+A framing that states an answer menu instead of schema text (`DECISIONS.md` §40) gets one model,
+`Probabilities`, of the same fields and with no text: it is never sent. A client that reads the
+answer off the token distribution builds it with `from_tokens`:
+
+- `mass` is the probability the model put on the menu at all; the rest went to tokens that are
+  no answer. It is kept beside the answer and counted under no entry of the menu: what the model
+  was about to say instead is neither a party nor an abstention.
+- everything else is a share of `mass`, so each group sums to 1 as in a written answer: with
+  turnout, `voted` is the options' tokens, `not_voted` the abstain token, and each option its
+  share of `voted`; without, each option is its token.
 """
-from typing import ClassVar, Dict, List, Literal, Tuple, Type, Union
+from typing import ClassVar, Dict, List, Literal, Mapping, Tuple, Type, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field, create_model
@@ -57,6 +68,26 @@ class ProbabilityResponse(TopicResponse):
         return pd.Series(row).reindex(list(self.TURNOUT or ()) + list(self.OPTIONS))
 
 
+class TokenProbabilityResponse(ProbabilityResponse):
+    """`TOKENS` is token -> label; `ABSTAIN` the token for not having voted; `ANSWERS` both, what a client looks for."""
+    TOKENS: ClassVar[Dict[str, str]] = {}
+    ABSTAIN: ClassVar[Union[str, None]] = None
+    ANSWERS: ClassVar[Tuple[str, ...]] = ()
+
+    @classmethod
+    def from_tokens(cls, found: Mapping[str, float]) -> "TokenProbabilityResponse":
+        """`found` is answer token -> probability; a token it lacks counts as 0."""
+        mass = sum(found.get(token, 0.0) for token in cls.ANSWERS)
+        given = {label: found.get(token, 0.0) for token, label in cls.TOKENS.items()}
+        voted = sum(given.values())
+        payload = {"mass": min(mass, 1.0)}
+        if cls.TURNOUT:
+            payload["voted_or_not"] = {"voted": min(voted / mass, 1.0), "not_voted": min(found.get(cls.ABSTAIN, 0.0) / mass, 1.0)}
+        whole = voted if cls.TURNOUT else mass
+        payload["options"] = [{"name": label, "probability": min(value / whole, 1.0) if whole else 0.0} for label, value in given.items()]
+        return cls.model_validate(payload)
+
+
 class PickResponse(TopicResponse):
     SHORT_NAME: ClassVar[str] = "Pick"
 
@@ -68,14 +99,40 @@ class PickResponse(TopicResponse):
         return pd.Series(row)
 
 
-def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[ProbabilityResponse], Type[PickResponse]]:
+def _token_model(topic: Topic, framing: Framing, labels: Tuple[str, ...]) -> Type[TokenProbabilityResponse]:
+    option_model = create_model("Option", name=(Literal[labels], ...), probability=(float, Field(ge=0, le=1)))
+    turnout_field = {}
+    if topic.turnout:
+        turnout_model = create_model("Turnout", voted=(float, Field(ge=0, le=1)), not_voted=(float, Field(ge=0, le=1)))
+        turnout_field["voted_or_not"] = (turnout_model, ...)
+    model = create_model(
+        "Probabilities", __base__=TokenProbabilityResponse, **turnout_field,
+        options=(List[option_model], ...), mass=(float, Field(gt=0, le=1)),
+    )
+    menu = framing.answer
+    model.TOKENS = {token: framing.labels[option] for option, token in menu.tokens.items()}
+    model.ABSTAIN = menu.abstain.token if menu.abstain else None
+    model.ANSWERS = tuple(model.TOKENS) + ((model.ABSTAIN,) if menu.abstain else ())
+    return model
+
+
+def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[TopicResponse], ...]:
     """
-    (probabilities, pick); their `__name__` and `SHORT_NAME` are fixed, because the results filename
-    stem and the run record are built from them.
+    (probabilities, pick), or (probabilities,) for a framing with an answer menu; their `__name__` and
+    `SHORT_NAME` are fixed, because the results filename stem and the run record are built from them.
     """
     if framing.topic != topic.name:
         raise ValueError(f"framing '{framing.name}' words topic '{framing.topic}', not '{topic.name}'")
     labels = tuple(framing.labels[option] for option in topic.options)
+    models = (_token_model(topic, framing, labels),) if framing.answer else _schema_models(topic, framing, labels)
+    for model in models:
+        model.OPTIONS = tuple(topic.options)
+        model.LABELS = dict(zip(labels, topic.options))
+        model.TURNOUT = topic.turnout
+    return models
+
+
+def _schema_models(topic: Topic, framing: Framing, labels: Tuple[str, ...]) -> Tuple[Type[ProbabilityResponse], Type[PickResponse]]:
     text = framing.schema
 
     option_model = create_model(
@@ -104,8 +161,4 @@ def make_response_models(topic: Topic, framing: Framing) -> Tuple[Type[Probabili
         choice=(Literal[labels], Field(description=text.pick.choice)),
         __doc__=text.pick.description,
     )
-    for model in (probabilities, pick):
-        model.OPTIONS = tuple(topic.options)
-        model.LABELS = dict(zip(labels, topic.options))
-        model.TURNOUT = topic.turnout
     return probabilities, pick

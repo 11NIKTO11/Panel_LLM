@@ -135,6 +135,7 @@ python run.py -d sod -m nano --show              # the system prompt and one pro
 python run.py -d sod -m nano --one               # one call, printed; nothing saved
 python run.py -d sod -m nano --check             # look over the saved run; no call
 python run.py --sample 20                        # the whole path offline
+python run.py -d sod-letters -m nano --client OpenAITokens   # the answer read off the token probabilities (a menu of letters)
 ```
 
 Every field of a run is an option. The

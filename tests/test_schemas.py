@@ -10,7 +10,10 @@ from panel.topic import framing_names, load_framing, load_topic, make_response_m
 from tests.conftest import TOPICS_DIR, load_fixture
 from tests.snapshots import schema_snapshot
 
-PAIRS = [(topic, framing) for topic in topic_names(TOPICS_DIR) for framing in framing_names(topic, TOPICS_DIR)]
+PAIRS = [
+    (topic, framing) for topic in topic_names(TOPICS_DIR) for framing in framing_names(topic, TOPICS_DIR)
+    if load_framing(load_topic(topic, TOPICS_DIR), framing).schema
+]
 
 
 def generated(topic_name: str, framing_name: str) -> dict:

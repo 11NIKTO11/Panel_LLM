@@ -3,6 +3,26 @@
 Things worth doing that nobody decided to do yet. What was decided, and what was rejected, is
 in `DECISIONS.md`; an entry leaves this file when it is done or dropped, with a line there.
 
+## Token probabilities (`DECISIONS.md` §40)
+
+- **Reasoning models, with reasoning `none` only**
+  - no other level makes sense: once a model reasons, the answer token is conditioned on the
+    reasoning and its probability is no longer the model's first reading of the subject
+  - in the way: `none` is not an effort here (`--effort none` means "set no effort", §35) and
+    `OpenAITokens` takes no effort; it needs a spelling of its own or a client that always sends it
+  - `CoRe/API_test/openai_test_new.py` does it for `gpt-5.4`
+- **Do letters measure the options at all**
+  - one output in `API_test` puts 99.95% on `I`; a framing with the letters permuted
+    (`cs_letters_*`, another order in `answer.tokens`) tells the option from its letter and place
+  - the "random respondent of this profile" wording of `openai_test.ipynb`, as a framing
+- **Answers of several tokens** (party acronyms, full names): match on the first token; `SPD`
+  and `SPOLU` may share it
+- **A low mass on the menu** is only printed by `check`; nothing excludes or marks such an answer
+- **A second call for turnout** instead of the abstain entry, if the entry turns out to bend
+  the party shares (rejected for now: twice the calls)
+- **Other providers**: OpenRouter forwards `logprobs` for some routes (`API_test/vote_logprobs.py`)
+- verify live: `max_output_tokens=16`, and that the temperature does not change the reported probabilities
+
 ## Runs whose subjects are places (`regions`)
 
 - **Goal: aggregate them on purpose** - a country-level result, correlations, a map and distances that

@@ -7,6 +7,9 @@ over the calls without a usable answer - and the save. What came back is always 
 with a call missing goes under `<stem>_incomplete`, never under the stem.
 How the calls are sent (`max_workers`, `retries`, `rerun_rounds`) has its defaults here and
 nowhere below.
+
+An answer read off the token distribution is not judged: its sums are 1 by construction, and
+asking again gives the same probabilities, so there is nothing a second attempt could mend.
 """
 from collections import Counter
 from functools import partial
@@ -53,7 +56,7 @@ def execute(
     settings = dict(
         prompt_creator=resolved.prompt, response_model=resolved.response_model, model=spec.model,
         temperature=spec.temperature, client=client, instructions=resolved.framing.instructions,
-        review=partial(judge, low=spec.sum_low, high=spec.sum_high), max_workers=max_workers, retries=retries,
+        review=None if client.READS_TOKENS else partial(judge, low=spec.sum_low, high=spec.sum_high), max_workers=max_workers, retries=retries,
     )
     results, flawed, attempts, resumed = {}, {}, {}, None
     if missing:

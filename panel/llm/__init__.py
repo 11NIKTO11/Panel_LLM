@@ -4,6 +4,7 @@
 from .base import ANTHROPIC, EFFORT_ORDER, GOOGLE, OPENAI, BaseLLMClient, detect_provider, ordered_efforts
 from .errors import BatchFailed, CallFailed, LLMError, RateLimited, status_error
 from .client_openai import OpenAIClient
+from .client_openai_tokens import OpenAITokensClient
 from .client_anthropic import AnthropicClient, AnthropicLegacyClient
 from .client_gemini import GeminiClient
 from .client_openrouter import OpenRouterClient

@@ -7,6 +7,7 @@ body, and that the schema in it says everything the framing says. OpenRouter's r
 checked where they are handed to `requests`.
 """
 import json
+import math
 import time
 from dataclasses import asdict
 from types import SimpleNamespace
@@ -21,6 +22,7 @@ import requests
 from panel.llm import Batch, BatchFailed, BatchStopped, CallFailed, Flaw, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
 from panel.llm.client_gemini import GeminiClient
 from panel.llm.client_openai import OpenAIClient
+from panel.llm.client_openai_tokens import OpenAITokensClient, scan
 from panel.llm.client_anthropic import AnthropicClient, AnthropicLegacyClient
 from panel.llm.client_openrouter import OpenRouterClient
 from panel.llm.schema_compat import bounds_as_text, move_ref_descriptions
@@ -29,7 +31,10 @@ from panel.topic import framing_names, load_framing, load_topic, make_response_m
 from tests.conftest import TOPICS_DIR
 
 PROMPT, SYSTEM = "Jsem žena, je mi 40 let. Koho jsem volila?", "Odpovídej jako respondent."
-FRAMINGS = [(topic, framing) for topic in topic_names(TOPICS_DIR) for framing in framing_names(topic, TOPICS_DIR)]
+FRAMINGS = [
+    (topic, framing) for topic in topic_names(TOPICS_DIR) for framing in framing_names(topic, TOPICS_DIR)
+    if load_framing(load_topic(topic, TOPICS_DIR), framing).schema
+]
 CLIENTS = [(AnthropicClient, None), (AnthropicLegacyClient, 0.3)]
 
 
@@ -331,6 +336,46 @@ def test_openai_and_gemini_never_answer_with_nothing(probabilities):
     gemini.client = SimpleNamespace(models=SimpleNamespace(generate_content=lambda **request: SimpleNamespace(model_version="gemini-test", text="{}")))
     with pytest.raises(CallFailed, match="not the schema"):
         gemini.call_llm("gemini-test", PROMPT, model, 0.0)
+
+
+def reported(*tokens):
+    """A Responses reply whose generated tokens each carry the given {candidate: probability}."""
+    logprobs = [
+        SimpleNamespace(top_logprobs=[SimpleNamespace(token=token, logprob=math.log(p)) for token, p in candidates.items()])
+        for candidates in tokens
+    ]
+    content = SimpleNamespace(type="output_text", logprobs=logprobs)
+    return SimpleNamespace(model="gpt-test", output=[SimpleNamespace(type="reasoning"), SimpleNamespace(type="message", content=[content])])
+
+
+def test_tokens_are_read_at_the_first_position_that_offers_an_answer():
+    opening = [('"', math.log(0.9)), ("\n", math.log(0.1))]
+    letters = [("A", math.log(0.5)), (" a", math.log(0.1)), ('"B', math.log(0.2)), ("Z", math.log(0.2))]
+    found = scan([opening, letters, [("B", 0.0)]], ("A", "B", "C"))
+    assert found == {"A": pytest.approx(0.6), "B": pytest.approx(0.2)}
+    assert scan([opening], ("A", "B")) is None
+
+
+def test_the_token_client_sends_no_schema_and_reads_the_candidates():
+    topic = load_topic("election_2021", TOPICS_DIR)
+    model, = make_response_models(topic, load_framing(topic, "cs_letters"))
+    client, sent, replies = OpenAITokensClient(api_key="test"), [], []
+    client.client = SimpleNamespace(responses=SimpleNamespace(create=lambda **request: sent.append(request) or replies.pop(0)))
+
+    replies.append(reported({"A": 0.5, "a": 0.1, "J": 0.3, "X": 0.1}))
+    row = client.call_llm("gpt-test", PROMPT, model, None, SYSTEM).to_series()
+    declared = {key: value for key, value in client.parameters().items() if key != "stripped"}
+    assert sent == [{"model": "gpt-test", "input": PROMPT, "instructions": SYSTEM, **declared}]
+    assert row["Voted"] == pytest.approx(2 / 3) and row["Not Voted"] == pytest.approx(1 / 3) and row["ANO"] == pytest.approx(1)
+    assert client.last_model == "gpt-test" and client.schema_sent("gpt-test", model) is None
+
+    replies.append(reported({"X": 0.9, "Y": 0.1}))
+    with pytest.raises(CallFailed, match="among the candidates"):
+        client.call_llm("gpt-test", PROMPT, model, 0.0)
+    assert sent[-1]["temperature"] == 0.0
+    replies.append(SimpleNamespace(model="o-test", output=[SimpleNamespace(type="message", content=[SimpleNamespace(type="output_text", logprobs=None)])]))
+    with pytest.raises(BatchFailed, match="no token probabilities"):
+        client.call_llm("o-test", PROMPT, model, None)
 
 
 class Failing:

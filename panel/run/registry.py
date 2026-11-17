@@ -1,11 +1,11 @@
 """Name -> client class, so the client a spec or a record names resolves to code."""
 from typing import Dict, Type
 
-from panel.llm import AnthropicClient, AnthropicLegacyClient, BaseLLMClient, GeminiClient, OpenAIClient, OpenRouterClient
+from panel.llm import AnthropicClient, AnthropicLegacyClient, BaseLLMClient, GeminiClient, OpenAIClient, OpenAITokensClient, OpenRouterClient
 
-from .fake import FakeClient
+from .fake import FakeClient, FakeTokensClient
 
-KNOWN = (OpenAIClient, AnthropicClient, AnthropicLegacyClient, GeminiClient, OpenRouterClient, FakeClient)
+KNOWN = (OpenAIClient, OpenAITokensClient, AnthropicClient, AnthropicLegacyClient, GeminiClient, OpenRouterClient, FakeClient, FakeTokensClient)
 
 
 def short_name(cls) -> str:

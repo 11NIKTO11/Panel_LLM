@@ -1660,6 +1660,67 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - **The problem**: a `regions` run asks about fifteen places, and each answer is already that
   place's result. The analyses that read the subjects as a sample of one population made a
   "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
+## 40. An answer read off the token distribution: a framing with a menu, a client that reads tokens (2026-11-17)
+
+- **Why**: a model asked to write nine probabilities writes round ones (§34: few distinct
+  answers, a 5 pp lattice). The probability of the answer's first token is continuous and
+  comes with one call. It is a different measurement, not a sharper one: a written
+  probability is what the model states, a token probability is what it would sample from
+  - tried standalone in `CoRe/API_test` (`vote_openai_logprobs.py`, `openai_test.ipynb`)
+- **A framing states the answer in one of two ways**, exactly one: `schema` (text of a
+  structured answer) or `answer` (a menu of one-token answers). `cs_letters`, short `cs-letters`
+  - `answer.tokens`: option id -> token, complete over the topic's options; the menu lists
+    them in this order, so a framing with the letters permuted is another file
+  - `answer.abstain` `{token, label}`: required exactly when the topic has turnout, listed last
+  - `answer.line`: one menu line, `{token}` and `{label}`
+  - `Resolved.prompt` puts the menu last: description, question, a line break, the menu
+  - why the framing: the menu and the instruction to answer with one token are what the
+    model reads beside description and question, and they replace the schema text one to one
+  - REJECTED: a new shape (`Token`) - the answer is a distribution over the options, the
+    saved fields are those of `Probabilities`, and framing and client already tell the stems apart
+  - REJECTED: new fields in `RunSpec` - nothing is declared that a framing or a client does not say
+- **Turnout is an entry of the menu** ("did not vote"), not a second call
+  - `mass` = the probability on the menu's tokens together; everything else is a share of it
+    (`panel/topic/response.py:TokenProbabilityResponse.from_tokens`): `voted` the options' tokens,
+    `not_voted` the abstain token, each option its share of `voted` - every group sums to 1
+  - a topic without turnout: each option is its token's share of `mass`
+  - `mass` is a field of the saved answer (`results.json`), not a column; `check` prints
+    `mass on the menu`: the mean and the lowest
+  - **what went to no answer token is counted under no entry**
+    - REJECTED: adding it to "did not vote" or to "other party" - it is what the model was about
+      to say instead (a quote, a word, a refusal), and either entry would grow by it in every
+      subject, by an amount that depends on the model and not on the subject
+    - REJECTED (the first version, same day): the probabilities as reported, `voted + not_voted`
+      = the mass, judged by `sum_low` - a low mass was then a flaw and the call was sent again
+- **A token answer is not judged** (`execute`: no review for a `READS_TOKENS` client), so the
+  run's `sum_low` / `sum_high` do nothing and nothing is sent twice for its content
+  - why: its sums are 1 by construction, and the same prompt gives the same probabilities
+  - a failed call (`CallFailed`, a rate limit) is still tried again
+  - REJECTED: asking twice (turnout, then party) - twice the calls
+  - known: the question as worded presupposes having voted; the abstain entry answers it sideways
+- **`OpenAITokens`** (`panel/llm/client_openai_tokens.py`, `READS_TOKENS`): the Responses API with
+  `top_logprobs=20`, `include=["message.output_text.logprobs"]`, `max_output_tokens=16`, no `text_format`
+  - the answer is read at the first generated token whose candidates include an answer token;
+    candidates are matched with decoration and case stripped and added up (`A`, ` A`, `"A`)
+  - only the 20 likeliest candidates are reported: an answer below them reads as 0
+  - no token probabilities at all is `BatchFailed`; no answer among the candidates `CallFailed`
+  - `schema_sent` is None, so the record's `response_schema_sent` is null; `response_schema` is
+    the unsent model's; the record's framing carries `answer`, and `schema_text` null
+  - the llm package knows no topic: the response class brings `ANSWERS` and `from_tokens`
+- **`resolve` refuses** a menu with a client that reads a structured answer, a schema with one
+  that reads tokens, and any shape but `Prob` with a menu
+- **Non-reasoning models only**: `OpenAITokens` takes no effort, and a reasoning model reports
+  no token probabilities unless its reasoning is off. Data preset `sod-letters`; the client is named as a field over
+  a model preset: `python run.py -d sod-letters -m nano --client OpenAITokens`, offline `--client FakeTokens`
+  - REJECTED: model presets per token client (`nano-tokens`, ...) - a copy of each model preset
+    that differs in the client alone; `sod-letters` without such a client is refused and says why
+  - later, `TODO.md`: reasoning models with reasoning `none` - no other level makes sense here,
+    and `none` is not an effort of ours (§35)
+- not verified live: the request as a whole; that `max_output_tokens=16` is accepted and is the
+  floor; that the reported probabilities do not depend on the temperature
+- in `API_test` one saved output puts 99.95% on `I` ("Jiná strana"): whether a model's
+  distribution over letters says anything about the options is the first thing to look at
+
   and `Česko`, the model's own country answer, is one of the fifteen; the correlations, the map
   and the spread were over fifteen areas under titles that speak of subjects
 - **`"aggregate": true`** in `dataset.json` (optional, `Dataset.aggregate`, False by default): a

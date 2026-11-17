@@ -11,7 +11,7 @@ from panel.llm import BatchFailed
 from panel.run import ResultStore, RunSpec, execute, resolve
 from panel.run.accept import judge
 from panel.run.check import MEAN, TOP, check, means, report
-from panel.run.fake import FakeClient
+from panel.run.fake import FakeClient, FakeTokensClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
 from panel.run.record import KEPT
 from panel.run.registry import client_class
@@ -24,6 +24,7 @@ REPEATED = SOD.variant(sample=5, repeats=3)
 CITIZEN = SOD.variant(dataset="regions", description="citizen", sample=None, repeats=3)
 DIRECT = CITIZEN.variant(description="direct", question=None)
 EFFORT = SOD.variant(client="Anthropic", model="claude-haiku-5-5", temperature=None, effort="low", sample=5)
+LETTERS = SOD.variant(framing="cs_letters", client="FakeTokens", temperature=None, sample=8, sum_low=0.95, sum_high=1.05)
 FOUR = ("results_csv", "results_json", "normalized_csv", "record")
 PRESETS = paths.CONFIG_DIR / "presets.json"
 
@@ -470,6 +471,62 @@ def test_spec_rejects_nonsense():
         SOD.variant(shape="VProb")
     with pytest.raises(ValueError):
         SOD.variant(repeats=0)
+def test_a_token_run_reads_the_menu_and_saves_the_same_table(tmp_path):
+    run = prepared(LETTERS)
+    assert run.stem == "sod_default_cs-letters_default_FakeTokens_fake-model_Prob_t=default_subset=8"
+    menu = run.prompt(run.calls.iloc[0]).split("\n")[1:]
+    assert menu[0] == "A) ANO 2011" and menu[-1].startswith("J) ") and len(menu) == len(run.topic.options) + 1
+
+    store = ResultStore(tmp_path, LETTERS.topic)
+    execute(run, store, FakeTokensClient(), max_workers=4)
+    frame = store.frame(run.stem)
+    assert list(frame.columns) == run.topic.columns + ["Prompt"] and len(frame) == 8
+    assert abs(frame[list(run.topic.options)].sum(axis=1) - 1).max() < 1e-9
+    assert abs(frame[list(run.topic.turnout)].sum(axis=1) - 1).max() < 1e-9
+    assert all(0 < item["result"]["mass"] < 1 for item in store.raw(run.stem).values())
+
+    record = store.record(run.stem)
+    assert record["response_schema_sent"] is None and record["framing"]["schema_text"] is None
+    assert record["framing"]["answer"]["tokens"]["ANO"] == "A" and record["framing"]["answer"]["abstain"]["token"] == "J"
+    looked = check(store, run.stem, run.topic, run.framing)
+    assert looked.answers == 8 and 0 < looked.mass[0] <= looked.mass[1] < 1 and "mass on the menu" in report(looked, 9)
+
+
+def test_a_token_answer_is_turnout_and_shares_of_it():
+    model = prepared(LETTERS).response_model
+    answer = model.from_tokens({"A": 0.6, "B": 0.2, "J": 0.1})
+    row = answer.to_series()
+    assert answer.mass == pytest.approx(0.9)
+    assert row["Voted"] == pytest.approx(8 / 9) and row["Not Voted"] == pytest.approx(1 / 9)
+    assert row["ANO"] == pytest.approx(0.75) and row["SPOLU"] == pytest.approx(0.25) and row["Other"] == 0
+    assert judge(answer, 0.95, 1.05) is None
+    home = model.from_tokens({"J": 0.5}).to_series()
+    assert home["Voted"] == 0 and home["Not Voted"] == 1 and home[list(model.OPTIONS)].sum() == 0
+
+
+def test_a_token_answer_is_not_judged_and_not_asked_again(tmp_path):
+    class Home(FakeTokensClient):
+        def call_llm(self, model, prompt, response_format, temperature, instructions=None):
+            self._attempt(prompt)
+            return response_format.from_tokens({response_format.ABSTAIN: 0.4})
+
+    run, store = prepared(LETTERS), ResultStore(tmp_path, LETTERS.topic)
+    execute(run, store, Home(), max_workers=2)
+    record = store.record(run.stem)
+    assert record["sending"]["calls_sent"] == 8 and record["faulty"] == {} and record["attempts"] == {}
+
+
+def test_a_menu_and_a_token_reading_client_need_each_other():
+    with pytest.raises(ValueError, match="answer menu"):
+        prepared(LETTERS.variant(client="Fake"))
+    with pytest.raises(ValueError, match="reads tokens"):
+        prepared(SOD.variant(client="FakeTokens"))
+    with pytest.raises(ValueError, match="not as 'Pick'"):
+        prepared(LETTERS.variant(shape="Pick"))
+    with pytest.raises(ValueError, match="takes no effort"):
+        prepared(LETTERS.variant(client="OpenAITokens", model="gpt-4o", effort="low"))
+
+
     with pytest.raises(TypeError):
         RunSpec.from_dict({"name": "sod", "topic": "election_2021_legacy"})
     with pytest.raises(ValueError):
@@ -484,10 +541,10 @@ def test_presets_combine_into_complete_specs():
     base = presets.base
     assert build_spec(base, None, None, {}).client == "Fake"
     for name, data in presets.data.items():
-        spec = build_spec(base, data, None, {})
+        spec = build_spec(base, data, None, reads_tokens[name])
         assert spec.sample is None and prepared(spec).stem, name
     assert build_spec(base, presets.data["sod"], None, {"sample": 5, "question": "neutral"}).question == "neutral"
-    stems = {prepared(build_spec(base, data, None, {})).stem for data in presets.data.values()}
+    stems = {prepared(build_spec(base, data, None, reads_tokens[name])).stem for name, data in presets.data.items()}
     assert len(stems) == len(presets.data)
     for name, model in presets.models.items():
         assert prepared(build_spec(base, None, model, {"sample": 5})).spec.model == model["model"], name
@@ -497,6 +554,7 @@ def test_presets_lay_over_a_complete_base(tmp_path):
     base = {field: getattr(SOD, field) for field in DATA + MODEL}
     data, model = {"description": "extended"}, {"model": "other", "temperature": None}
     loaded = load_presets(write_presets(tmp_path, base, {"a": data}, {"m": model}))
+    reads_tokens = {name: {"client": "FakeTokens"} if name == "sod-letters" else {} for name in presets.data}
     assert build_spec(loaded.base, None, None, {"sample": 20}) == SOD
     spec = build_spec(loaded.base, loaded.data["a"], loaded.models["m"], {"model": "third"})
     assert spec == SOD.variant(description="extended", model="third", temperature=None, sample=None)

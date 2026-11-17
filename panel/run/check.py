@@ -55,6 +55,7 @@ class Check:
     faulty: reason -> answers kept though flawed in that way (`panel.run.accept`); None for a run saved
         before answers were judged.
     sending: the record's `sending` block, what sending the run took (`panel.run.execute`); None for an older run.
+    mass: (lowest, mean) of the probability on the menu, for answers read off the token distribution; else None.
     """
     stem: str
     calls: int
@@ -78,6 +79,7 @@ class Check:
     highest: Union[float, None]
     faulty: Union[Dict[str, int], None] = None
     sending: Union[Dict[str, Any], None] = None
+    mass: Union[Tuple[float, float], None] = None
 
 
 def _sums(totals: pd.Series, tolerance: float) -> Sums:
@@ -101,6 +103,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         prompts.setdefault(subject, prompt)
 
     values = []
+    masses = [response.mass for response in responses] if "mass" in response_model.model_fields else []
     turnout = abstained = None
     options = listed = duplicates = distinct = undefined = highest = both = None
 
@@ -144,6 +147,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         both=both,
         faulty=dict(Counter(reason for reasons in record["faulty"].values() for reason in reasons)) if "faulty" in record else None,
         sending=record.get("sending"),
+        mass=(min(masses), sum(masses) / len(masses)) if masses else None,
     )
 
 
@@ -184,6 +188,8 @@ def report(result: Check, total: int) -> str:
             ("no preference", f"{_share(result.undefined, result.answers)} have options summing to 0"),
             ("highest option", f"{result.highest:.3f} on average"),
         )
+    if result.mass:
+        rows += (("mass on the menu", f"{result.mass[1]:.3f} on average, the lowest {result.mass[0]:.3f}"),)
     if result.faulty is not None:
         kinds = ", ".join(f"{reason} {count}" for reason, count in sorted(result.faulty.items()))
         rows += (("kept though flawed", kinds or "0"),)

@@ -5,7 +5,8 @@ Resolving is where the names are checked against each other: the dataset has to 
 description and its prompt table has to cover the values, the framing has to share the
 dataset's language, the topic has to have the question in that language, a standalone
 description takes no question and any other needs one, client and shape have to be known,
-an effort needs a client that takes one,
+an effort needs a client that takes one, a framing with an answer menu needs a client that reads
+tokens and any other a client that does not,
 and the model id has to fit a filename.
 Anything wrong fails here, before a call is paid for.
 
@@ -81,7 +82,8 @@ class Resolved:
         return "_".join(parts)
 
     def prompt(self, row: pd.Series) -> str:
-        return f"{row[self.description.name]} {row[QUESTION]}" if self.question else row[self.description.name]
+        asked = f"{row[self.description.name]} {row[QUESTION]}" if self.question else row[self.description.name]
+        return f"{asked}\n{self.framing.menu}" if self.framing.answer else asked
 
     @property
     def calls(self) -> pd.DataFrame:
@@ -124,7 +126,15 @@ def resolve(
     client_type = client_class(spec.client)
     if spec.effort and not client_type.TAKES_EFFORT:
         raise ValueError(f"client '{spec.client}' takes no effort; the spec sets {spec.effort!r}")
-    response_model = {model.SHORT_NAME: model for model in make_response_models(topic, framing)}[spec.shape]
+    if client_type.READS_TOKENS != (framing.answer is not None):
+        raise ValueError(
+            f"framing '{framing.name}' states {'an answer menu' if framing.answer else 'a schema'}, "
+            f"client '{spec.client}' reads {'tokens' if client_type.READS_TOKENS else 'a structured answer'}"
+        )
+    shapes = {model.SHORT_NAME: model for model in make_response_models(topic, framing)}
+    if spec.shape not in shapes:
+        raise ValueError(f"framing '{framing.name}' answers as {list(shapes)}, not as '{spec.shape}'")
+    response_model = shapes[spec.shape]
 
     values = read_values(dataset)
     rows = read_prompts(dataset, description.name, values.index)
