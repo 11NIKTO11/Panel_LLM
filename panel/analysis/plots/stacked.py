@@ -1,0 +1,49 @@
+"""Compositions as stacked horizontal bars: one bar per row, one segment per part."""
+from typing import Mapping, Union
+
+import matplotlib.ticker as mtick
+import numpy as np
+import pandas as pd
+from matplotlib.figure import Figure
+from matplotlib.patches import Patch
+
+from .style import NEUTRAL, SERIES, SURFACE, clean, finish, wrap
+
+
+def stacked_bars(
+    table: pd.DataFrame,
+    colors: Union[Mapping[str, str], None] = None,
+    labels: Union[Mapping[str, str], None] = None,
+    least: float = 0.04,
+    title: Union[str, None] = None,
+    note: Union[str, None] = None,
+) -> Figure:
+    """The rows of `table` sum to about 1; a segment at least `least` wide carries its percentage."""
+    labels = labels or {}
+    if not colors:
+        if table.shape[1] > len(SERIES):
+            raise ValueError(f"{table.shape[1]} parts, the palette has {len(SERIES)} colours")
+        colors = dict(zip(table.columns, SERIES))
+    height = 1.9 + 0.42 * len(table)
+    fig = Figure(figsize=(9, height), facecolor=SURFACE)
+    ax = fig.subplots()
+    clean(ax)
+    ax.grid(visible=False)
+    positions = np.arange(len(table))
+    left = np.zeros(len(table))
+    for part in table.columns:
+        values = table[part].to_numpy(dtype=float)
+        ax.barh(positions, values, 0.72, left=left, color=colors.get(part, NEUTRAL), edgecolor=SURFACE, linewidth=1)
+        for at, start, value in zip(positions, left, values):
+            if value >= least:
+                ax.text(start + value / 2, at, f"{value:.0%}", ha="center", va="center", fontsize=8, color=SURFACE)
+        left += values
+    ax.set_yticks(positions, wrap(str(row) for row in table.index))
+    ax.set_ylim(len(table) - 0.5, -0.5)
+    ax.set_xlim(0, max(1.0, float(left.max())))
+    ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
+    fig.legend(
+        [Patch(color=colors.get(part, NEUTRAL)) for part in table.columns], [labels.get(part, part) for part in table.columns],
+        loc="lower center", ncols=min(len(table.columns), 9), frameon=False, fontsize=9, bbox_to_anchor=(0.5, 0), handlelength=1, columnspacing=1.2,
+    )
+    return finish(fig, height, title, note, bottom=0.45)

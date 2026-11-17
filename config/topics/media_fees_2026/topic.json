@@ -1,0 +1,22 @@
+{
+    "name": "media_fees_2026",
+    "reference": null,
+    "turnout": null,
+    "options": {
+        "Abolish": {
+            "name": "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
+            "aliases": [
+                "p_abolish_fees_state_budget",
+                "abolish_fees_state_budget"
+            ]
+        },
+        "Keep": {
+            "name": "Zachovat současné poplatky",
+            "aliases": [
+                "p_keep_fees",
+                "keep_fees"
+            ]
+        }
+    },
+    "note": "Prepared from the colleague's EXPERIMENT_REPORT.md section 2.2 (issue experiment, 384 grid profiles, gpt-4o-2024-11-20, t=0, 1 repeat). turnout is null: no attendance dimension, which is the case that exercises the toggle. The colleague's column ids are aliases, so their results in tmp/_artifical_matrix/data/ read as our ids. Never run."
+}

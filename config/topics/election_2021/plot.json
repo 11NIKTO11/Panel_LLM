@@ -1,0 +1,22 @@
+{
+    "colors": {
+        "Voted": "#2e9e5b",
+        "Not Voted": "#d0453f",
+        "ANO": "#261060",
+        "SPOLU": "#1b69c8",
+        "PirSTAN": "#1a1a1a",
+        "SPD": "#a05a2c",
+        "Prisaha": "#2aa7a0",
+        "CSSD": "#f07d00",
+        "KSCM": "#cc0000",
+        "TSS": "#826464",
+        "Other": "#9a9a9a"
+    },
+    "labels": {
+        "Not Voted": "Not voted"
+    },
+    "last": [
+        "Other"
+    ],
+    "note": "Colours chosen 2026-11-11 to follow the parties' usual colours where those stay distinguishable; several parties use blue, so SPD and Přísaha are moved apart. Trikolóra is the brown of the STEM chart Martin supplied. Edit freely: nothing a model sees depends on this file."
+}

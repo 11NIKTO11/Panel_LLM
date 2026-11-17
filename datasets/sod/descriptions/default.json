@@ -1,0 +1,24 @@
+{
+    "name": "default",
+    "short": "default",
+    "note": "A first-person self-description from the demographic answers. The employment/income sentence has three alternatives because either answer may be missing; a sentence whose answer is a non-answer is dropped. Wording follows the survey's questions: income is the respondent's own net monthly income (INCOMEP), living standard is the household's (Q19).",
+    "sentences": [
+        [
+            "Jsem {gender}, je mi {age} let, mé vzdělání je {education_level}."
+        ],
+        [
+            "Žiji {region|in}, v okresu {district} a obci o velikosti {town_size}."
+        ],
+        [
+            "Z hlediska zaměstnání jsem {employment_status} a můj čistý měsíční příjem je {income_range}.",
+            "Z hlediska zaměstnání jsem {employment_status}.",
+            "Můj čistý měsíční příjem je {income_range}."
+        ],
+        [
+            "Životní úroveň naší domácnosti považuji za {living_standard}."
+        ],
+        [
+            "{interest_in_politics} o politiku."
+        ]
+    ]
+}

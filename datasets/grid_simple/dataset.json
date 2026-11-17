@@ -1,0 +1,71 @@
+{
+    "name": "grid_simple",
+    "short": "grid-simple",
+    "title": "Synthetic profile grid, the colleague's design in Czech words",
+    "language": "cs",
+    "source": "dataset.json",
+    "columns": [
+        "gender",
+        "education_level",
+        "age_range",
+        "income_range",
+        "interest_in_politics"
+    ],
+    "groups": [
+        "gender",
+        "education_level",
+        "age_range",
+        "income_range",
+        "interest_in_politics"
+    ],
+    "levels": {
+        "gender": {
+            "order": [
+                "muž",
+                "žena"
+            ]
+        },
+        "education_level": {
+            "order": [
+                "základní",
+                "střední bez maturity (vyučení)",
+                "střední s maturitou",
+                "vysokoškolské"
+            ]
+        },
+        "age_range": {
+            "order": [
+                "18-29",
+                "30-44",
+                "45-59",
+                "60+"
+            ]
+        },
+        "income_range": {
+            "order": [
+                "nízký",
+                "střední",
+                "vysoký"
+            ]
+        },
+        "interest_in_politics": {
+            "order": [
+                "vůbec se nezajímám",
+                "spíše se nezajímám",
+                "spíše se zajímám",
+                "velmi se zajímám"
+            ]
+        }
+    },
+    "claims": {},
+    "shared": {
+        "gender": {
+            "column": "gender",
+            "map": {
+                "muž": "male",
+                "žena": "female"
+            }
+        }
+    },
+    "note": "384 synthetic profiles = 2 x 4 x 4 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. The colleague's design (grid_simple_en) with each of their ids as the Czech phrase it stands for: abstract levels, a low / middle / high income rather than a CZK band. Ported from CoRe/_grid_separate grid/grid_config_simple.json (grid `simple`), whose gpt-4o run grid-simple was sent these profiles."
+}

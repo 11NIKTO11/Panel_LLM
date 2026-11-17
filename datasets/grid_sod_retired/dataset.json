@@ -1,0 +1,71 @@
+{
+    "name": "grid_sod_retired",
+    "short": "grid-sod-retired",
+    "title": "RETIRED - synthetic profile grid in the survey's vocabulary whose incomes skip most of the range",
+    "language": "cs",
+    "source": "dataset.json",
+    "columns": [
+        "gender",
+        "education_level",
+        "age_range",
+        "income_range",
+        "interest_in_politics"
+    ],
+    "groups": [
+        "gender",
+        "education_level",
+        "age_range",
+        "income_range",
+        "interest_in_politics"
+    ],
+    "levels": {
+        "gender": {
+            "order": [
+                "muž",
+                "žena"
+            ]
+        },
+        "education_level": {
+            "order": [
+                "základní + středoškolské vzdělání bez maturity",
+                "středoškolské vzdělání s maturitou",
+                "vysokoškolské vzdělání"
+            ]
+        },
+        "age_range": {
+            "order": [
+                "18–24 let",
+                "25–34 let",
+                "35–44 let",
+                "45–54 let",
+                "55–65 let"
+            ]
+        },
+        "income_range": {
+            "order": [
+                "Do 15.000 Kč",
+                "30.001 - 40.000 Kč",
+                "Vice než 80.000 Kč"
+            ]
+        },
+        "interest_in_politics": {
+            "order": [
+                "vůbec se nezajímám",
+                "spíše se nezajímám",
+                "spíše se zajímám",
+                "velmi se zajímám"
+            ]
+        }
+    },
+    "claims": {},
+    "shared": {
+        "gender": {
+            "column": "gender",
+            "map": {
+                "muž": "male",
+                "žena": "female"
+            }
+        }
+    },
+    "note": "RETIRED on 2026-11-15 (named grid_sod until then; DECISIONS.md section 28): the three incomes - up to 15, 30 to 40, over 80 thousand - leave 15 to 30 and 40 to 80 thousand out, so the grid does not span incomes and neither do its runs. Kept so that the run sent these profiles can still be read; build nothing new on it. 360 synthetic profiles = 2 x 3 x 5 x 3 x 4, the full factorial of the levels below, numbered from 1 with the first column varying slowest (`panel.grid`); the source is this declaration. Gender, education and interest are the survey's answers, age_range its five bands. The incomes are three of the survey's bands: the lowest, a middle one, the highest. Ported from CoRe/_grid_separate grid/grid_config_sod.json as committed (132038d, grid `sod`); its gpt-4o runs of 2026-09-11, grid-sod-r1..r3, were sent these profiles (r1 survives only in that folder's archive/, its stem was overwritten on 2026-09-24 by the run of grid_sod45_retired)."
+}

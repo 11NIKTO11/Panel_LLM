@@ -1,0 +1,142 @@
+{
+  "Probabilities": {
+    "$defs": {
+      "PartyShare": {
+        "description": "Podíl hlasů, které v území získala jedna z nabízených stran.",
+        "properties": {
+          "name": {
+            "description": "Název jedné z nabízených stran.",
+            "enum": [
+              "ANO 2011",
+              "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+              "Koalice PIRÁTI a STAROSTOVÉ",
+              "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+              "Přísaha Roberta Šlachty",
+              "Česká strana sociálně demokratická (ČSSD)",
+              "Komunistická strana Čech a Moravy (KSČM)",
+              "Trikolóra, Svobodní a Soukromníci",
+              "Jiná strana"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "Podíl hlasů, které tato strana v území získala.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "PartyShare",
+        "type": "object"
+      },
+      "TurnoutShare": {
+        "description": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili, a kteří se jich nezúčastnili.\n\nPodíl účasti a neúčasti ve volbách. Součet musí být 1.0.",
+        "properties": {
+          "voted": {
+            "description": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Podíl oprávněných voličů v území, kteří se voleb nezúčastnili.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutShare",
+        "type": "object"
+      }
+    },
+    "description": "Strukturovaný výstup: rozdělení hlasů mezi nabízené strany.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutShare"
+      },
+      "options": {
+        "description": "Seznam nabízených stran s podílem hlasů, které v území získaly. Součet podílů musí být 1.0.",
+        "items": {
+          "$ref": "#/$defs/PartyShare"
+        },
+        "title": "Options",
+        "type": "array"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "options"
+    ],
+    "title": "Probabilities",
+    "type": "object"
+  },
+  "Pick": {
+    "$defs": {
+      "TurnoutShare": {
+        "description": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili, a kteří se jich nezúčastnili.\n\nPodíl účasti a neúčasti ve volbách. Součet musí být 1.0.",
+        "properties": {
+          "voted": {
+            "description": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Podíl oprávněných voličů v území, kteří se voleb nezúčastnili.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutShare",
+        "type": "object"
+      }
+    },
+    "description": "Zjednodušený výstup: jedna vybraná strana.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutShare"
+      },
+      "choice": {
+        "description": "Strana, která v území získala nejvíce hlasů.",
+        "enum": [
+          "ANO 2011",
+          "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+          "Koalice PIRÁTI a STAROSTOVÉ",
+          "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+          "Přísaha Roberta Šlachty",
+          "Česká strana sociálně demokratická (ČSSD)",
+          "Komunistická strana Čech a Moravy (KSČM)",
+          "Trikolóra, Svobodní a Soukromníci",
+          "Jiná strana"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "choice"
+    ],
+    "title": "Pick",
+    "type": "object"
+  }
+}

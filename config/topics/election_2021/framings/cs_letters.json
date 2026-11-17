@@ -1,0 +1,28 @@
+{
+    "name": "cs_letters",
+    "topic": "election_2021",
+    "language": "cs",
+    "short": "cs-letters",
+    "title": "Volby do Poslanecké sněmovny ČR 2021 - odpověď písmenem",
+    "instructions": "Odpověz jedním písmenem, bez dalšího textu.",
+    "labels": {},
+    "answer": {
+        "tokens": {
+            "ANO": "A",
+            "SPOLU": "B",
+            "PirSTAN": "C",
+            "SPD": "D",
+            "Prisaha": "E",
+            "CSSD": "F",
+            "KSCM": "G",
+            "TSS": "H",
+            "Other": "I"
+        },
+        "abstain": {
+            "token": "J",
+            "label": "Nikoho, voleb jsem se neúčastnil(a)"
+        },
+        "line": "{token}) {label}"
+    },
+    "note": "The answer is one letter, read off the token distribution (DECISIONS.md §40); no schema is sent. Instructions and menu are those of the trial in CoRe/API_test, with not having voted added as the last entry. The abstain label is ours and unreviewed. Options in the topic's order, so the letter and the position of an option cannot be told apart in this framing."
+}

@@ -1,22 +1,43 @@
-requests
-jupyter
-ipykernel
+# Panel_LLM dependencies.
+#
+# Floors are the newest releases on PyPI as of 2026-11-10. NOT yet verified: the project was last
+# verified (2026-09-07, Python 3.13) against pandas 2.3, openai 1.101, anthropic 0.76,
+# google-genai 1.57 and plotly 6.7 - all of which have had a major release since.
+# For an exact reproduction of a past run, use `pip freeze` output, not this file.
+# Python 3.11+ is what the project is tested on. (The old hard requirement, Literal[*names]
+# unpacking in panel/topic/response.py, is gone - the response models build their Literal at runtime.)
 
-# Core dependencies inferred from source files and notebooks
-pandas
-numpy
-matplotlib
-seaborn
-pydantic
-python-dotenv
+# --- Core data stack ---
+pandas>=3.1.1
+numpy>=2.5.4
 
-# LLM-related utilities used in Models_Utils and notebooks
-# any-llm
-openai
+# --- Plotting ---
+matplotlib>=3.11.2
 
-# Utilities used in notebooks
-tqdm
+# --- Statistics ---
+scipy>=1.18.1                 # JS / KL distances, pairwise distances, Spearman
+scikit-learn>=1.9.1           # MDS in stats/mapping.py, the trained logit in stats/classifier.py
+statsmodels>=0.15.0           # MANOVA in panel/analysis/stats/manova.py
 
-# Optional structured-output providers
-anthropic
-google-genai
+# --- Dataset ---
+pyreadstat>=1.3.7             # backs pandas.read_spss for the SoD .sav file
+
+# --- LLM clients ---
+# Only the provider actually used needs to be installed; each client guards its import.
+openai>=3.49.0                # OpenAIClient
+anthropic>=2.7.0              # AnthropicClient
+google-genai>=3.0.0           # GeminiClient
+requests>=2.34.2              # OpenRouterClient (raw HTTP)
+
+# --- LLM support ---
+pydantic>=2.14.3              # structured output schemas
+python-dotenv>=1.2.4          # .env loading in notebook composition roots
+tqdm>=4.70.1                  # batch progress
+
+# --- Notebooks ---
+jupyter>=1.1.1
+jupyterlab>=4.6.6
+ipykernel>=7.4.0
+
+# --- Tests ---
+pytest>=9.2.0                 # tests/ holds the refactor gates; run python -m pytest from the repo root

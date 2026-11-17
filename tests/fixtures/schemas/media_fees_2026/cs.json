@@ -1,0 +1,68 @@
+{
+  "Probabilities": {
+    "$defs": {
+      "StanceProbability": {
+        "description": "Pravděpodobnost, že respondent zastává jeden z nabízených postojů.",
+        "properties": {
+          "name": {
+            "description": "Název jednoho z nabízených postojů.",
+            "enum": [
+              "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
+              "Zachovat současné poplatky"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "Pravděpodobnost, že respondent zastává tento postoj.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "StanceProbability",
+        "type": "object"
+      }
+    },
+    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené postoje.",
+    "properties": {
+      "options": {
+        "description": "Seznam nabízených postojů s pravděpodobností, že je respondent zastává. Součet pravděpodobností musí být 1.0.",
+        "items": {
+          "$ref": "#/$defs/StanceProbability"
+        },
+        "title": "Options",
+        "type": "array"
+      }
+    },
+    "required": [
+      "options"
+    ],
+    "title": "Probabilities",
+    "type": "object"
+  },
+  "Pick": {
+    "description": "Zjednodušený výstup: jeden vybraný postoj.",
+    "properties": {
+      "choice": {
+        "description": "Postoj, který respondent nejpravděpodobněji zastává.",
+        "enum": [
+          "Zrušit poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu",
+          "Zachovat současné poplatky"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "choice"
+    ],
+    "title": "Pick",
+    "type": "object"
+  }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "neutral",
+    "short": "neutral",
+    "languages": {
+        "cs": {
+            "text": "Ve volbách do Poslanecké sněmovny v roce 2021 byla moje volba:",
+            "note": "The same question worded so that it agrees with no one. Draft wording, unreviewed."
+        }
+    }
+}
