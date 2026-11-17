@@ -222,6 +222,8 @@ def test_a_run_with_a_call_missing_is_saved_as_incomplete(tmp_path):
         load_run(store, stem)
     execute(run, store, FakeClient(), max_workers=1)
     assert store.runs() == [run.stem, stem] and "incomplete" not in store.record(run.stem)
+    with pytest.raises(FileExistsError, match="whole already"):
+        execute(run, store, FakeClient(), max_workers=1, missing=True)
 
 
 def test_missing_sends_only_what_the_incomplete_run_lacks(tmp_path):
@@ -244,6 +246,12 @@ def test_missing_sends_only_what_the_incomplete_run_lacks(tmp_path):
     assert sum(client._seen.values()) == 8 and record["n"] == 20 and "incomplete" not in record
     assert record["resumed"] == {"answers": 12, "saved_at": again["saved_at"], "model_resolved": again["model_resolved"]}
     assert partial["saved_at"] <= again["saved_at"]
+    archived = sorted(path.name for path in (store.run_dir(run.stem) / store.ARCHIVE_DIR).iterdir())
+    assert store.runs() == [run.stem] and not store.run_dir(run.stem + store.INCOMPLETE).exists()
+    earlier = [name for name in archived if store.INCOMPLETE in name]
+    assert len(archived) == len(earlier) + 2 and len(earlier) in (2, 4) and any(name.endswith("_incomplete_run.json") for name in earlier)
+    with pytest.raises(FileExistsError, match="whole already"):
+        execute(run, store, FakeClient(), max_workers=1, missing=True)
 
     whole = ResultStore(tmp_path / "whole", SOD.topic)
     execute(run, whole, FakeClient(), max_workers=1)

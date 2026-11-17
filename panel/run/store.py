@@ -18,7 +18,8 @@ comparison, with the runs it was made from.
     |   |-- analysis/               tables derived from the run: <statistic>.csv
     |   |-- plots/                  figures derived from the run: <name>.png
     |   `-- delivered/              for a run kept only as a table: the table as delivered
-    |-- runs/<stem>_incomplete/     the same files for a run with a call missing; never read as the run
+    |-- runs/<stem>_incomplete/     the same files for a run with a call missing; never read as the run,
+    |                               and gone once the run is whole: its archive moves into the run's
     `-- comparisons/<name>/
         |-- runs.json               label -> stem: the runs this comparison was made from
         |-- analysis/               <statistic>.csv
@@ -30,6 +31,8 @@ datasets on one topic are meant to be compared. Files inside a run's folder carr
 folder does, and a stem twice in one path does not fit a Windows path.
 """
 import json
+import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -177,9 +180,12 @@ class ResultStore:
         """
         The incomplete run of `resolved`, as `save` takes it back: {call: (prompt, parsed)}, {call: reasons}
         for the answers kept though flawed, and its record. Raises unless it is the same run - the same spec,
-        built from the same files, every saved prompt the one that call would send today.
+        built from the same files, every saved prompt the one that call would send today - and unless the
+        run is not whole yet, so that no run is completed twice.
         """
         stem = resolved.stem + self.INCOMPLETE
+        if self.paths(resolved.stem).record.exists():
+            raise FileExistsError(f"'{resolved.stem}' is whole already; nothing of it is missing")
         record = self.record(stem)
         if record["spec"] != resolved.spec.to_dict():
             raise ValueError(f"'{stem}' is a run of a different spec")
@@ -213,6 +219,8 @@ class ResultStore:
 
         Results that are not all of the run's calls are saved under `<stem>_incomplete`, with the
         calls missing in the record, so that a run's own folder only ever holds the whole run.
+        A whole run that was `resumed` takes the incomplete run's archived copies into its own
+        archive, and the incomplete folder is removed: it is spent, and its answers are in the run.
 
         The archived copy is what keeps an overwritten run recoverable; it holds the CSV and the record
         only, because the raw JSON and the normalized CSV are reconstructions of the CSV. The plain set is
@@ -240,7 +248,24 @@ class ResultStore:
         raw = _raw_results(results, resolved)
         plain.results_json.write_text(json.dumps(raw, ensure_ascii=False, indent=4), encoding="utf-8")
         normalize_groups(frame, resolved.topic.normalize_groups).to_csv(plain.normalized_csv, index=True, encoding="utf-8")
+        if resumed and not missing:
+            self._absorb(resolved.stem)
         return plain
+
+    def _absorb(self, stem: str) -> None:
+        """An archived copy keeps its timestamp and gains `_incomplete` after it, so it cannot meet a copy of the whole run saved in the same second."""
+        spent = self.run_dir(stem + self.INCOMPLETE)
+        archive = self.run_dir(stem) / self.ARCHIVE_DIR
+        moves = {}
+        for path in sorted((spent / self.ARCHIVE_DIR).iterdir()):
+            timestamp = re.split(r"[_.]", path.name, maxsplit=1)[0]
+            moves[path] = archive / f"{timestamp}{self.INCOMPLETE}{path.name[len(timestamp):]}"
+        taken = [target.name for target in moves.values() if target.exists()]
+        if taken:
+            raise FileExistsError(f"'{stem}': its archive already holds {taken}; the incomplete run is left where it is")
+        for path, target in moves.items():
+            shutil.move(str(path), str(target))
+        shutil.rmtree(spent)
 
 
 def _results_frame(results: Dict[int, Tuple[str, BaseModel]], resolved: Resolved) -> pd.DataFrame:

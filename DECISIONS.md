@@ -1614,7 +1614,15 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   version it reported. `model_resolved` at the top is the later sending's
   - why: a run completed a week later may hold answers of two model versions; the stem
     cannot say so
-- the `_incomplete` folder is left where it is once the run is whole; it is deletable
+- **A completed run takes the incomplete one in**: its archived copies (a CSV and a record per
+  incomplete save) move into the run's `archive/` as `<timestamp>_incomplete.csv` and
+  `<timestamp>_incomplete_run.json`, and the `_incomplete` folder is removed
+  - why: left in place it could be completed a second time, paying for the same calls again
+    and replacing answers of the whole run
+  - nothing is lost: every answer is in the whole run, and each earlier state is an archived
+    pair whose record says `incomplete`
+  - `--missing` on a run that is whole already is refused (`FileExistsError`), which also
+    covers an incomplete folder left behind by a run that was later sent again in full
 - checked: a run stopped twice and then completed has the same `results.json` and
   `results.csv` as the run sent in one go (offline, the fake client)
 - not done: `run.py --check` still does not look at an `_incomplete` folder; no live call
