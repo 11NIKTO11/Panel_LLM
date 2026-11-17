@@ -20,7 +20,7 @@ from matplotlib.figure import Figure
 from .aggregate import subject_answers
 from .output import Output, save
 from .plots.maps import maps
-from .saved import NotApplicable, SavedRun
+from .saved import NotApplicable, SavedRun, pools
 from .stats.mapping import mantel, mds, procrustes, procrustes_test
 
 NAME = "compass"
@@ -48,6 +48,7 @@ def compute(run: SavedRun, seed: int = 0) -> Dict[str, pd.DataFrame]:
     Spearman correlation of the model's distances with the experts' in the plane and over all
     items, each with its exact permutation p-value.
     """
+    pools(run, NAME)
     positions = run.positions
     if positions is None:
         raise NotApplicable(f"'{run.stem}': topic '{run.topic.name}' has no expert positions")

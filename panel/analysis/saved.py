@@ -74,6 +74,12 @@ class SavedRun:
         return self.topic.reference.total if self.topic.reference else None
 
 
+def pools(run: SavedRun, analysis: str) -> None:
+    """Called by an analysis that reads the subjects as a sample of one population."""
+    if run.dataset.aggregate:
+        raise NotApplicable(f"'{run.stem}': a subject of '{run.dataset.name}' is already a whole, and {analysis} pools subjects")
+
+
 def find_stem(store: ResultStore, text: str) -> str:
     """The one saved run whose stem is `text` or contains it."""
     stems = store.runs()

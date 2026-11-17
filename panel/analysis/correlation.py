@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 from .aggregate import subject_answers
 from .output import Output, save
 from .plots.matrices import heatmap
-from .saved import SavedRun
+from .saved import SavedRun, pools
 
 NAME = "correlation"
 COVARIANCE = "covariance"
@@ -26,6 +26,7 @@ def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
     `correlation` and `covariance` between the options' shares, over subjects: options by
     options; an option that never varies has no correlation.
     """
+    pools(run, NAME)
     found = subject_answers(run.normalized, run.topic)[run.options]
     return {NAME: found.corr(), COVARIANCE: found.cov()}
 

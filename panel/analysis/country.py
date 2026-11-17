@@ -14,7 +14,7 @@ from .estimate import high, low
 from .output import Output, save
 from .plots.comparison import source_bars
 from .plots.style import REFERENCE, SECONDARY, colors
-from .saved import SavedRun
+from .saved import SavedRun, pools
 from .sources import ACTUAL, CLAIMED, ESTIMATED, SOURCES, distributions, estimated, frame, ranked
 from .stats.bootstrap import HIGH, LOW, intervals
 
@@ -23,6 +23,7 @@ NAME = "country"
 
 def compute(run: SavedRun, draws: int = 1000, seed: int = 0, level: float = 0.95) -> Dict[str, pd.DataFrame]:
     """`country` - one row per topic column, a column per source, `<source>_low` and `<source>_high` for predicted and claimed."""
+    pools(run, NAME)
     found = distributions(run, frame(run))
     edges = intervals(frame(run), lambda rows: pd.concat(estimated(run, rows)), draws, seed, level)
     table = pd.DataFrame(index=run.topic.columns)

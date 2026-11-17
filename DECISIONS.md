@@ -1652,3 +1652,26 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - `run_llm_batch` returns a `Batch` (`results`, `flawed`, `attempts`, `skipped`); `BatchStopped.batch` is one
 - not counted: a call that stopped the batch, and calls dropped by the stop
 - no live call
+
+---
+
+## 41. A dataset whose subjects are wholes is never pooled (2026-11-17)
+
+- **The problem**: a `regions` run asks about fifteen places, and each answer is already that
+  place's result. The analyses that read the subjects as a sample of one population made a
+  "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
+  and `Česko`, the model's own country answer, is one of the fifteen; the correlations, the map
+  and the spread were over fifteen areas under titles that speak of subjects
+- **`"aggregate": true`** in `dataset.json` (optional, `Dataset.aggregate`, False by default): a
+  subject stands for a population and its answer is that population's result. Only `regions` says so
+- **`panel/analysis/saved.py:pools(run, name)`** raises `NotApplicable` for such a dataset; the
+  first line of `compute` in `country`, `distance`, `correlation`, `compass`, `spread`
+  - `compare.py` loses `shares`, `distances`, `compass` with them, since each calls a run's `compute`
+  - `comparison/distances.py` no longer rewords a run's reason into "neither claims nor a reference"
+  - still run: `answers` (its mean is over the areas - known, left), `resolution`, `area`, `groups`;
+    `areas` of a comparison. `area` is the analysis such a run is for
+- **REJECTED for now, the goal in `TODO.md`**: aggregating on purpose - a weight per area (voters,
+  not the approximate populations of `regions.csv`), the `Česko` row left out; it would say whether
+  the model's regions add up to its country. It would be set up in the framing; how is not discussed
+- the tables and figures the five had written for the `regions` runs and the comparisons
+  `regions-citizen` / `regions-direct` were removed from `results/` (152 files)

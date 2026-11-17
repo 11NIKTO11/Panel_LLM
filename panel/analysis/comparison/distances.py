@@ -18,7 +18,6 @@ from ..distance import NAME as DISTANCE, compute as distance
 from ..estimate import high, low
 from ..output import Output
 from ..plots.intervals import interval_panels
-from ..saved import NotApplicable
 from ..sources import ACTUAL, CLAIMED, PREDICTED, TURNOUT, estimated, frame, shown, versus
 from ..stats.metrics import MAE, RMSE, distances as measure
 from .loaded import RunSet
@@ -35,10 +34,7 @@ def distances(runs: RunSet, out: Output) -> Tuple[pd.DataFrame, List[Figure]]:
     topic, options = runs.topic, list(runs.topic.options)
     own = {}
     for label, run in runs.runs.items():
-        try:
-            own[label] = distance(run)[DISTANCE]
-        except NotApplicable:
-            raise NotApplicable(f"'{topic.name}' has neither claims nor a reference; there is nothing to measure a distance to")
+        own[label] = distance(run)[DISTANCE]
 
     rows = {}
     for label, found in own.items():

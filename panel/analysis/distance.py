@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from .estimate import high, low
 from .output import Output, save
 from .plots.intervals import interval_panels
-from .saved import NotApplicable, SavedRun
+from .saved import NotApplicable, SavedRun, pools
 from .sources import TURNOUT, actual, estimated, frame, pair_distances, shown, versus
 from .stats.bootstrap import HIGH, LOW, intervals
 from .stats.metrics import MAE, METRICS, RMSE
@@ -29,6 +29,7 @@ def compute(run: SavedRun, draws: int = 1000, seed: int = 0, level: float = 0.95
     source's turnout is the higher - and `<metric>_low`,
     `<metric>_high`.
     """
+    pools(run, NAME)
     counted = actual(run)
     measures = [*METRICS, *([TURNOUT] if run.topic.turnout else [])]
 

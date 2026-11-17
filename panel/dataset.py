@@ -29,7 +29,7 @@ FORMS_NAME = "forms.json"
 DESCRIPTIONS_DIR = "descriptions"
 PREPARED_DIR = "prepared"
 REQUIRED_KEYS = {"name", "short", "title", "language", "source", "columns", "claims"}
-OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "together", "note"}
+OPTIONAL_KEYS = {"optional", "groups", "area", "levels", "shared", "together", "aggregate", "note"}
 LEVEL_KEYS = {"bands", "order", "several"}
 CLAIM_KEYS = {"column", "map"}
 SHARED_KEYS = {"column", "map"}
@@ -85,6 +85,8 @@ class Dataset:
     - claims: topic name -> where the dataset's answer to it lives.
     - shared: shared vocabulary name -> the column carrying it and its map.
     - together: name -> columns that share credit as one factor in an attribution (kernel's Shapley effects).
+    - aggregate: a subject stands for a population and its answer is already that population's result
+      (a place, not a person); analysis never pools such subjects.
     - note: not used by code.
     """
     name: str
@@ -102,6 +104,7 @@ class Dataset:
     dir: Path
     together: Dict[str, Tuple[str, ...]] = field(default_factory=dict)
     note: str = ""
+    aggregate: bool = False
 
     @property
     def descriptions(self) -> Tuple[str, ...]:
@@ -191,6 +194,7 @@ def load_dataset(name: str, datasets_dir: Union[str, Path] = paths.DATASETS_DIR)
         name=config["name"], short=short, title=config["title"], language=config["language"],
         source=config["source"], columns=columns, optional=optional, groups=groups, area=area, levels=levels,
         claims=claims, shared=shared, dir=directory, note=config.get("note", ""), together=together,
+        aggregate=config.get("aggregate", False),
     )
 
 

@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 from .aggregate import subject_answers
 from .output import Output, save
 from .plots.distributions import histograms
-from .saved import SavedRun
+from .saved import SavedRun, pools
 
 NAME = "spread"
 DISTANCES = "spread_distances"
@@ -29,6 +29,7 @@ def compute(run: SavedRun) -> Dict[str, pd.DataFrame]:
     `QUANTILES`, maximum - and `spread_distances`: per subject, the Euclidean and the cosine
     distance of its option shares from their mean over subjects.
     """
+    pools(run, NAME)
     found = subject_answers(run.normalized, run.topic)
     shares = found[run.options].to_numpy()
     mean = shares.mean(axis=0)
