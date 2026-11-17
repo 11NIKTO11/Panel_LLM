@@ -5,7 +5,8 @@ Later replaces earlier: base, `-d`, `-m`, single fields. Every field of a run is
 `none` stands for no value (`--temperature none`). Anything but the Fake client asks before
 sending. A run with an effort first asks the provider which levels the model takes, and is
 refused if its own is not one of them. A run that lost calls is saved as `<stem>_incomplete`;
-the same options with `--missing` send only what it lacks. Writes under `results/<topic>/`, then prints a check of what was saved.
+the same options with `--missing` send only what it lacks. A stem that holds a run of a different
+spec - the stem does not say everything, the accepted sums for one - is refused unless `--overwrite`. Writes under `results/<topic>/`, then prints a check of what was saved.
 """
 import argparse
 
@@ -42,6 +43,7 @@ def main() -> None:
     parser.add_argument("--one", action="store_true", help="make one call and print it; nothing saved")
     parser.add_argument("--yes", action="store_true", help="send without asking")
     parser.add_argument("--check", action="store_true", help="look over the saved run; no call")
+    parser.add_argument("--overwrite", action="store_true", help="save over a run of the same stem and a different spec; its archived copies stay")
     parser.add_argument("--missing", action="store_true", help="send only the calls the run's incomplete sending lacks, and save the whole run")
     args = parser.parse_args()
 
@@ -70,6 +72,8 @@ def main() -> None:
     if args.show:
         print(f"\n{run.framing.instructions}\n\n{run.prompt(subject)}")
         return
+    if not args.one:
+        store.refuse(run, args.overwrite)
     load_dotenv()
     client = run.client_type(**({"effort": spec.effort} if spec.effort else {}))
     tier = effort_tier(client, spec)
@@ -81,7 +85,7 @@ def main() -> None:
     if not (args.yes or isinstance(client, FakeClient)):
         if input(f"send {sending} calls to {spec.client} {spec.model}? [y/N] ").strip().lower() != "y":
             return
-    written = execute(run, store, client, missing=args.missing)
+    written = execute(run, store, client, overwrite=args.overwrite, missing=args.missing)
     print(f"-> {written.results_csv}\n\n{looked_over(run, store)}")
 
 

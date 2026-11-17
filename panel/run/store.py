@@ -45,8 +45,9 @@ from panel.digest import recorded
 from panel.llm import BaseLLMClient
 from panel.topic.normalize import normalize_groups
 
-from .record import KEPT, build_record
+from .record import KEPT, build_record, changed, texts
 from .resolve import REPEAT, SUBJECT, Resolved
+from .spec import RunSpec
 
 PROMPT = "Prompt"
 
@@ -161,7 +162,9 @@ class ResultStore:
         """
         Raise if `resolved` may not be saved here; `execute` asks before any call is made.
         A run brought in rather than sent - its record has a `migrated` or a `delivered` block -
-        has no archived copy and is never saved over, whatever `overwrite` says.
+        has no archived copy and is never saved over, whatever `overwrite` says. A run of the same spec
+        whose record copied other texts than today's files hold is a different run too: a spec is names,
+        and the file behind a name can be edited.
         """
         if resolved.topic.name != self.topic:
             raise ValueError(f"run topic '{resolved.topic.name}' does not match store topic '{self.topic}'")
@@ -173,8 +176,14 @@ class ResultStore:
         kept = [block for block in KEPT if block in existing]
         if kept:
             raise FileExistsError(f"'{stem}' holds a run that was brought in ({', '.join(kept)}), which is never saved over")
-        if not overwrite and existing.get("spec") != resolved.spec.to_dict():
-            raise FileExistsError(f"'{stem}' already holds a run of a different spec; pass overwrite=True to replace it")
+        if not overwrite and not _same_spec(existing, resolved):
+            raise FileExistsError(f"'{stem}' already holds a run of a different spec; overwrite=True (`run.py --overwrite`) replaces it")
+        drift = changed(existing, texts(resolved))
+        if not overwrite and drift:
+            raise FileExistsError(
+                f"'{stem}' holds a run that read other texts than today's files ({', '.join(drift)}); "
+                "new wording belongs in a file of a new name, or overwrite=True (`run.py --overwrite`) replaces the run"
+            )
 
     def answered(self, resolved: Resolved) -> Tuple[Dict[int, Tuple[str, BaseModel]], Dict[int, Tuple[str, ...]], Dict[str, Any]]:
         """
@@ -187,8 +196,11 @@ class ResultStore:
         if self.paths(resolved.stem).record.exists():
             raise FileExistsError(f"'{resolved.stem}' is whole already; nothing of it is missing")
         record = self.record(stem)
-        if record["spec"] != resolved.spec.to_dict():
+        if not _same_spec(record, resolved):
             raise ValueError(f"'{stem}' is a run of a different spec")
+        drift = changed(record, texts(resolved))
+        if drift:
+            raise ValueError(f"'{stem}' read other texts than today's files: {', '.join(drift)}")
         if recorded(record["dataset"]) != resolved.digests:
             raise ValueError(f"'{stem}' was built from other files than the dataset holds today")
         calls = resolved.calls
@@ -284,6 +296,14 @@ def _results_frame(results: Dict[int, Tuple[str, BaseModel]], resolved: Resolved
     calls = resolved.calls[[SUBJECT, REPEAT]]
     frame = calls.join(pd.DataFrame(rows), how="inner").sort_values([SUBJECT, REPEAT]).set_index(SUBJECT)
     return frame.drop(columns=REPEAT) if resolved.spec.repeats == 1 else frame
+
+
+def _same_spec(record: Mapping[str, Any], resolved: Resolved) -> bool:
+    """A field the record's spec lacks is read at its default, so a run saved before the field existed is the run it was."""
+    try:
+        return RunSpec.from_dict(record.get("spec") or {}) == resolved.spec
+    except (TypeError, ValueError):
+        return False
 
 
 def _key(calls: pd.DataFrame, call: int, repeats: int) -> str:

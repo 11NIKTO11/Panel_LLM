@@ -157,6 +157,12 @@ call left unanswered - or stopped half way, by a failure or by you - is saved as
 `<stem>_incomplete`, which the analyses refuse to read. The same command with `--missing` sends
 only the calls it lacks and saves the whole run under its stem.
 
+A stem that already holds a run of a different spec is refused before anything is sent - two
+runs can share a stem and differ in what the stem does not say, the accepted sums for one.
+So is a run of the same spec that read other texts: a framing, question or description edited
+under its name since. `--overwrite` saves over it; the earlier run's archived copies stay in its
+`archive/`. The check says whether today's framing file is still the one the run recorded.
+
 The record also says what sending took: `sending` holds the calls sent against the answers they
 gave, the attempts refused per flaw, those that failed or met a rate limit, and the rerun rounds;
 `attempts` lists, per call, each attempt that gave no accepted answer. The check prints the totals.

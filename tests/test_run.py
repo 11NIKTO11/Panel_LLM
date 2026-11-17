@@ -13,7 +13,7 @@ from panel.run.accept import judge
 from panel.run.check import MEAN, TOP, check, means, report
 from panel.run.fake import FakeClient, FakeTokensClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
-from panel.run.record import KEPT
+from panel.run.record import KEPT, changed
 from panel.run.registry import client_class
 
 from tests.conftest import TOPICS_DIR, require
@@ -327,6 +327,20 @@ def test_store_collision(tmp_path):
     assert RunSpec.from_dict(store.record(other.stem)["spec"]).random_state == 7
 
 
+def test_a_record_from_before_a_field_existed_is_the_same_run(tmp_path):
+    run = prepared(SOD.variant(sample=5))
+    store = ResultStore(tmp_path, SOD.topic)
+    execute(run, store, FakeClient(), max_workers=1)
+    path = store.paths(run.stem).record
+    record = json.loads(path.read_text(encoding="utf-8"))
+    del record["spec"]["sum_low"], record["spec"]["sum_high"]
+    path.write_text(json.dumps(record), encoding="utf-8")
+    store.refuse(run)
+    with pytest.raises(FileExistsError, match="--overwrite"):
+        store.refuse(prepared(SOD.variant(sample=5, sum_low=0.95)))
+    store.refuse(prepared(SOD.variant(sample=5, sum_low=0.95)), overwrite=True)
+
+
 @pytest.mark.parametrize("block", KEPT)
 def test_a_run_brought_in_is_never_saved_over(tmp_path, block):
     store = ResultStore(tmp_path, SOD.topic)
@@ -399,6 +413,52 @@ def test_question_needs_the_framings_language(tmp_path):
         resolve(SOD, topics_dir=tmp_path)
 
 
+def test_a_text_edited_under_its_name_makes_another_run(tmp_path):
+    shutil.copytree(TOPICS_DIR / "election_2021", tmp_path / "election_2021")
+    spec = SOD.variant(sample=5)
+    store = ResultStore(tmp_path / "results", spec.topic)
+    run = resolve(spec, topics_dir=tmp_path)
+    with pytest.raises(BatchFailed):
+        execute(run, store, Broke(paid=2), max_workers=1)
+    execute(run, store, FakeClient(), max_workers=1, missing=True)
+    looked = check(store, run.stem, run.topic, run.framing)
+    assert looked.drifted == () and "as recorded" in report(looked, len(run.topic.options))
+    store.refuse(run)
+
+    def edit(name: str, **changes):
+        path = tmp_path / "election_2021" / name
+        path.write_text(json.dumps({**json.loads(path.read_text(encoding="utf-8")), **changes}, ensure_ascii=False), encoding="utf-8")
+
+    edit("framings/cs.json", instructions="Odpovídej stručně.", note="a note is not copied")
+    edited = resolve(spec, topics_dir=tmp_path)
+    assert edited.spec == run.spec and edited.stem == run.stem
+    with pytest.raises(FileExistsError, match="framing.instructions"):
+        store.refuse(edited)
+    with pytest.raises(FileExistsError, match="framing.instructions"):
+        execute(edited, store, FakeClient(), max_workers=1)
+    looked = check(store, run.stem, edited.topic, edited.framing)
+    assert looked.drifted == ("framing.instructions",) and "NOT as recorded: framing.instructions" in report(looked, len(run.topic.options))
+    execute(edited, store, FakeClient(), max_workers=1, overwrite=True)
+    assert check(store, run.stem, edited.topic, edited.framing).drifted == ()
+
+    with pytest.raises(BatchFailed):
+        execute(resolve(spec.variant(sample=6), topics_dir=tmp_path), store, Broke(paid=2), max_workers=1)
+    edit("questions/default.json", short="default")
+    question = tmp_path / "election_2021" / "questions" / "default.json"
+    config = json.loads(question.read_text(encoding="utf-8"))
+    config["languages"]["cs"]["text"]["male"] += " "
+    question.write_text(json.dumps(config, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(ValueError, match="question.forms"):
+        execute(resolve(spec.variant(sample=6), topics_dir=tmp_path), store, FakeClient(), max_workers=1, missing=True)
+
+
+def test_a_record_copied_before_a_key_existed_has_not_changed():
+    record = {"framing": {"name": "cs", "instructions": "a"}, "question": None}
+    assert changed(record, {"framing": {"name": "cs", "instructions": "a", "answer": {"menu": []}}, "question": None}) == []
+    assert changed(record, {"framing": {"name": "cs", "instructions": "b"}, "question": {"name": "q"}}) == ["framing.instructions", "question"]
+    assert changed(record, {"framing": {"name": "cs"}, "description": {"text": []}}) == ["framing.instructions"]
+
+
 def test_resolve_refuses_undeclared_description():
     with pytest.raises(ValueError):
         resolve(SOD.variant(description="nobody"))
@@ -457,20 +517,6 @@ def test_a_run_without_an_effort_asks_nothing(tmp_path):
     assert store.record(run.stem)["effort"] is None and client.asked == []
 
 
-def test_registry():
-    assert client_class("OpenRouter") is client_class("OpenRouterClient")
-    assert client_class("Fake") is FakeClient
-    with pytest.raises(KeyError):
-        client_class("Nobody")
-    with pytest.raises(KeyError):
-        prepared(SOD.variant(client="Nobody"))
-
-
-def test_spec_rejects_nonsense():
-    with pytest.raises(ValueError):
-        SOD.variant(shape="VProb")
-    with pytest.raises(ValueError):
-        SOD.variant(repeats=0)
 def test_a_token_run_reads_the_menu_and_saves_the_same_table(tmp_path):
     run = prepared(LETTERS)
     assert run.stem == "sod_default_cs-letters_default_FakeTokens_fake-model_Prob_t=default_subset=8"
@@ -527,6 +573,20 @@ def test_a_menu_and_a_token_reading_client_need_each_other():
         prepared(LETTERS.variant(client="OpenAITokens", model="gpt-4o", effort="low"))
 
 
+def test_registry():
+    assert client_class("OpenRouter") is client_class("OpenRouterClient")
+    assert client_class("Fake") is FakeClient
+    with pytest.raises(KeyError):
+        client_class("Nobody")
+    with pytest.raises(KeyError):
+        prepared(SOD.variant(client="Nobody"))
+
+
+def test_spec_rejects_nonsense():
+    with pytest.raises(ValueError):
+        SOD.variant(shape="VProb")
+    with pytest.raises(ValueError):
+        SOD.variant(repeats=0)
     with pytest.raises(TypeError):
         RunSpec.from_dict({"name": "sod", "topic": "election_2021_legacy"})
     with pytest.raises(ValueError):
@@ -540,6 +600,7 @@ def test_presets_combine_into_complete_specs():
     assert set(DATA) | set(MODEL) | {"sample", "random_state"} == set(FIELDS)
     base = presets.base
     assert build_spec(base, None, None, {}).client == "Fake"
+    reads_tokens = {name: {"client": "FakeTokens"} if name == "sod-letters" else {} for name in presets.data}
     for name, data in presets.data.items():
         spec = build_spec(base, data, None, reads_tokens[name])
         assert spec.sample is None and prepared(spec).stem, name
@@ -554,7 +615,6 @@ def test_presets_lay_over_a_complete_base(tmp_path):
     base = {field: getattr(SOD, field) for field in DATA + MODEL}
     data, model = {"description": "extended"}, {"model": "other", "temperature": None}
     loaded = load_presets(write_presets(tmp_path, base, {"a": data}, {"m": model}))
-    reads_tokens = {name: {"client": "FakeTokens"} if name == "sod-letters" else {} for name in presets.data}
     assert build_spec(loaded.base, None, None, {"sample": 20}) == SOD
     spec = build_spec(loaded.base, loaded.data["a"], loaded.models["m"], {"model": "third"})
     assert spec == SOD.variant(description="extended", model="third", temperature=None, sample=None)

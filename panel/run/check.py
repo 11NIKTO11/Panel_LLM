@@ -11,6 +11,7 @@ import pandas as pd
 from panel.topic import Framing, Topic, make_response_models
 
 from .accept import ZERO
+from .record import changed, framing_text
 from .store import ResultStore
 
 MEAN, TOP = "mean", "top"
@@ -55,6 +56,7 @@ class Check:
     faulty: reason -> answers kept though flawed in that way (`panel.run.accept`); None for a run saved
         before answers were judged.
     sending: the record's `sending` block, what sending the run took (`panel.run.execute`); None for an older run.
+    drifted: where today's framing file is not the framing the record copied, as `framing.<key>`; empty when it is.
     mass: (lowest, mean) of the probability on the menu, for answers read off the token distribution; else None.
     """
     stem: str
@@ -79,6 +81,7 @@ class Check:
     highest: Union[float, None]
     faulty: Union[Dict[str, int], None] = None
     sending: Union[Dict[str, Any], None] = None
+    drifted: Tuple[str, ...] = ()
     mass: Union[Tuple[float, float], None] = None
 
 
@@ -147,6 +150,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         both=both,
         faulty=dict(Counter(reason for reasons in record["faulty"].values() for reason in reasons)) if "faulty" in record else None,
         sending=record.get("sending"),
+        drifted=tuple(changed(record, {"framing": framing_text(framing)})),
         mass=(min(masses), sum(masses) / len(masses)) if masses else None,
     )
 
@@ -169,6 +173,7 @@ def report(result: Check, total: int) -> str:
     rows: Tuple[Tuple[str, str], ...] = (
         ("answers", f"{result.answers} of {result.calls} calls, {'the same' if result.same_calls else 'NOT the same'} subjects"),
         ("model", f"{result.model} -> {result.model_resolved}"),
+        ("framing", f"NOT as recorded: {', '.join(result.drifted)}" if result.drifted else "as recorded"),
         ("identical prompts", f"{result.identical_prompts} of {result.subjects} subjects"),
         ("missing values", str(result.missing)),
         ("out of range", str(result.out_of_range)),

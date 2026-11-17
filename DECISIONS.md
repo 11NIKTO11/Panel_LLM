@@ -1576,7 +1576,14 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   older record reads truthfully
   - not in the stem: two runs differing only in the bounds share one, and `ResultStore.refuse`
     keeps the second from saving over the first without `overwrite`
-  - so a saved run sent again with today's base is "a run of a different spec"
+  - so a saved run sent again with today's base is "a run of a different spec";
+    `run.py --overwrite` (2026-11-17) saves over it, and `run.py` now refuses before it asks
+    to send rather than after. The old run's archived copies stay; a run with a `migrated`
+    or `delivered` block is still never saved over
+  - specs are compared as specs (`store._same_spec`), a field the saved record lacks read at
+    its default: a run saved before `sum_low` existed equals today's run with
+    `--sum-low none --sum-high none`. Formerly the dicts were compared, and no command
+    could match such a run
 - **What came back is always saved.** A run with a call missing goes to
   `runs/<stem>_incomplete/`, its record carrying `incomplete: true` and `missing` (the calls,
   named as in `results.json`); the run's own folder only ever holds the whole run
@@ -1736,3 +1743,28 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   the model's regions add up to its country. It would be set up in the framing; how is not discussed
 - the tables and figures the five had written for the `regions` runs and the comparisons
   `regions-citizen` / `regions-direct` were removed from `results/` (152 files)
+
+## 42. A text edited under its name makes another run (2026-11-17)
+
+- **The hole**: a spec holds names, the record copies the texts behind them. Sending a run
+  again compared specs only, so an edited system prompt under an unchanged framing name
+  saved over the earlier run without a word - against the rule that new wording is a new
+  file (`CLAUDE.md` §6), which nothing enforced
+- **`record.changed(record, today)`** sets the record's `description`, `framing` and
+  `question` blocks against today's files and names what differs as `block.key`
+  (`framing.instructions`). `record.texts(resolved)` builds the three blocks, for the record
+  and for the comparison alike
+  - a key the record's block lacks is passed over: it did not exist when the run was saved
+    (`framing.answer`, §40). A key it has is compared whole, so schema text that gained a
+    line since counts as changed - the run was sent something else
+  - a `note` is not copied into a record, so editing one changes nothing
+- **Where it is asked**
+  - `ResultStore.refuse`: a run of the same spec that read other texts is refused like a run
+    of a different spec, before the first call; `overwrite` (`run.py --overwrite`) replaces it
+  - `ResultStore.answered`: `--missing` does not complete a run with texts it was not sent with
+  - `check`: a `framing` line, `as recorded` or `NOT as recorded: framing.instructions`.
+    Only the framing - `check` reads nothing of the dataset, so not the description or the
+    question; the refusal covers all three
+- on 2026-11-17 every saved run of `election_2021` whose framing has a file reads `as recorded`
+- not done: `check` still parses the saved answers with today's framing; a changed label
+  therefore fails there before the `framing` line is printed
