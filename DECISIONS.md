@@ -1660,13 +1660,6 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - not counted: a call that stopped the batch, and calls dropped by the stop
 - no live call
 
----
-
-## 41. A dataset whose subjects are wholes is never pooled (2026-11-17)
-
-- **The problem**: a `regions` run asks about fifteen places, and each answer is already that
-  place's result. The analyses that read the subjects as a sample of one population made a
-  "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
 ## 40. An answer read off the token distribution: a framing with a menu, a client that reads tokens (2026-11-17)
 
 - **Why**: a model asked to write nine probabilities writes round ones (§34: few distinct
@@ -1728,6 +1721,13 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - in `API_test` one saved output puts 99.95% on `I` ("Jiná strana"): whether a model's
   distribution over letters says anything about the options is the first thing to look at
 
+---
+
+## 41. A dataset whose subjects are wholes is never pooled (2026-11-17)
+
+- **The problem**: a `regions` run asks about fifteen places, and each answer is already that
+  place's result. The analyses that read the subjects as a sample of one population made a
+  "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
   and `Česko`, the model's own country answer, is one of the fifteen; the correlations, the map
   and the spread were over fifteen areas under titles that speak of subjects
 - **`"aggregate": true`** in `dataset.json` (optional, `Dataset.aggregate`, False by default): a
