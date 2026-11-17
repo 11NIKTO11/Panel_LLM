@@ -18,7 +18,7 @@ from anthropic import Anthropic, DefaultHttpxClient
 import pandas as pd
 import requests
 
-from panel.llm import BatchFailed, BatchStopped, CallFailed, Flaw, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
+from panel.llm import Batch, BatchFailed, BatchStopped, CallFailed, Flaw, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
 from panel.llm.client_gemini import GeminiClient
 from panel.llm.client_openai import OpenAIClient
 from panel.llm.client_anthropic import AnthropicClient, AnthropicLegacyClient
@@ -360,9 +360,10 @@ def test_the_runner_waits_on_a_rate_limit_and_tries_a_failed_call_again(monkeypa
     waits = []
     monkeypatch.setattr("panel.llm.runner.time.sleep", waits.append)
     client = Failing(RateLimited("slow down"), CallFailed("lost"))
-    assert batch(client) == ({0: ("prompt 0", "answer")}, {}, []) and client.calls == 3
+    assert batch(client) == Batch({0: ("prompt 0", "answer")}, {}, {0: ("rate_limited", "failed")}, []) and client.calls == 3
     assert len(waits := [wait for wait in waits if wait]) == 1 and 1 <= waits[0] < 2
-    assert batch(Failing(CallFailed("a"), CallFailed("b")), retries=2) == ({}, {}, [0])
+    assert batch(Failing(CallFailed("a"), CallFailed("b")), retries=2) == Batch({}, {}, {0: ("failed", "failed")}, [0])
+    assert batch(Failing()) == Batch({0: ("prompt 0", "answer")})
 
 
 @pytest.mark.parametrize("failure", [BatchFailed("wrong key"), KeyError("a bug"), None], ids=["batch failed", "unforeseen", "answered None"])
@@ -386,7 +387,7 @@ def test_a_stopped_batch_hands_back_what_came_before():
     client.call_llm = call
     with pytest.raises(BatchStopped) as stopped:
         batch(client, rows=20)
-    results = stopped.value.results
+    results = stopped.value.batch.results
     assert len(prompts) < 20 and 3 not in results and {0, 1, 2} <= set(results)
     assert results == {row: (f"prompt {row}", f"answer to prompt {row}") for row in results}
 
@@ -405,10 +406,10 @@ def test_the_runner_keeps_the_best_flawed_answer_and_no_unusable_one():
     def review(answer):
         return None if answer == "good" else Flaw(reasons=(answer,), usable=answer != "broken", distance={"far": 0.5, "near": 0.1}.get(answer, 9.0))
 
-    assert batch(Answering("far", "good"), review=review) == ({0: ("prompt 0", "good")}, {}, [])
-    assert batch(Answering("far", "near", "broken"), review=review) == ({0: ("prompt 0", "near")}, {0: ("near",)}, [])
-    assert batch(Answering("near", "far", "far"), review=review) == ({0: ("prompt 0", "near")}, {0: ("near",)}, [])
-    assert batch(Answering("broken", "broken", "broken"), review=review) == ({}, {}, [0])
+    assert batch(Answering("far", "good"), review=review) == Batch({0: ("prompt 0", "good")}, {}, {0: ("far",)}, [])
+    assert batch(Answering("far", "near", "broken"), review=review) == Batch({0: ("prompt 0", "near")}, {0: ("near",)}, {0: ("far", "near", "broken")}, [])
+    assert batch(Answering("near", "far", "far"), review=review) == Batch({0: ("prompt 0", "near")}, {0: ("near",)}, {0: ("near", "far", "far")}, [])
+    assert batch(Answering("broken", "broken", "broken"), review=review) == Batch({}, {}, {0: ("broken",) * 3}, [0])
 
 
 def test_the_runner_states_no_default():

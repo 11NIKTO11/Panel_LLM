@@ -1626,3 +1626,29 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - checked: a run stopped twice and then completed has the same `results.json` and
   `results.csv` as the run sent in one go (offline, the fake client)
 - not done: `run.py --check` still does not look at an `_incomplete` folder; no live call
+
+## 39. The record says what sending a run took (2026-11-17)
+
+- **Why**: retries select answers. A call whose first answer summed to 1.20 and whose second
+  was accepted left no trace, so a model that needs three tries per subject read like one
+  that answers cleanly; and how many calls a run cost was not written down at all
+- **`sending`** in the record, the totals of one sending:
+  - `calls_sent` - every attempt: those that gave no accepted answer, and one per accepted answer
+  - `answered` - the calls of this sending that have an answer in the run, kept flawed ones included
+  - `refused` - attempts refused, per flaw; an attempt with two flaws is in both
+  - `failed`, `rate_limited` - attempts that failed (`CallFailed`) and that met a rate limit
+  - `rerun_rounds` - the rounds used; `settings` - `max_workers`, `retries`, `rerun_rounds` as given,
+    recorded nowhere before
+- **`attempts`** in the record, per call (`"<id>"` or `"<id>:<repeat>"`, as `faulty`): one word
+  per attempt that gave no accepted answer, in order - `failed`, `rate_limited`, or the flaw's
+  reasons joined by `+`. Only calls that had such an attempt; a clean call is not listed
+  - why per call: the totals give the rate, this says which subjects a model stumbles on
+  - REJECTED: a column in `results.csv` - its columns are the topic's, read by name and order
+- **With `--missing`** both blocks describe the later sending only; `resumed` is now
+  `{answers, sendings}`, one entry per earlier sending, oldest first, each with `saved_at`,
+  `model_resolved`, `sending` and `attempts`
+  - this replaces §38's `{answers, saved_at, model_resolved}`; no saved run has that shape
+- `check` prints `calls sent`: `7 for 5 answers; refused: options_sum 2; 0 failed, 0 rate limited; 0 rerun rounds`
+- `run_llm_batch` returns a `Batch` (`results`, `flawed`, `attempts`, `skipped`); `BatchStopped.batch` is one
+- not counted: a call that stopped the batch, and calls dropped by the stop
+- no live call

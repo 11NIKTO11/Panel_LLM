@@ -155,6 +155,10 @@ record's `faulty` block names it; an answer no table can be made of is never kep
 call left unanswered - or stopped half way, by a failure or by you - is saved as
 `<stem>_incomplete`, which the analyses refuse to read. The same command with `--missing` sends
 only the calls it lacks and saves the whole run under its stem.
+
+The record also says what sending took: `sending` holds the calls sent against the answers they
+gave, the attempts refused per flaw, those that failed or met a rate limit, and the rerun rounds;
+`attempts` lists, per call, each attempt that gave no accepted answer. The check prints the totals.
 The record beside them holds the spec, the template, question and framing text, the response
 schema and the exact subject ids, so a saved run says how it was produced.
 

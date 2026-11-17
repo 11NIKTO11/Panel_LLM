@@ -126,6 +126,10 @@ def test_execute_reruns_skipped(tmp_path):
     store = ResultStore(tmp_path, SOD.topic)
     execute(run, store, FakeClient(fail_calls=3), max_workers=2, retries=3, rerun_rounds=2)
     assert len(store.frame(run.stem)) == 5
+    assert store.record(run.stem)["sending"] == {
+        "calls_sent": 20, "refused": {}, "failed": 15, "rate_limited": 0, "answered": 5, "rerun_rounds": 1,
+        "settings": {"max_workers": 2, "retries": 3, "rerun_rounds": 2},
+    }
     with pytest.raises(RuntimeError):
         execute(run, ResultStore(tmp_path / "again", SOD.topic), FakeClient(fail_calls=99), max_workers=2, retries=2, rerun_rounds=1)
 
@@ -192,6 +196,12 @@ def test_a_flawed_answer_is_tried_again(tmp_path):
     execute(run, store, client, max_workers=1)
     record = store.record(run.stem)
     assert record["faulty"] == {} and "incomplete" not in record and client._seen[next(iter(client.chosen))] == 3
+    assert list(record["attempts"].values()) == [["options_sum", "options_sum"]]
+    assert record["sending"] == {
+        "calls_sent": 7, "refused": {"options_sum": 2}, "failed": 0, "rate_limited": 0, "answered": 5, "rerun_rounds": 0,
+        "settings": {"max_workers": 1, "retries": 3, "rerun_rounds": 5},
+    }
+    assert "7 for 5 answers; refused: options_sum 2" in report(check(store, run.stem, run.topic, run.framing), len(run.topic.options))
 
 
 def test_the_best_flawed_answer_is_kept_and_marked(tmp_path):
@@ -205,6 +215,7 @@ def test_the_best_flawed_answer_is_kept_and_marked(tmp_path):
     assert all(client._seen[prompt] == 2 for prompt in client.chosen) and len(store.frame(run.stem)) == 5
     looked = check(store, run.stem, run.topic, run.framing)
     assert looked.faulty == {"options_sum": 2} and "kept though flawed" in report(looked, len(run.topic.options))
+    assert record["sending"]["calls_sent"] == 3 + 2 * 2 and record["sending"]["refused"] == {"options_sum": 4}
     assert "2 kept though flawed" in describe(load_run(store, run.stem))
 
 
@@ -217,6 +228,10 @@ def test_a_run_with_a_call_missing_is_saved_as_incomplete(tmp_path):
     record = store.record(stem)
     assert store.runs() == [stem] and record["incomplete"] and record["stem"] == stem and record["n"] == 4
     assert len(record["missing"]) == 1 and len(store.frame(stem)) == 4
+    assert record["sending"] == {
+        "calls_sent": 4 + 2 * 2, "refused": {"duplicates": 4}, "failed": 0, "rate_limited": 0, "answered": 4, "rerun_rounds": 1,
+        "settings": {"max_workers": 1, "retries": 2, "rerun_rounds": 1},
+    }
     assert not check(store, stem, run.topic, run.framing).same_calls
     with pytest.raises(ValueError, match="incomplete"):
         load_run(store, stem)
@@ -244,7 +259,10 @@ def test_missing_sends_only_what_the_incomplete_run_lacks(tmp_path):
     execute(run, store, client, max_workers=1, missing=True)
     record = store.record(run.stem)
     assert sum(client._seen.values()) == 8 and record["n"] == 20 and "incomplete" not in record
-    assert record["resumed"] == {"answers": 12, "saved_at": again["saved_at"], "model_resolved": again["model_resolved"]}
+    earlier = [{key: sending.get(key) for key in ("saved_at", "model_resolved", "sending", "attempts")} for sending in (partial, again)]
+    assert record["resumed"] == {"answers": 12, "sendings": earlier}
+    assert [sending["sending"]["calls_sent"] for sending in earlier] == [7, 5] and record["sending"]["calls_sent"] == 8
+    assert record["sending"]["answered"] == 8 and record["attempts"] == {}
     assert partial["saved_at"] <= again["saved_at"]
     archived = sorted(path.name for path in (store.run_dir(run.stem) / store.ARCHIVE_DIR).iterdir())
     assert store.runs() == [run.stem] and not store.run_dir(run.stem + store.INCOMPLETE).exists()

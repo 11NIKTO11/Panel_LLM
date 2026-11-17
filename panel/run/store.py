@@ -210,12 +210,15 @@ class ResultStore:
         effort: Union[Dict[str, Any], None] = None,
         flawed: Union[Mapping[int, Tuple[str, ...]], None] = None,
         resumed: Union[Dict[str, Any], None] = None,
+        sending: Union[Dict[str, Any], None] = None,
+        attempts: Union[Mapping[int, Tuple[str, ...]], None] = None,
     ) -> RunPaths:
         """
         `results` is {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`; returns the plain paths.
         `effort` is `panel.run.effort.effort_tier`'s answer from before the calls, for the record;
         `flawed` is {call: reasons} for the results kept though flawed; `resumed` says which of the
-        results an earlier, incomplete sending gave (`execute`), for the record.
+        results an earlier, incomplete sending gave, `sending` what this one took in total and
+        `attempts` {call: the attempts that gave no accepted answer} (`execute`), all for the record.
 
         Results that are not all of the run's calls are saved under `<stem>_incomplete`, with the
         calls missing in the record, so that a run's own folder only ever holds the whole run.
@@ -236,6 +239,9 @@ class ResultStore:
         now = datetime.now()
         frame = _results_frame(results, resolved)
         built = build_record(resolved, len(results), now, client, effort, faulty)
+        if sending:
+            built["sending"] = sending
+            built["attempts"] = {_key(calls, call, resolved.spec.repeats): list(tried) for call, tried in sorted((attempts or {}).items())}
         if resumed:
             built["resumed"] = resumed
         if missing:

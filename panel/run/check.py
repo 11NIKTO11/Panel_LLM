@@ -4,7 +4,7 @@ Nothing here compares against a reference - that is analysis.
 """
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
 import pandas as pd
 
@@ -54,6 +54,7 @@ class Check:
     highest: mean of the highest option probability per answer.
     faulty: reason -> answers kept though flawed in that way (`panel.run.accept`); None for a run saved
         before answers were judged.
+    sending: the record's `sending` block, what sending the run took (`panel.run.execute`); None for an older run.
     """
     stem: str
     calls: int
@@ -76,6 +77,7 @@ class Check:
     both: Union[int, None]
     highest: Union[float, None]
     faulty: Union[Dict[str, int], None] = None
+    sending: Union[Dict[str, Any], None] = None
 
 
 def _sums(totals: pd.Series, tolerance: float) -> Sums:
@@ -141,6 +143,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         options=options, listed=listed, duplicates=duplicates, distinct=distinct, undefined=undefined, highest=highest,
         both=both,
         faulty=dict(Counter(reason for reasons in record["faulty"].values() for reason in reasons)) if "faulty" in record else None,
+        sending=record.get("sending"),
     )
 
 
@@ -184,6 +187,11 @@ def report(result: Check, total: int) -> str:
     if result.faulty is not None:
         kinds = ", ".join(f"{reason} {count}" for reason, count in sorted(result.faulty.items()))
         rows += (("kept though flawed", kinds or "0"),)
+    if result.sending:
+        took = result.sending
+        refused = ", ".join(f"{reason} {count}" for reason, count in took["refused"].items())
+        rows += (("calls sent", f"{took['calls_sent']} for {took['answered']} answers; refused: {refused or 0}; "
+                                f"{took['failed']} failed, {took['rate_limited']} rate limited; {took['rerun_rounds']} rerun rounds"),)
     if result.both is not None:
         rows += (("overlap", f"{result.both} are both, {result.abstained - result.both} abstain with a preference, {result.undefined - result.both} may vote with none"),)
     return "\n".join([result.stem] + [f"  {label:<18} {text}" for label, text in rows])
