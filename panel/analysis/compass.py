@@ -35,6 +35,9 @@ def _between(points: np.ndarray) -> np.ndarray:
 
 def option_distances(run: SavedRun, options: List[str]) -> pd.DataFrame:
     shares = subject_answers(run.normalized, run.topic)[options]
+    constant = [option for option in options if shares[option].nunique() < 2]
+    if constant:
+        raise NotApplicable(f"'{run.stem}': {', '.join(constant)} get the same share from every subject, so they correlate with nothing")
     return np.sqrt((2 * (1 - shares.corr())).clip(lower=0))
 
 
