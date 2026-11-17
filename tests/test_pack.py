@@ -4,7 +4,8 @@ import shutil
 
 import pytest
 
-from panel.pack import DATASET_DIR, MANIFEST_NAME, RUN_DIR, TOPIC_DIR, archive, pack, sha256, verify
+from panel.digest import content_sha256, file_sha256
+from panel.pack import DATASET_DIR, MANIFEST_NAME, RUN_DIR, TOPIC_DIR, archive, pack, verify
 from panel.run import ResultStore
 
 from tests.conftest import RESULTS_DIR, require
@@ -29,8 +30,8 @@ def test_a_pack_holds_the_run_and_what_it_names(store, tmp_path):
                  f"{DATASET_DIR}/prepared/prompts/citizen.csv", f"{DATASET_DIR}/descriptions/citizen.json",
                  f"{TOPIC_DIR}/topic.json", f"{TOPIC_DIR}/framings/cs_legacy.json", f"{TOPIC_DIR}/questions/legacy.json",
                  f"{TOPIC_DIR}/reference.csv"):
-        assert files[name]["sha256"] == sha256(folder / name) and "from" in files[name]
-    assert {entry["sha256"] for entry in manifest["built_from"].values()} <= {entry["sha256"] for entry in files.values()}
+        assert files[name]["sha256"] == file_sha256(folder / name) and "from" in files[name]
+    assert all(entry["sha256"] == content_sha256(folder / entry["file"]) for entry in manifest["built_from"].values())
     assert verify(folder) == []
     assert archive(folder).stat().st_size > 0
 

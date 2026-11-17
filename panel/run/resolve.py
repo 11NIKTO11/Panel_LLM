@@ -24,7 +24,7 @@ import pandas as pd
 from panel import paths
 from panel.dataset import INDEX, Dataset, load_dataset, read_values, shared_keys
 from panel.describe.render import read_prompts
-from panel.digest import sha256
+from panel.digest import content_sha256
 from panel.describe.template import PromptTemplate, load_template
 from panel.llm import BaseLLMClient
 from panel.topic import Framing, Question, Topic, load_framing, load_question, load_topic, make_response_models
@@ -45,7 +45,7 @@ class Resolved:
     question: None after a standalone description.
     rows: the subjects sent, sampled if asked - the description column, and beside it
         `question`, the wording each subject reads, when the run has a question.
-    digests: sha256 of the files the prompts came from: `values`, `prompts`, `forms`.
+    digests: `panel.digest.content_sha256` of the files the prompts came from: `values`, `prompts`, `forms`.
     """
     spec: RunSpec
     dataset: Dataset
@@ -144,5 +144,5 @@ def resolve(
         rows[QUESTION] = keys.map(question.wording, na_action=None)
     if spec.sample is not None:
         rows = rows.sample(n=spec.sample, random_state=spec.random_state)
-    digests = {name: sha256(path) for name, path in dataset.built_from(description.name).items()}
+    digests = {name: content_sha256(path) for name, path in dataset.built_from(description.name).items()}
     return Resolved(spec, dataset, description, topic, framing, question, client_type, response_model, rows, digests)

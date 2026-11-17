@@ -1830,3 +1830,35 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   - it adds a field to the spec and a part to the stem, days before the full runs
   - worth it once a third variant of the system prompt alone appears; `cs_individual` is the first
 - the Czech is unreviewed
+
+## 45. A digest is of the file's text, not of its bytes (2026-11-17)
+
+- **Seen**: after the checkout of `main`, runs refused to pack and four tests of
+  `tests/test_pack.py` failed with "built from other files than today's". Nothing had changed
+  but line endings: `core.autocrlf` is `true` on this machine, so a tracked file is LF in git
+  and CRLF on disk after a checkout, and the record's digest was the sha256 of the bytes
+- **The saved records were mixed**, which is why keeping the files byte for byte could not
+  work: every values and prompt table had been hashed with CRLF (prepare writes them so on
+  Windows), the forms of the grids and `regions` with LF, the forms of `sod` and everything
+  recorded since the checkout with CRLF. No one state of the files on disk matched them all
+- **`panel/digest.py:content_sha256`**: the sha256 of the file with every line ending as a
+  bare line feed.
+  `resolve` records it, `load_run`, `pack` and `--missing` compare with it, and prepare's
+  guard (§20) looks tables up by it and calls a table changed only when its text changed
+  - the record's keys stay `values_sha256`, `prompts_sha256`, `forms_sha256`
+  - `file_sha256` is the plain one, used for a pack's `MANIFEST.json`: a pack's files are
+    copies that must not change at all. `built_from` in the manifest carries the record's
+    digests, so it is checked with `content_sha256`
+- **76 digests in the 31 saved run records were rewritten** (13 were already the text's). A
+  digest was rewritten only where it was exactly the sha256 of today's file with CRLF line
+  endings, which proves the content is the one the run was built from; none was left
+  unexplained. Each record has a `restamped` block: the date, the reason, and the digests as
+  they were. The copies in each run's `archive/` are as they were; so are packs written earlier
+- REJECTED: a `.gitattributes` keeping these files byte for byte, the first thing tried
+  - it needs one byte form per file, and the records disagree on which
+  - it leaves a trap: an editor that saves `forms.json` with other line endings orphans every
+    run built from it, silently
+- REJECTED: writing prepared tables with a fixed line ending - not needed once the digest
+  does not see it; the tables stay as the system writes them
+- `tests/test_kernel.py` named its grid runs by a prefix (`grid-simple_`), which two runs match
+  since the Haiku 4.5 grid run was saved; it names the full stems now

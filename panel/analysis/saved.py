@@ -20,7 +20,7 @@ import pandas as pd
 
 from panel import paths
 from panel.dataset import Claims, Dataset, load_claims, load_dataset, read_values
-from panel.digest import recorded, sha256
+from panel.digest import content_sha256, recorded
 from panel.run import ResultStore, RunSpec
 from panel.run.resolve import REPEAT
 from panel.run.store import PROMPT
@@ -102,7 +102,7 @@ def load_run(
     spec = RunSpec.from_dict(record["spec"])
     topic, dataset = load_topic(spec.topic, topics_dir), load_dataset(spec.dataset, datasets_dir)
 
-    if sha256(dataset.values_path) != recorded(record["dataset"])["values"]:
+    if content_sha256(dataset.values_path) != recorded(record["dataset"])["values"]:
         raise ValueError(f"{dataset.values_path} was rebuilt after '{stem}' was sent; its subjects can no longer be trusted to match")
     values = read_values(dataset)
 

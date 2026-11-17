@@ -7,6 +7,7 @@ import pytest
 from panel import paths
 from panel.dataset import load_dataset
 from panel.analysis.saved import describe, load_run
+from panel.digest import content_sha256, file_sha256
 from panel.llm import BatchFailed
 from panel.run import ResultStore, RunSpec, execute, resolve
 from panel.run.accept import judge
@@ -325,6 +326,15 @@ def test_store_collision(tmp_path):
         execute(other, store, FakeClient(), max_workers=4)
     execute(other, store, FakeClient(), max_workers=4, overwrite=True)
     assert RunSpec.from_dict(store.record(other.stem)["spec"]).random_state == 7
+
+
+def test_a_digest_is_of_the_text_whatever_the_line_endings(tmp_path):
+    unix, windows = tmp_path / "unix.csv", tmp_path / "windows.csv"
+    unix.write_bytes(b"id,default\n1,one\n2,two\n")
+    windows.write_bytes(unix.read_bytes().replace(b"\n", b"\r\n"))
+    assert content_sha256(unix) == content_sha256(windows) == file_sha256(unix) != file_sha256(windows)
+    windows.write_bytes(windows.read_bytes().replace(b"two", b"three"))
+    assert content_sha256(unix) != content_sha256(windows)
 
 
 def test_a_record_from_before_a_field_existed_is_the_same_run(tmp_path):

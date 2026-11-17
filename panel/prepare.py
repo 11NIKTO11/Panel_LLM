@@ -9,7 +9,6 @@ A saved run records the sha256 of the tables it was built from, and reading it b
 values that have changed since. So prepare does not replace such a table with a different one
 unless told to: it writes, compares, and on a refusal puts every table back as it was.
 """
-import hashlib
 import importlib
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +17,7 @@ from typing import Dict, List, Sequence, Union
 from panel import paths
 from panel.dataset import Dataset, load_dataset, read_values, write_values
 from panel.describe.render import read_prompts, render_all
+from panel.digest import text, text_sha256
 from panel.run.store import digests_in_use
 
 VALUES = "values"
@@ -40,8 +40,8 @@ def _stored(dataset: Dataset) -> Dict[Path, bytes]:
 def _refuse_replaced(before: Dict[Path, bytes], written: Sequence[Path], in_use: Dict[str, List[str]]) -> None:
     """Put the tables back and raise, if writing changed one a saved run was built from."""
     runs = {
-        path: in_use.get(hashlib.sha256(before[path]).hexdigest(), [])
-        for path in written if path in before and before[path] != path.read_bytes()
+        path: in_use.get(text_sha256(before[path]), [])
+        for path in written if path in before and text(before[path]) != text(path.read_bytes())
     }
     refused = {path: stems for path, stems in runs.items() if stems}
     if not refused:
