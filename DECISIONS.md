@@ -1862,3 +1862,36 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   does not see it; the tables stay as the system writes them
 - `tests/test_kernel.py` named its grid runs by a prefix (`grid-simple_`), which two runs match
   since the Haiku 4.5 grid run was saved; it names the full stems now
+
+## 46. `election_2025` has its reference results, colours, polls and expert positions (2026-11-17)
+
+Looked up on 2026-11-17; nothing had been run on the topic, so every file could still change.
+
+- **`reference.csv`**: the election office's final results, read from its own results file
+  (`volby.gov.cz/appdata/ps2025/odata/vysledky.xml`, generated 2025-10-05) - the country and the
+  fourteen regions, turnout and each list's share of valid votes, to four decimals. `Other` is
+  what is left of 1. Region names are election_2021's, so `regions` and `sod` find their rows.
+  Turnout 68.95%; ANO 34.51, SPOLU 23.36, STAN 11.23, Piráti 8.97, SPD 7.78, Motoristé 6.77,
+  Stačilo! 4.30, others 3.08
+- **`topic.json`**: the `reference` block; two names follow the 2025 ballot - `Koalice SPOLU (ODS,
+  KDU-ČSL, TOP 09)` (the ballot's order of the three) and `Svoboda a přímá demokracie (SPD)`
+  (without "Tomio Okamura", which was the 2021 name). The names are what a framing shows the
+  model by default. The option ids are unchanged
+  - Přísaha (1.07%) stays in `Other`: seven lists passed 4%
+- **`plot.json`**: colours from Wikipedia's page of the election where they stay
+  distinguishable, three kept as in election_2021 so a party looks the same in both topics
+  (SPOLU blue, SPD brown, the Pirates near-black); labels for the ids that are bare ASCII words
+  (`Piráti`, `Motoristé`, `Stačilo!`)
+- **`polls.json`**: the last election models of the same three agencies as 2021 - STEM
+  (28 Aug - 16 Sep 2025), Median (1 - 25 Sep), Kantar CZ (1 - 19 Sep)
+  - the numbers were read from Wikipedia's table of polls, not from the agencies' releases;
+    each `url` is the source that table cites. Not checked against the originals
+- **`positions.json`**: Chapel Hill Expert Survey 2024, by the method of election_2021's file,
+  which the downloaded 2019 file reproduces exactly
+  - 17 of the 22 items: the 2024 wave lacks five under the 2019 names
+  - SPOLU is weighted by the 2017 vote shares again; AUTO is CHES's `MOTO`
+  - `Stacilo` is given KSČM's rating - an approximation, said so in the file's note: CHES rates
+    parties, not lists
+- still missing for a 2025 run to be compared with what subjects said: no dataset has claims
+  for the topic (`sod` asks about 2021)
+- `cs_area` and a `direct` description for 2025 are not written: `direct` names 2021 in its text

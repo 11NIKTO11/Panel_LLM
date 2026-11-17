@@ -8,10 +8,10 @@
             "description": "Název jedné z nabízených stran.",
             "enum": [
               "ANO 2011",
-              "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+              "Koalice SPOLU (ODS, KDU-ČSL, TOP 09)",
               "Česká pirátská strana",
               "STAROSTOVÉ A NEZÁVISLÍ (STAN)",
-              "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+              "Svoboda a přímá demokracie (SPD)",
               "Motoristé sobě (AUTO)",
               "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)",
               "Jiná strana"
@@ -118,10 +118,10 @@
         "description": "Strana, kterou respondent nejpravděpodobněji volil, pokud k volbám šel.",
         "enum": [
           "ANO 2011",
-          "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+          "Koalice SPOLU (ODS, KDU-ČSL, TOP 09)",
           "Česká pirátská strana",
           "STAROSTOVÉ A NEZÁVISLÍ (STAN)",
-          "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+          "Svoboda a přímá demokracie (SPD)",
           "Motoristé sobě (AUTO)",
           "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)",
           "Jiná strana"
