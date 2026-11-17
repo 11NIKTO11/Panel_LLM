@@ -4,7 +4,7 @@
     "language": "cs",
     "short": "cs",
     "title": "Volby do Poslanecké sněmovny ČR 2021",
-    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě profilu respondenta odhadnout jeho volební chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2021.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi.\n2.  Odhadni, jaká je pravděpodobnost, že respondent vůbec šel k volbám. Dbej na to, aby součet pravděpodobností účasti a neúčasti byl přesně 1.0.\n3.  Odhadni, jak respondent volil, pokud k volbám šel.",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě popisu respondenta odhadnout jeho chování ve volbách do Poslanecké sněmovny Parlamentu ČR v roce 2021.\n\nDodržuj tato pravidla:\n1.  Vycházej ze všech informací, které o respondentovi máš.\n2.  Odhadni pravděpodobnost, že respondent k volbám šel, a pravděpodobnost, že nešel.\n3.  Odhadni, jak respondent volil, pokud k volbám šel.\n4.  Každé rozdělení pravděpodobností, které uvedeš, musí mít součet přesně 1.0.",
     "labels": {},
     "schema": {
         "turnout": {
@@ -16,18 +16,18 @@
         },
         "option": {
             "title": "PartyProbability",
-            "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran.",
+            "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran, pokud k volbám šel.",
             "name": "Název jedné z nabízených stran.",
-            "probability": "Pravděpodobnost, že respondent volil tuto stranu."
+            "probability": "Pravděpodobnost, že respondent volil tuto stranu, pokud k volbám šel."
         },
         "probabilities": {
             "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
-            "options": "Seznam nabízených stran s pravděpodobností, že je respondent volil. Součet pravděpodobností musí být 1.0."
+            "options": "Seznam nabízených stran s pravděpodobností, že je respondent volil, pokud k volbám šel. Součet pravděpodobností musí být 1.0."
         },
         "pick": {
             "description": "Zjednodušený výstup: jedna vybraná strana.",
-            "choice": "Strana, kterou respondent nejpravděpodobněji volil."
+            "choice": "Strana, kterou respondent nejpravděpodobněji volil, pokud k volbám šel."
         }
     },
-    "note": "The Czech framing. The system prompt says only what holds for every run of the topic: no attribute of the profile, and nothing about the form of the answer beyond turnout, which both shapes have. The schema text says the rest, in the topic's own words - parties and the election, not options. Labels default to the options' native names."
+    "note": "The Czech framing. The system prompt says only what holds for every run of the topic: no attribute of the profile, and of the form of the answer only what both shapes share - that each set of probabilities sums to 1. The schema text says the rest, in the topic's own words - parties and the election, not options - and says with every party probability that it is the vote of a respondent who went to vote. Labels default to the options' native names. Reworded on 2026-11-17, before any full run: the runs saved before that day read another text (DECISIONS.md §44)."
 }

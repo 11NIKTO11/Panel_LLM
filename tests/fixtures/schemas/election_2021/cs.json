@@ -2,7 +2,7 @@
   "Probabilities": {
     "$defs": {
       "PartyProbability": {
-        "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran.",
+        "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran, pokud k volbám šel.",
         "properties": {
           "name": {
             "description": "Název jedné z nabízených stran.",
@@ -21,7 +21,7 @@
             "type": "string"
           },
           "probability": {
-            "description": "Pravděpodobnost, že respondent volil tuto stranu.",
+            "description": "Pravděpodobnost, že respondent volil tuto stranu, pokud k volbám šel.",
             "maximum": 1,
             "minimum": 0,
             "title": "Probability",
@@ -67,7 +67,7 @@
         "$ref": "#/$defs/TurnoutProbability"
       },
       "options": {
-        "description": "Seznam nabízených stran s pravděpodobností, že je respondent volil. Součet pravděpodobností musí být 1.0.",
+        "description": "Seznam nabízených stran s pravděpodobností, že je respondent volil, pokud k volbám šel. Součet pravděpodobností musí být 1.0.",
         "items": {
           "$ref": "#/$defs/PartyProbability"
         },
@@ -116,7 +116,7 @@
         "$ref": "#/$defs/TurnoutProbability"
       },
       "choice": {
-        "description": "Strana, kterou respondent nejpravděpodobněji volil.",
+        "description": "Strana, kterou respondent nejpravděpodobněji volil, pokud k volbám šel.",
         "enum": [
           "ANO 2011",
           "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",

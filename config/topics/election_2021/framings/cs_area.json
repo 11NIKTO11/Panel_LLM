@@ -1,0 +1,33 @@
+{
+    "name": "cs_area",
+    "topic": "election_2021",
+    "language": "cs",
+    "short": "cs-area",
+    "title": "Volby do Poslanecké sněmovny ČR 2021 - území",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je odhadnout volební účast a výsledek voleb do Poslanecké sněmovny Parlamentu ČR v roce 2021 v uvedeném území.\n\nDodržuj tato pravidla:\n1.  Odhadni podíl oprávněných voličů v území, kteří k volbám šli, a podíl těch, kteří nešli.\n2.  Odhadni podíl hlasů, který v území získaly jednotlivé strany.\n3.  Každé rozdělení podílů, které uvedeš, musí mít součet přesně 1.0.",
+    "labels": {},
+    "schema": {
+        "turnout": {
+            "title": "TurnoutShare",
+            "description": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili, a kteří se jich nezúčastnili.",
+            "voted": "Podíl oprávněných voličů v území, kteří se voleb zúčastnili.",
+            "not_voted": "Podíl oprávněných voličů v území, kteří se voleb nezúčastnili.",
+            "field": "Podíl účasti a neúčasti ve volbách. Součet musí být 1.0."
+        },
+        "option": {
+            "title": "PartyShare",
+            "description": "Podíl hlasů, které v území získala jedna z nabízených stran.",
+            "name": "Název jedné z nabízených stran.",
+            "probability": "Podíl hlasů, které tato strana v území získala."
+        },
+        "probabilities": {
+            "description": "Strukturovaný výstup: rozdělení hlasů mezi nabízené strany.",
+            "options": "Seznam nabízených stran s podílem hlasů, které v území získaly. Součet podílů musí být 1.0."
+        },
+        "pick": {
+            "description": "Zjednodušený výstup: jedna vybraná strana.",
+            "choice": "Strana, která v území získala nejvíce hlasů."
+        }
+    },
+    "note": "The Czech framing for a place instead of a person: the answer is an area's turnout and result, so every text speaks of shares of voters and of votes where `cs` speaks of a respondent's probabilities. Built sentence for sentence on `cs` - the same opening, the same rule about the turnout sum, the same schema blocks - so the two differ only in what is being estimated. For a description that names an area and nothing else (`direct` of `regions`); `citizen` answers as an inhabitant and keeps `cs`. Unreviewed wording."
+}

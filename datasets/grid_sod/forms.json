@@ -1,5 +1,5 @@
 {
-    "note": "Only the age band needs a form, the clause 'je mi mezi 18 a 24 lety'; every other level is spliced as it stands, survey answers verbatim, so 'Příjem naší domácnosti je Do 25.000 Kč' keeps the capital D.",
+    "note": "The levels are the survey's answers, written to stand alone; three columns need a form to sit in a sentence. The age band becomes the clause 'je mi mezi 18 a 24 lety'. The income reads 'do 25.000 Kč' and 'více než 40.000 Kč' inside 'Příjem naší domácnosti je ...'. The education drops the noun the sentence already has ('mé vzdělání je vysokoškolské', not '... vysokoškolské vzdělání'). Income and education are worded as the survey dataset words them (datasets/sod/forms.json). The retired grids spliced both as they stand, because their runs were sent so.",
     "columns": {
         "age_range": {
             "forms": {
@@ -9,6 +9,24 @@
                     "35–44 let": "je mi mezi 35 a 44 lety",
                     "45–54 let": "je mi mezi 45 a 54 lety",
                     "55–65 let": "je mi mezi 55 a 65 lety"
+                }
+            }
+        },
+        "income_range": {
+            "forms": {
+                "plain": {
+                    "Do 25.000 Kč": "do 25.000 Kč",
+                    "25.001 - 40.000 Kč": "25.001 - 40.000 Kč",
+                    "Vice než 40.000 Kč": "více než 40.000 Kč"
+                }
+            }
+        },
+        "education_level": {
+            "forms": {
+                "nom": {
+                    "základní + středoškolské vzdělání bez maturity": "základní nebo středoškolské bez maturity",
+                    "středoškolské vzdělání s maturitou": "středoškolské s maturitou",
+                    "vysokoškolské vzdělání": "vysokoškolské"
                 }
             }
         }

@@ -1768,3 +1768,65 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - on 2026-11-17 every saved run of `election_2021` whose framing has a file reads `as recorded`
 - not done: `check` still parses the saved answers with today's framing; a changed label
   therefore fails there before the `framing` line is printed
+
+## 43. A framing for a place, `cs_area`; `grid_sod` worded as the survey words it (2026-11-17)
+
+- **`cs_area`** (short `cs-area`) frames a run whose subject is an area and nothing else, the
+  `direct` description of `regions`; the `direct` preset names it
+  - why: `cs` speaks of a respondent throughout - "na základě profilu respondenta", "pravděpodobnost,
+    že se respondent voleb zúčastnil" - and `direct` sends "Účast a výsledek voleb ... v Praze ...
+    budou:". For a place the numbers are shares of voters and of votes
+  - built sentence for sentence on `cs` (as reworded in §44): the same opening, the same rule
+    about sums, the same schema blocks; class titles `TurnoutShare`, `PartyShare`. The two differ only in
+    what is estimated
+  - `citizen` keeps `cs`: its prompt is an inhabitant speaking
+  - REJECTED: one shorter, more general system prompt for people and places - vaguer for the
+    survey and grid runs, and `cs` is already recorded by saved runs
+  - the old direct runs were sent with `cs_legacy`, no system prompt; they stay as they are
+  - the Czech is unreviewed
+- **`grid_sod` forms**: income and education now have forms, the ones of `datasets/sod/forms.json` -
+  "do 25.000 Kč", "více než 40.000 Kč" (the level is spelled `Vice`), "mé vzdělání je
+  vysokoškolské" instead of "... je vysokoškolské vzdělání". No run had been sent from this
+  grid, so its prompt table was re-rendered freely
+  - the retired grids keep the levels spliced as they stand: their runs were sent so
+
+## 44. `cs` reworded in place, before any full run (2026-11-17)
+
+- **`cs` was edited under its name**, against the rule that new wording is a new file (§42,
+  `CLAUDE.md` §6), by decision: the only runs that recorded it are trials to be sent again
+  or discarded - the two Haiku `regions_citizen_cs_neutral_...` runs and the Haiku 4.5
+  `sod ... subset=200` sample. Their check now reads `framing NOT as recorded`, and sending
+  one again needs `--overwrite`. From here on the rule holds for `cs` again
+- **The system prompt**
+  - the sum rule is one sentence for every set of probabilities ("Každé rozdělení
+    pravděpodobností, které uvedeš, musí mít součet přesně 1.0"), where it used to name
+    turnout only and left the parties to the schema text. It holds for both shapes: a
+    `Pick` answer has the one set
+  - "Analyzuj VŠECHNY poskytnuté informace" is "Vycházej ze všech informací, které o
+    respondentovi máš": no capitals for emphasis
+  - turnout is asked as both halves, going and not going, as the answer has them
+  - "profilu respondenta" is "popisu respondenta": what is sent is a description
+- **The schema text says "pokud k volbám šel" with every party probability** (`option`,
+  `probabilities.options`, `pick.choice`); formerly only the system prompt did. The analysis
+  reads the party shares as given that the subject voted, and a subject sure to stay home
+  should still be given a preference
+- **`cs_area` follows**: the same four changes where they apply, shares for probabilities
+- left as it is: the English class titles (`TurnoutProbability`, `PartyProbability`) - they
+  become keys of the schema, and a non-ASCII key is a risk with a provider's strict mode for
+  no gain
+- not done: `en` is a translation of the former `cs` and no longer matches it; `cs_grid` and
+  `cs_legacy` are what old runs were sent and are not touched
+- **`cs_individual`** (short `cs-individual`) is `cs` with one rule more: "Odhaduj právě tohoto
+  respondenta, ne celkový výsledek voleb." Everything else is `cs` word for word
+  - why: the sample's answers hugged the national shares (the highest option averaged 0.28)
+  - why a framing of its own and not a line in `cs`: the rule steers the result, so what it
+    does has to be seen - a run with it beside a run with `cs`
+- **`election_2025` has both**, `cs` and `cs_individual`, the 2021 texts with the year changed.
+  Nothing had been run on that topic. No `cs_area` there: the `direct` description names 2021
+- REJECTED for now: the system prompt as a name of its own beside the question, so that a
+  variant need not copy the labels and the schema text
+  - the system prompt and the schema text have to speak of the same thing - a respondent's
+    probabilities or an area's shares - and one file keeps them together
+  - it adds a field to the spec and a part to the stem, days before the full runs
+  - worth it once a third variant of the system prompt alone appears; `cs_individual` is the first
+- the Czech is unreviewed
