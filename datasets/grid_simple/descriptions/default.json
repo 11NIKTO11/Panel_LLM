@@ -1,0 +1,16 @@
+{
+    "name": "default",
+    "short": "default",
+    "note": "The grid profile's self-description, sentence for sentence the description of CoRe/_grid_separate grid/grid_description_v1.json, which the grid's runs were sent: the survey's sentences for the five factors and nothing else.",
+    "sentences": [
+        [
+            "Jsem {gender}, {age_range|clause}, mé vzdělání je {education_level}."
+        ],
+        [
+            "Příjem naší domácnosti je {income_range}."
+        ],
+        [
+            "{interest_in_politics} o politiku."
+        ]
+    ]
+}

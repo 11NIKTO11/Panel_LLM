@@ -1,0 +1,42 @@
+{
+    "name": "en",
+    "topic": "election_2021",
+    "language": "en",
+    "short": "en",
+    "title": "Czech Chamber of Deputies election 2021",
+    "instructions": "You are an expert AI assistant specialised in the analysis of Czech political behaviour. Your task is to estimate, from a respondent's profile, how they voted in the 2021 election to the Chamber of Deputies of the Parliament of the Czech Republic.\n\nFollow these rules:\n1.  Analyse ALL the information given about the respondent.\n2.  Estimate how likely it is that the respondent went to vote at all. Make sure the probabilities of taking part and of not taking part sum to exactly 1.0.\n3.  Estimate how the respondent voted, if they went to vote.",
+    "labels": {
+        "SPOLU": "Spolu Alliance (ODS, TOP 09, KDU-ČSL)",
+        "PirSTAN": "Pirates and Mayors alliance",
+        "SPD": "Freedom and Direct Democracy – Tomio Okamura (SPD)",
+        "Prisaha": "Robert Šlachta's Přísaha",
+        "CSSD": "Czech Social Democratic Party (ČSSD)",
+        "KSCM": "Communist Party of Bohemia and Moravia (KSČM)",
+        "TSS": "Tricolour, Svobodní and Soukromníci",
+        "Other": "Other party"
+    },
+    "schema": {
+        "turnout": {
+            "title": "TurnoutProbability",
+            "description": "The probability that the respondent voted, and that they did not.",
+            "voted": "The probability that the respondent voted.",
+            "not_voted": "The probability that the respondent did not vote.",
+            "field": "The probabilities of voting and of not voting. They must sum to 1.0."
+        },
+        "option": {
+            "title": "PartyProbability",
+            "description": "The probability that the respondent voted for one of the offered parties.",
+            "name": "The name of one of the offered parties.",
+            "probability": "The probability that the respondent voted for this party."
+        },
+        "probabilities": {
+            "description": "Structured output: a probability distribution over the offered parties.",
+            "options": "The offered parties, each with the probability that the respondent voted for it. The probabilities must sum to 1.0."
+        },
+        "pick": {
+            "description": "Simplified output: one chosen party.",
+            "choice": "The party the respondent most likely voted for."
+        }
+    },
+    "note": "The English framing of the 2021 election: a translation of the Czech system prompt and schema text. Labels follow the English edition of the survey where a party name translates; ANO 2011 is a proper noun and inherits its native name. Built and checked offline, never sent to a provider."
+}

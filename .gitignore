@@ -6,17 +6,18 @@ __pycache__
 
 # Dataset
 SoD-*
-/data/clean_data.csv
-/data/grid_*.csv
+/datasets/sod/prepared/
+/datasets/sod_legacy/prepared/
+/results.zip
 
 # Helper scripts
-/utils/test.py
 /update_script.ipynb
 
 # Computed/Generated data
 results
 graphs
 tmp
+/packs/
 
 # Coding agent files
 .claude
@@ -25,3 +26,4 @@ tmp
 
 
 _delete
+.pytest_cache

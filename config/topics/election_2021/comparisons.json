@@ -1,0 +1,41 @@
+{
+    "grids": {
+        "grid sod retired": "grid-sod-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3_x3",
+        "grid sod45 retired": "grid-sod45-retired_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "grid simple": "grid-simple_default_cs-grid_legacy_OpenRouter_gpt-4o_Prob_t=0.3",
+        "colleague": "grid-simple-en_delivered_colleague_OpenRouter_gpt-4o-2024-11-20_Prob_t=0.3_x3"
+    },
+    "sod-legacy": {
+        "gpt-4.1-nano": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0",
+        "gpt-4o-mini": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o-mini_Prob_t=0.0",
+        "gpt-4.1": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1_Prob_t=0.0",
+        "gpt-4o": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o_Prob_t=0.0"
+    },
+    "sod-legacy-gemini": {
+        "gpt-4.1-nano": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0",
+        "gpt-4o-mini": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o-mini_Prob_t=0.0",
+        "gpt-4.1": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1_Prob_t=0.0",
+        "gpt-4o": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o_Prob_t=0.0",
+        "gemini-3-flash": "sod_legacy_cs-legacy_legacy_OpenRouter_gemini-3-flash-preview_Prob_t=0.0"
+    },
+    "sod-legacy-pick": {
+        "gpt-4.1-nano": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1-nano_Pick_t=0.0",
+        "gpt-4o-mini": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o-mini_Pick_t=0.0",
+        "gpt-4.1": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4.1_Pick_t=0.0",
+        "gpt-4o": "sod_legacy_cs-legacy_legacy_OpenAI_gpt-4o_Pick_t=0.0"
+    },
+    "regions-citizen": {
+        "gpt-4.1-nano": "regions_citizen_cs-legacy_legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0_x10",
+        "gpt-4o-mini": "regions_citizen_cs-legacy_legacy_OpenAI_gpt-4o-mini_Prob_t=0.0_x10",
+        "gpt-4.1": "regions_citizen_cs-legacy_legacy_OpenAI_gpt-4.1_Prob_t=0.0_x10",
+        "gpt-4o": "regions_citizen_cs-legacy_legacy_OpenAI_gpt-4o_Prob_t=0.0_x10",
+        "haiku-4.5": "regions_citizen_cs_neutral_AnthropicLegacy_claude-haiku-4-5_Prob_t=1.0_x10",
+        "haiku-5.5": "regions_citizen_cs_neutral_Anthropic_claude-haiku-5-5_Prob_t=default_e=low_x3"
+    },
+    "regions-direct": {
+        "gpt-4.1-nano": "regions_direct-legacy_cs-legacy_OpenAI_gpt-4.1-nano_Prob_t=0.0_x10",
+        "gpt-4o-mini": "regions_direct-legacy_cs-legacy_OpenAI_gpt-4o-mini_Prob_t=0.0_x10",
+        "gpt-4.1": "regions_direct-legacy_cs-legacy_OpenAI_gpt-4.1_Prob_t=0.0_x10",
+        "gpt-4o": "regions_direct-legacy_cs-legacy_OpenAI_gpt-4o_Prob_t=0.0_x10"
+    }
+}

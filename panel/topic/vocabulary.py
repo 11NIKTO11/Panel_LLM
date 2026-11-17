@@ -1,0 +1,162 @@
+"""
+A topic's vocabulary: what a run may answer with, as data.
+
+`config/topics/<name>/topic.json` holds the language-neutral half of a topic: the option ids,
+each with its native name and foreign aliases, the turnout roles, and where the reference
+results are. Everything the model reads - system prompt, labels, schema text, question - is a
+framing or a question (`panel.topic.framing`, `panel.topic.question`), in folders beside it.
+`RunSpec.topic` holds the name, so a saved run reproduces its own vocabulary from its record.
+
+- **option ids are the keys**: pure ASCII, and the columns of every result table, so runs in
+  two languages on one topic stack. `name` is the official label, which a framing shows unless
+  it overrides it; `aliases` are foreign column names, for reading someone else's results.
+- **the order of the option keys is the order the model sees them** - it becomes the `enum`
+  order in the schema sent to the provider, so it is prompt content, not presentation. `json`
+  preserves file order, so the file is the record of it; reordering the keys changes the prompt.
+- `yes` / `no` are roles, not labels: aggregation weights by the `yes` branch, so the engine
+  has to know which is which whatever the columns are called. The response models keep the
+  field names `voted_or_not.voted` / `.not_voted` regardless, because saved JSON is keyed by them.
+- `rename(frame)` turns native names and aliases into ids, so a legacy CSV, the reference CSV
+  and a colleague's `p_*` table all read as ids without a file on disk changing.
+"""
+import json
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Tuple, Union
+
+import pandas as pd
+
+from panel import paths
+from panel.config import check_keys
+
+CONFIG_NAME = "topic.json"
+REQUIRED_KEYS = {"name", "reference", "turnout", "options"}
+OPTIONAL_KEYS = {"note"}
+OPTION_KEYS = {"name", "aliases"}
+REFERENCE_KEYS = {"path", "key", "total"}
+TURNOUT_ROLES = ("yes", "no")
+
+
+@dataclass(frozen=True)
+class Reference:
+    """`path` is relative to the topic's folder; `key` is the column naming each row, `total` the key of the row that is the whole."""
+    path: str
+    key: str
+    total: str
+
+
+@dataclass(frozen=True)
+class Topic:
+    """
+    name: the folder under `config/topics/`, the results folder, and `RunSpec.topic`.
+    options: option ids, in the order the model sees them; also the result columns.
+    names: option id -> its native name, the label a framing shows by default.
+    aliases: foreign column name -> our column, over options and turnout.
+    turnout: (yes column, no column) for a topic with an attendance dimension, else None.
+    reference: None when there is nothing to compare to.
+    """
+    name: str
+    options: Tuple[str, ...]
+    names: Dict[str, str]
+    aliases: Dict[str, str]
+    turnout: Union[Tuple[str, str], None]
+    reference: Union[Reference, None]
+    dir: Path
+    note: str = ""
+
+    @property
+    def columns(self) -> List[str]:
+        return list(self.turnout or ()) + list(self.options)
+
+    @property
+    def normalize_groups(self) -> List[List[str]]:
+        """Column groups that each have to sum to 1 per row."""
+        groups = [list(self.turnout)] if self.turnout else []
+        groups.append(list(self.options))
+        return groups
+
+    @property
+    def rename_map(self) -> Dict[str, str]:
+        return {**{name: option for option, name in self.names.items()}, **self.aliases}
+
+    def rename(self, frame: pd.DataFrame) -> pd.DataFrame:
+        return frame.rename(columns=self.rename_map)
+
+    def load_reference(self) -> pd.DataFrame:
+        """In our columns, one row per key, the total row included."""
+        if not self.reference:
+            raise ValueError(f"topic '{self.name}' declares no reference results")
+        frame = self.rename(pd.read_csv(self.dir / self.reference.path, encoding="utf-8-sig"))
+        missing = [column for column in [self.reference.key] + self.columns if column not in frame.columns]
+        if missing:
+            raise ValueError(f"{self.reference.path} is missing columns {missing}")
+        if self.reference.total not in set(frame[self.reference.key]):
+            raise ValueError(f"{self.reference.path} has no row keyed '{self.reference.total}'")
+        return frame
+
+
+def topic_names(topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> List[str]:
+    return sorted(path.parent.name for path in Path(topics_dir).glob(f"*/{CONFIG_NAME}"))
+
+
+def _claim(taken: Dict[str, str], foreign: str, ours: str, path: Path) -> None:
+    if foreign in taken:
+        raise ValueError(f"{path}: '{foreign}' is claimed by both '{taken[foreign]}' and '{ours}'")
+    taken[foreign] = ours
+
+
+def load_topic(name: str, topics_dir: Union[str, Path] = paths.TOPICS_DIR) -> Topic:
+    """Option order is the order in the file (see the module docstring)."""
+    path = Path(topics_dir) / name / CONFIG_NAME
+    if not path.exists():
+        raise FileNotFoundError(f"no topic at {path}")
+    config = json.loads(path.read_text(encoding="utf-8"))
+    check_keys(config, REQUIRED_KEYS, OPTIONAL_KEYS, str(path))
+    if config["name"] != name:
+        raise ValueError(f"{path} declares name '{config['name']}'")
+
+    options = tuple(config["options"])
+    if not options:
+        raise ValueError(f"{path}: no options")
+    for option in options:
+        if not option or not option.isascii():
+            raise ValueError(f"{path}: option id {option!r} must be non-empty ASCII")
+
+    turnout = None
+    taken: Dict[str, str] = {}
+    if config["turnout"]:
+        columns = []
+        for role in TURNOUT_ROLES:
+            entry = config["turnout"][role]
+            columns.append(entry["column"])
+            for foreign in entry.get("aliases", ()):
+                _claim(taken, foreign, entry["column"], path)
+        turnout = (columns[0], columns[1])
+
+    names: Dict[str, str] = {}
+    for option, entry in config["options"].items():
+        stray = sorted(set(entry) - OPTION_KEYS)
+        if stray or "name" not in entry:
+            raise ValueError(f"{path}: option '{option}' has unknown keys {stray} or no name")
+        names[option] = entry["name"]
+        for foreign in entry.get("aliases", ()):
+            _claim(taken, foreign, option, path)
+    if len(set(names.values())) != len(names):
+        raise ValueError(f"{path}: option names are not unique")
+
+    ours = set(options) | set(turnout or ())
+    clash = sorted(set(taken) & ours)
+    clash += sorted(label for option, label in names.items() if label in ours and label != option)
+    if clash:
+        raise ValueError(f"{path}: names or aliases collide with our own columns: {clash}")
+
+    reference = None
+    if config["reference"]:
+        if set(config["reference"]) != REFERENCE_KEYS:
+            raise ValueError(f"{path}: reference needs exactly the keys {sorted(REFERENCE_KEYS)}")
+        reference = Reference(**config["reference"])
+
+    return Topic(
+        name=config["name"], options=options, names=names, aliases=taken, turnout=turnout,
+        reference=reference, dir=path.parent, note=config.get("note", ""),
+    )

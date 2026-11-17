@@ -1,0 +1,8 @@
+{
+  "taken_at": "2026-09-09T19:52:44",
+  "git_commit": "e615307f08044f502b1a56a04b9a80ed325dd975",
+  "python": "3.13.0",
+  "pandas": "2.3.1",
+  "pydantic": "2.11.7",
+  "legacy_schema_source": "results/election_2021_legacy/config.json"
+}

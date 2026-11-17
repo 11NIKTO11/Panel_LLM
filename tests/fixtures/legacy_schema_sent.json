@@ -1,0 +1,144 @@
+{
+  "VotingProbabilities": {
+    "$defs": {
+      "PartyProbability": {
+        "description": "Strukturovaná reprezentace pravděpodobnosti hlasování pro konkrétní stranu.",
+        "properties": {
+          "name": {
+            "description": "Název politické strany.",
+            "enum": [
+              "ANO 2011",
+              "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+              "Koalice PIRÁTI a STAROSTOVÉ",
+              "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+              "Přísaha Roberta Šlachty",
+              "Česká strana sociálně demokratická (ČSSD)",
+              "Komunistická strana Čech a Moravy (KSČM)",
+              "Trikolóra, Svobodní a Soukromníci",
+              "Jiná strana"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "Pravděpodobnost, že respondent hlasoval pro tuto stranu.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "PartyProbability",
+        "type": "object"
+      },
+      "VotedProbability": {
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
+        "properties": {
+          "voted": {
+            "description": "Pravděpodobnost, že respondent volil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Pravděpodobnost, že respondent nevolil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "VotedProbability",
+        "type": "object"
+      }
+    },
+    "description": "Strukturovaný výstup pro volební chování respondenta ve volbách do poslanecké sněmovny 2021.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/VotedProbability",
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
+      },
+      "parties": {
+        "description": "Seznam možných stran s pravděpodobností volby. Součet pravděpodobností musí být 1.0.",
+        "items": {
+          "$ref": "#/$defs/PartyProbability"
+        },
+        "title": "Parties",
+        "type": "array"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "parties"
+    ],
+    "title": "VotingProbabilities",
+    "type": "object"
+  },
+  "VotingPick": {
+    "$defs": {
+      "VotedProbability": {
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil.",
+        "properties": {
+          "voted": {
+            "description": "Pravděpodobnost, že respondent volil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Pravděpodobnost, že respondent nevolil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "VotedProbability",
+        "type": "object"
+      }
+    },
+    "description": "Zjednodušený výstup: vybraná strana + pravděpodobnost volby vs. nevolby.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/VotedProbability",
+        "description": "Pravděpodobnost, zda respondent volil, nebo nevolil. Součet musí být 1.0."
+      },
+      "choice": {
+        "description": "Zhodnoť poskytnutý sociodemografický profil respondenta a na jeho základě urči nejpravděpodobnější politickou stranu, které odevzdal svůj hlas.",
+        "enum": [
+          "ANO 2011",
+          "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+          "Koalice PIRÁTI a STAROSTOVÉ",
+          "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+          "Přísaha Roberta Šlachty",
+          "Česká strana sociálně demokratická (ČSSD)",
+          "Komunistická strana Čech a Moravy (KSČM)",
+          "Trikolóra, Svobodní a Soukromníci",
+          "Jiná strana"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "choice"
+    ],
+    "title": "VotingPick",
+    "type": "object"
+  }
+}

@@ -1,0 +1,43 @@
+{
+    "note": "Czech case forms for the fifteen area names, written out rather than derived. `in` carries the preposition, because it vocalises: v -> ve before the st- and zl- clusters. An unknown name raises.",
+    "columns": {
+        "region": {
+            "forms": {
+                "in": {
+                    "Česko": "v Česku",
+                    "Hlavní město Praha": "v Praze",
+                    "Středočeský kraj": "ve Středočeském kraji",
+                    "Jihočeský kraj": "v Jihočeském kraji",
+                    "Plzeňský kraj": "v Plzeňském kraji",
+                    "Karlovarský kraj": "v Karlovarském kraji",
+                    "Ústecký kraj": "v Ústeckém kraji",
+                    "Liberecký kraj": "v Libereckém kraji",
+                    "Královéhradecký kraj": "v Královéhradeckém kraji",
+                    "Pardubický kraj": "v Pardubickém kraji",
+                    "Kraj Vysočina": "v Kraji Vysočina",
+                    "Jihomoravský kraj": "v Jihomoravském kraji",
+                    "Olomoucký kraj": "v Olomouckém kraji",
+                    "Zlínský kraj": "ve Zlínském kraji",
+                    "Moravskoslezský kraj": "v Moravskoslezském kraji"
+                },
+                "of": {
+                    "Česko": "Česka",
+                    "Hlavní město Praha": "Prahy",
+                    "Středočeský kraj": "Středočeského kraje",
+                    "Jihočeský kraj": "Jihočeského kraje",
+                    "Plzeňský kraj": "Plzeňského kraje",
+                    "Karlovarský kraj": "Karlovarského kraje",
+                    "Ústecký kraj": "Ústeckého kraje",
+                    "Liberecký kraj": "Libereckého kraje",
+                    "Královéhradecký kraj": "Královéhradeckého kraje",
+                    "Pardubický kraj": "Pardubického kraje",
+                    "Kraj Vysočina": "Kraje Vysočina",
+                    "Jihomoravský kraj": "Jihomoravského kraje",
+                    "Olomoucký kraj": "Olomouckého kraje",
+                    "Zlínský kraj": "Zlínského kraje",
+                    "Moravskoslezský kraj": "Moravskoslezského kraje"
+                }
+            }
+        }
+    }
+}

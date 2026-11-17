@@ -1,0 +1,15 @@
+{
+    "name": "default",
+    "short": "default",
+    "languages": {
+        "cs": {
+            "by": "gender",
+            "text": {
+                "male": "Ve volbách do poslanecké sněmovny v roce 2025 jsem volil:",
+                "female": "Ve volbách do poslanecké sněmovny v roce 2025 jsem volila:"
+            },
+            "fallback": "male",
+            "note": "The original question, agreeing with the subject's gender. The male form is the text every run before the split sent, and what a dataset without gender gets."
+        }
+    }
+}

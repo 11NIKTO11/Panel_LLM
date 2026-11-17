@@ -1,0 +1,140 @@
+{
+  "Probabilities": {
+    "$defs": {
+      "PartyProbability": {
+        "description": "Pravděpodobnost, že respondent volil jednu z nabízených stran, pokud k volbám šel.",
+        "properties": {
+          "name": {
+            "description": "Název jedné z nabízených stran.",
+            "enum": [
+              "ANO 2011",
+              "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+              "Česká pirátská strana",
+              "STAROSTOVÉ A NEZÁVISLÍ (STAN)",
+              "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+              "Motoristé sobě (AUTO)",
+              "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)",
+              "Jiná strana"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "probability": {
+            "description": "Pravděpodobnost, že respondent volil tuto stranu, pokud k volbám šel.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "probability"
+        ],
+        "title": "PartyProbability",
+        "type": "object"
+      },
+      "TurnoutProbability": {
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.\n\nPravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0.",
+        "properties": {
+          "voted": {
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutProbability",
+        "type": "object"
+      }
+    },
+    "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutProbability"
+      },
+      "options": {
+        "description": "Seznam nabízených stran s pravděpodobností, že je respondent volil, pokud k volbám šel. Součet pravděpodobností musí být 1.0.",
+        "items": {
+          "$ref": "#/$defs/PartyProbability"
+        },
+        "title": "Options",
+        "type": "array"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "options"
+    ],
+    "title": "Probabilities",
+    "type": "object"
+  },
+  "Pick": {
+    "$defs": {
+      "TurnoutProbability": {
+        "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.\n\nPravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0.",
+        "properties": {
+          "voted": {
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Voted",
+            "type": "number"
+          },
+          "not_voted": {
+            "description": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Not Voted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "voted",
+          "not_voted"
+        ],
+        "title": "TurnoutProbability",
+        "type": "object"
+      }
+    },
+    "description": "Zjednodušený výstup: jedna vybraná strana.",
+    "properties": {
+      "voted_or_not": {
+        "$ref": "#/$defs/TurnoutProbability"
+      },
+      "choice": {
+        "description": "Strana, kterou respondent nejpravděpodobněji volil, pokud k volbám šel.",
+        "enum": [
+          "ANO 2011",
+          "Koalice Spolu (ODS, TOP 09, KDU-ČSL)",
+          "Česká pirátská strana",
+          "STAROSTOVÉ A NEZÁVISLÍ (STAN)",
+          "Svoboda a přímá demokracie – Tomio Okamura (SPD)",
+          "Motoristé sobě (AUTO)",
+          "Stačilo! (KSČM, SD-SN, ČSNS, SOCDEM)",
+          "Jiná strana"
+        ],
+        "title": "Choice",
+        "type": "string"
+      }
+    },
+    "required": [
+      "voted_or_not",
+      "choice"
+    ],
+    "title": "Pick",
+    "type": "object"
+  }
+}

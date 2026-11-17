@@ -1,0 +1,67 @@
+"""
+Shared fixtures: where things are, and loaders for the phase 0 baselines under `fixtures/`.
+
+An input that is not in git (`datasets/sod/prepared/values.csv`, `results/`) makes a test skip naming
+the path it needed, rather than fail.
+"""
+import json
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+import pytest
+
+from panel import paths
+from panel.dataset import load_dataset, read_values
+from panel.topic import Framing, Topic, load_framing, load_topic
+
+ROOT = paths.ROOT
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+TOPICS_DIR = paths.TOPICS_DIR
+RESULTS_DIR = paths.RESULTS_DIR
+LEGACY_TOPIC = "election_2021"
+LEGACY_FRAMING = "cs_legacy"
+
+
+def load_fixture(name: str) -> Any:
+    """A JSON fixture by path under `tests/fixtures/` without extension, e.g. `schemas/election_2021`."""
+    return json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8"))
+
+
+def require(path: Path) -> Path:
+    """Skip the calling test when a gitignored input is not on this machine."""
+    if not path.exists():
+        pytest.skip(f"{path.relative_to(ROOT)} is not on this machine")
+    return path
+
+
+@pytest.fixture(scope="session")
+def people() -> pd.DataFrame:
+    dataset = load_dataset("sod")
+    require(dataset.values_path)
+    return read_values(dataset)
+
+
+@pytest.fixture(scope="session")
+def legacy_topic() -> Topic:
+    return load_topic(LEGACY_TOPIC, TOPICS_DIR)
+
+
+@pytest.fixture(scope="session")
+def legacy_framing(legacy_topic) -> Framing:
+    return load_framing(legacy_topic, LEGACY_FRAMING)
+
+
+@pytest.fixture(scope="session")
+def legacy_store():
+    from panel.run import ResultStore
+
+    require(RESULTS_DIR / LEGACY_TOPIC)
+    return ResultStore(RESULTS_DIR, LEGACY_TOPIC)
+
+
+@pytest.fixture(scope="session")
+def legacy_stems(legacy_store) -> list:
+    """The store's runs that were migrated from the legacy shape: framed by the legacy framing, and migrated from saved answers."""
+    records = {stem: legacy_store.record(stem) for stem in legacy_store.runs()}
+    return [stem for stem, record in records.items() if record["spec"]["framing"] == LEGACY_FRAMING and "migrated" in record]

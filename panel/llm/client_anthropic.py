@@ -1,0 +1,116 @@
+import os
+from typing import Tuple, Type, Union
+
+from pydantic import BaseModel, ValidationError
+
+from .base import BaseLLMClient, ordered_efforts
+from .errors import CallFailed, RateLimited, status_error
+
+try:
+    import anthropic
+    from anthropic import Anthropic, transform_schema
+except Exception:  # pragma: no cover - optional dependency guard
+    anthropic = Anthropic = transform_schema = None
+
+
+def server_tools_used(response) -> dict:
+    """Server tool -> how many times the response used it (web searches, web fetches, ...); empty when none."""
+    counts = getattr(getattr(response, "usage", None), "server_tool_use", None)
+    if counts is None:
+        return {}
+    found = counts.model_dump() if hasattr(counts, "model_dump") else dict(counts)
+    return {name: count for name, count in found.items() if isinstance(count, (int, float)) and count}
+
+
+class AnthropicClient(BaseLLMClient):
+    """
+    Claude on the API version the installed SDK sends, which takes no temperature.
+
+    A call offers no tools (`tools=[]`): the answer is the model's own, with no web search,
+    web fetch or code execution, which the API runs only when a request declares them. The
+    response's server-tool counts are checked all the same, and a call that used one fails.
+    """
+    SHORT_NAME = "Anthropic"
+    API_VERSION: Union[str, None] = None
+    TAKES_EFFORT = True
+
+    def __init__(self, api_key: Union[str, None] = None, effort: Union[str, None] = None, max_tokens: int = 16000):
+        """
+        `effort` is `low` .. `max`, how much the model thinks per call; None leaves the model's default.
+        `max_tokens` is the most a call may write, thinking included; a call cut off by it raises.
+        """
+        if Anthropic is None:
+            raise ImportError("anthropic package is required for Claude models.")
+        key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        if not key:
+            raise ValueError("ANTHROPIC_API_KEY must be set for Claude models.")
+        headers = {"anthropic-version": self.API_VERSION} if self.API_VERSION else None
+        self.client = Anthropic(api_key=key, default_headers=headers)
+        self.effort = effort
+        self.max_tokens = max_tokens
+
+    def parameters(self) -> dict:
+        return {"max_tokens": self.max_tokens, "effort": self.effort, "api_version": self.API_VERSION, "tools": []}
+
+    def efforts(self, model: str) -> Tuple[str, ...]:
+        """From the Models API's `capabilities.effort`, one `supported` flag per level."""
+        capabilities = self.client.models.retrieve(model).capabilities
+        effort = capabilities.effort.model_dump() if capabilities else {}
+        if not effort.get("supported"):
+            return ()
+        return ordered_efforts(level for level, entry in effort.items() if isinstance(entry, dict) and entry.get("supported"))
+
+    def schema_sent(self, model: str, response_format: Type[BaseModel]) -> dict:
+        """The schema as the SDK's `messages.parse` rewrites it: closed objects, number bounds moved into the descriptions."""
+        return transform_schema(response_format)
+
+    def _sampling(self, temperature: Union[float, None]) -> dict:
+        if temperature is not None:
+            raise ValueError(
+                "the Anthropic API takes no temperature; declare the run with temperature=None, "
+                "or with client='AnthropicLegacy' on a model that still accepts one"
+            )
+        return {}
+
+    def call_llm(self, model: str, prompt: str, response_format: Type[BaseModel], temperature: Union[float, None],
+                 instructions: Union[str, None] = None) -> BaseModel:
+        sampling = self._sampling(temperature)
+        try:
+            response = self.client.messages.parse(
+                model=model,
+                max_tokens=self.max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+                tools=[],
+                output_format=response_format,
+                **({"system": instructions} if instructions else {}),
+                **({"output_config": {"effort": self.effort}} if self.effort else {}),
+                **sampling,
+            )
+        except anthropic.RateLimitError as error:
+            raise RateLimited(str(error)) from error
+        except anthropic.APIStatusError as error:
+            raise status_error(error.status_code, str(error)) from error
+        except (anthropic.AnthropicError, ValidationError) as error:
+            raise CallFailed(f"{type(error).__name__}: {error}") from error
+        self.last_model = getattr(response, "model", None)
+        used = server_tools_used(response)
+        if used:
+            raise CallFailed(f"'{model}' used server tools although none were offered: {used}")
+        if response.parsed_output is None:
+            raise CallFailed(f"no parsed output from '{model}': stop_reason={response.stop_reason}")
+        return response.parsed_output
+
+
+class AnthropicLegacyClient(AnthropicClient):
+    """
+    Claude on API version 2023-06-01, the last that accepts a temperature.
+
+    For the models that still honour one there (Opus 4.6, Sonnet 4.6, Haiku 4.5, Opus 4.5);
+    Opus 4.7 and later refuse it on any version. The installed SDK's own call has no
+    temperature argument any more, so it travels in the request body.
+    """
+    SHORT_NAME = "AnthropicLegacy"
+    API_VERSION = "2023-06-01"
+
+    def _sampling(self, temperature: Union[float, None]) -> dict:
+        return {} if temperature is None else {"extra_body": {"temperature": temperature}}
