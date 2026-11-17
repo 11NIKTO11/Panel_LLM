@@ -18,6 +18,7 @@ comparison, with the runs it was made from.
     |   |-- analysis/               tables derived from the run: <statistic>.csv
     |   |-- plots/                  figures derived from the run: <name>.png
     |   `-- delivered/              for a run kept only as a table: the table as delivered
+    |-- runs/<stem>_incomplete/     the same files for a run with a call missing; never read as the run
     `-- comparisons/<name>/
         |-- runs.json               label -> stem: the runs this comparison was made from
         |-- analysis/               <statistic>.csv
@@ -76,6 +77,7 @@ class ResultStore:
     ANALYSIS_DIR = "analysis"
     PLOTS_DIR = "plots"
     ARCHIVE_DIR = "archive"
+    INCOMPLETE = "_incomplete"
     DELIVERED_DIR = "delivered"
 
     def __init__(self, results_dir: Union[str, Path], topic: str):
@@ -178,22 +180,33 @@ class ResultStore:
         client: Union[BaseLLMClient, None] = None,
         overwrite: bool = False,
         effort: Union[Dict[str, Any], None] = None,
+        flawed: Union[Mapping[int, Tuple[str, ...]], None] = None,
     ) -> RunPaths:
         """
         `results` is {call: (prompt, parsed)} from `run_llm_batch` over `resolved.calls`; returns the plain paths.
-        `effort` is `panel.run.effort.effort_tier`'s answer from before the calls, for the record.
+        `effort` is `panel.run.effort.effort_tier`'s answer from before the calls, for the record;
+        `flawed` is {call: reasons} for the results kept though flawed.
+
+        Results that are not all of the run's calls are saved under `<stem>_incomplete`, with the
+        calls missing in the record, so that a run's own folder only ever holds the whole run.
 
         The archived copy is what keeps an overwritten run recoverable; it holds the CSV and the record
         only, because the raw JSON and the normalized CSV are reconstructions of the CSV. The plain set is
         the handle a stem is loaded by and is overwritten freely by the same spec.
         """
         self.refuse(resolved, overwrite)
-        stem = resolved.stem
+        calls = resolved.calls
+        missing = sorted(_key(calls, call, resolved.spec.repeats) for call in set(calls.index) - set(results))
+        faulty = {_key(calls, call, resolved.spec.repeats): list(reasons) for call, reasons in sorted((flawed or {}).items())}
+        stem = resolved.stem + (self.INCOMPLETE if missing else "")
         plain = self.paths(stem)
 
         now = datetime.now()
         frame = _results_frame(results, resolved)
-        record = json.dumps(build_record(resolved, len(results), now, client, effort), ensure_ascii=False, indent=4)
+        built = build_record(resolved, len(results), now, client, effort, faulty)
+        if missing:
+            built.update(stem=stem, incomplete=True, missing=missing)
+        record = json.dumps(built, ensure_ascii=False, indent=4)
         for paths in (self.paths(stem, now.strftime("%Y-%m-%d-%H-%M-%S")), plain):
             paths.results_csv.parent.mkdir(parents=True, exist_ok=True)
             frame.to_csv(paths.results_csv, index=True, encoding="utf-8")
@@ -216,14 +229,18 @@ def _results_frame(results: Dict[int, Tuple[str, BaseModel]], resolved: Resolved
     return frame.drop(columns=REPEAT) if resolved.spec.repeats == 1 else frame
 
 
+def _key(calls: pd.DataFrame, call: int, repeats: int) -> str:
+    """How one call is named in the saved files: "<id>", or "<id>:<repeat>" in a run that repeats."""
+    subject, repeat = int(calls.at[call, SUBJECT]), int(calls.at[call, REPEAT])
+    return str(subject) if repeats == 1 else f"{subject}:{repeat}"
+
+
 def _raw_results(results: Dict[int, Tuple[str, BaseModel]], resolved: Resolved) -> Dict[str, Any]:
     """{"<id>" or "<id>:<repeat>": {"prompt", "result"}}, in subject order."""
     calls = resolved.calls
     ordered = sorted(results, key=lambda call: (calls.at[call, SUBJECT], calls.at[call, REPEAT]))
     raw = {}
     for call in ordered:
-        subject, repeat = int(calls.at[call, SUBJECT]), int(calls.at[call, REPEAT])
-        key = str(subject) if resolved.spec.repeats == 1 else f"{subject}:{repeat}"
         prompt, parsed = results[call]
-        raw[key] = {"prompt": prompt, "result": parsed.model_dump()}
+        raw[_key(calls, call, resolved.spec.repeats)] = {"prompt": prompt, "result": parsed.model_dump()}
     return raw

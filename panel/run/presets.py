@@ -19,7 +19,7 @@ from .spec import RunSpec
 
 KEYS = {"base", "data", "models"}
 FIELDS = tuple(field.name for field in fields(RunSpec))
-DATA = ("dataset", "description", "topic", "framing", "question", "shape", "repeats")
+DATA = ("dataset", "description", "topic", "framing", "question", "shape", "repeats", "sum_low", "sum_high")
 MODEL = ("client", "model", "temperature", "effort")
 NUMBERS = {field.name: kind for field in fields(RunSpec) for kind in (int, float) if kind in (field.type, *get_args(field.type))}
 NONE = "none"

@@ -31,6 +31,8 @@ class RunSpec:
     effort: None sends none and leaves the model's default; only a client that takes an effort can be given one,
         and which levels a model takes is asked of the provider when the run is sent (`panel.run.effort`).
     repeats: calls per subject; each becomes its own results row.
+    sum_low, sum_high: what an answer's probabilities may sum to and still be accepted (`panel.run.accept`),
+        for the options and for turnout alike; None leaves that side open, as every run before 2026-11-17 did.
     sample: run this many subjects instead of all of them.
     """
     dataset: str
@@ -44,6 +46,8 @@ class RunSpec:
     temperature: Union[float, None] = 0.0
     effort: Union[str, None] = None
     repeats: int = 1
+    sum_low: Union[float, None] = None
+    sum_high: Union[float, None] = None
     sample: Union[int, None] = None
     random_state: Union[int, None] = 42
 
@@ -54,6 +58,8 @@ class RunSpec:
             raise ValueError(f"effort must be one of {EFFORTS} or None, not {self.effort!r}")
         if self.repeats < 1:
             raise ValueError("repeats must be at least 1")
+        if (self.sum_low is not None and self.sum_low > 1) or (self.sum_high is not None and self.sum_high < 1):
+            raise ValueError(f"the accepted sums must include 1, not {self.sum_low} .. {self.sum_high}")
         if self.sample is not None and self.sample < 1:
             raise ValueError("sample must be at least 1")
 

@@ -18,7 +18,7 @@ from anthropic import Anthropic, DefaultHttpxClient
 import pandas as pd
 import requests
 
-from panel.llm import BatchFailed, CallFailed, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
+from panel.llm import BatchFailed, BatchStopped, CallFailed, Flaw, RateLimited, client_openrouter, ordered_efforts, run_llm_batch
 from panel.llm.client_gemini import GeminiClient
 from panel.llm.client_openai import OpenAIClient
 from panel.llm.client_anthropic import AnthropicClient, AnthropicLegacyClient
@@ -350,32 +350,70 @@ class Failing:
         return "answer"
 
 
-def batch(client, rows: int = 1, retries: int = 3):
+def batch(client, rows: int = 1, retries: int = 3, review=None):
     data = pd.DataFrame({"text": [f"prompt {row}" for row in range(rows)]})
     return run_llm_batch(data, prompt_creator=lambda row: row["text"], response_model=None, model="m", temperature=None,
-                         client=client, instructions=None, max_workers=1, retries=retries)
+                         client=client, instructions=None, review=review, max_workers=1, retries=retries)
 
 
 def test_the_runner_waits_on_a_rate_limit_and_tries_a_failed_call_again(monkeypatch):
     waits = []
     monkeypatch.setattr("panel.llm.runner.time.sleep", waits.append)
     client = Failing(RateLimited("slow down"), CallFailed("lost"))
-    assert batch(client) == ({0: ("prompt 0", "answer")}, []) and client.calls == 3
+    assert batch(client) == ({0: ("prompt 0", "answer")}, {}, []) and client.calls == 3
     assert len(waits := [wait for wait in waits if wait]) == 1 and 1 <= waits[0] < 2
-    assert batch(Failing(CallFailed("a"), CallFailed("b")), retries=2) == ({}, [0])
+    assert batch(Failing(CallFailed("a"), CallFailed("b")), retries=2) == ({}, {}, [0])
 
 
 @pytest.mark.parametrize("failure", [BatchFailed("wrong key"), KeyError("a bug"), None], ids=["batch failed", "unforeseen", "answered None"])
 def test_the_runner_stops_the_batch_on_what_no_retry_mends(failure):
     client = Failing(*[failure] * 50, takes=0.01)
-    with pytest.raises(type(failure) if failure else TypeError):
+    with pytest.raises(BatchStopped) as stopped:
         batch(client, rows=50)
-    assert client.calls < 50
+    assert client.calls < 50 and isinstance(stopped.value.__cause__, type(failure) if failure else TypeError)
+
+
+def test_a_stopped_batch_hands_back_what_came_before():
+    client, prompts = Failing(), []
+
+    def call(model, prompt, response_format, temperature, instructions=None):
+        prompts.append(prompt)
+        time.sleep(0.01)
+        if len(prompts) == 4:
+            raise BatchFailed("no credit")
+        return f"answer to {prompt}"
+
+    client.call_llm = call
+    with pytest.raises(BatchStopped) as stopped:
+        batch(client, rows=20)
+    results = stopped.value.results
+    assert len(prompts) < 20 and 3 not in results and {0, 1, 2} <= set(results)
+    assert results == {row: (f"prompt {row}", f"answer to prompt {row}") for row in results}
+
+
+class Answering:
+    """A client that answers each call with the next of the answers it was given."""
+
+    def __init__(self, *answers):
+        self.answers = list(answers)
+
+    def call_llm(self, model, prompt, response_format, temperature, instructions=None):
+        return self.answers.pop(0)
+
+
+def test_the_runner_keeps_the_best_flawed_answer_and_no_unusable_one():
+    def review(answer):
+        return None if answer == "good" else Flaw(reasons=(answer,), usable=answer != "broken", distance={"far": 0.5, "near": 0.1}.get(answer, 9.0))
+
+    assert batch(Answering("far", "good"), review=review) == ({0: ("prompt 0", "good")}, {}, [])
+    assert batch(Answering("far", "near", "broken"), review=review) == ({0: ("prompt 0", "near")}, {0: ("near",)}, [])
+    assert batch(Answering("near", "far", "far"), review=review) == ({0: ("prompt 0", "near")}, {0: ("near",)}, [])
+    assert batch(Answering("broken", "broken", "broken"), review=review) == ({}, {}, [0])
 
 
 def test_the_runner_states_no_default():
     with pytest.raises(TypeError):
-        run_llm_batch(pd.DataFrame({"text": ["a"]}), prompt_creator=lambda row: row["text"], response_model=None, client=Failing())
+        run_llm_batch(pd.DataFrame({"text": ["a"]}), prompt_creator=lambda row: row["text"], response_model=None, client=Failing(), review=None)
 
 
 def test_a_description_beside_a_ref_moves_to_its_definition():

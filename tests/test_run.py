@@ -6,7 +6,10 @@ import pytest
 
 from panel import paths
 from panel.dataset import load_dataset
+from panel.analysis.saved import describe, load_run
+from panel.llm import BatchFailed
 from panel.run import ResultStore, RunSpec, execute, resolve
+from panel.run.accept import judge
 from panel.run.check import MEAN, TOP, check, means, report
 from panel.run.fake import FakeClient
 from panel.run.presets import DATA, FIELDS, MODEL, build_spec, load_presets, parse
@@ -125,6 +128,127 @@ def test_execute_reruns_skipped(tmp_path):
     assert len(store.frame(run.stem)) == 5
     with pytest.raises(RuntimeError):
         execute(run, ResultStore(tmp_path / "again", SOD.topic), FakeClient(fail_calls=99), max_workers=2, retries=2, rerun_rounds=1)
+
+
+class Altered(FakeClient):
+    """A fake whose answers to the first `subjects` prompts it sees are changed by `change`, on their first `times` calls."""
+
+    def __init__(self, change, subjects: int = 1, times: int = 99):
+        super().__init__()
+        self.change, self.subjects, self.times, self.chosen = change, subjects, times, {}
+
+    def call_llm(self, model, prompt, response_format, temperature, instructions=None):
+        answer = super().call_llm(model, prompt, response_format, temperature, instructions)
+        with self._lock:
+            if prompt not in self.chosen and len(self.chosen) < self.subjects:
+                self.chosen[prompt] = 0
+            if prompt not in self.chosen or self.chosen[prompt] >= self.times:
+                return answer
+            self.chosen[prompt] += 1
+        return self.change(answer)
+
+
+def scaled(factor: float):
+    def change(answer):
+        options = [{"name": option.name, "probability": min(1.0, option.probability * factor)} for option in answer.options]
+        return type(answer).model_validate({**answer.model_dump(), "options": options})
+    return change
+
+
+def doubled(answer):
+    options = [option.model_dump() for option in answer.options]
+    return type(answer).model_validate({**answer.model_dump(), "options": options + options[:1]})
+
+
+def no_preference(answer):
+    options = [{"name": option.name, "probability": 0.0} for option in answer.options]
+    return type(answer).model_validate({"voted_or_not": {"voted": 0.0, "not_voted": 1.0}, "options": options})
+
+
+BOUNDED = SOD.variant(sample=5, sum_low=0.95, sum_high=1.05)
+
+
+@pytest.mark.parametrize("change, low, high, reasons, usable", [
+    (lambda answer: answer, 0.95, 1.05, None, None),
+    (scaled(0.5), 0.95, 1.05, ("options_sum",), True),
+    (scaled(0.5), None, None, None, None),
+    (scaled(0.0), None, None, ("options_zero",), False),
+    (no_preference, 0.95, 1.05, ("no_preference",), True),
+    (doubled, None, None, ("duplicates",), False),
+    (lambda answer: type(answer).model_validate({**answer.model_dump(), "voted_or_not": {"voted": 0.0, "not_voted": 0.0}}), None, None, ("turnout_zero",), False),
+    (lambda answer: type(answer).model_validate({**answer.model_dump(), "voted_or_not": {"voted": 0.6, "not_voted": 0.6}}), 0.95, 1.05, ("turnout_sum",), True),
+], ids=["fine", "low sum", "no bounds", "zero options", "abstainer without preference", "duplicate", "zero turnout", "high turnout"])
+def test_an_answer_is_judged(change, low, high, reasons, usable):
+    run = prepared(SOD.variant(sample=1))
+    answer = change(FakeClient().call_llm("fake-model", run.prompt(run.calls.iloc[0]), run.response_model, 0.0))
+    flaw = judge(answer, low, high)
+    assert (flaw and (flaw.reasons, flaw.usable)) == (reasons and (reasons, usable))
+
+
+def test_a_flawed_answer_is_tried_again(tmp_path):
+    run = prepared(BOUNDED)
+    store = ResultStore(tmp_path, BOUNDED.topic)
+    client = Altered(scaled(0.5), times=2)
+    execute(run, store, client, max_workers=1)
+    record = store.record(run.stem)
+    assert record["faulty"] == {} and "incomplete" not in record and client._seen[next(iter(client.chosen))] == 3
+
+
+def test_the_best_flawed_answer_is_kept_and_marked(tmp_path):
+    run = prepared(BOUNDED)
+    store = ResultStore(tmp_path, BOUNDED.topic)
+    client = Altered(scaled(0.5), subjects=2)
+    execute(run, store, client, max_workers=1, retries=2, rerun_rounds=3)
+    record = store.record(run.stem)
+    marked = {str(int(run.calls.loc[run.calls.apply(run.prompt, axis=1) == prompt, "id"].iloc[0])) for prompt in client.chosen}
+    assert set(record["faulty"]) == marked and set(map(tuple, record["faulty"].values())) == {("options_sum",)}
+    assert all(client._seen[prompt] == 2 for prompt in client.chosen) and len(store.frame(run.stem)) == 5
+    looked = check(store, run.stem, run.topic, run.framing)
+    assert looked.faulty == {"options_sum": 2} and "kept though flawed" in report(looked, len(run.topic.options))
+    assert "2 kept though flawed" in describe(load_run(store, run.stem))
+
+
+def test_a_run_with_a_call_missing_is_saved_as_incomplete(tmp_path):
+    run = prepared(BOUNDED)
+    store = ResultStore(tmp_path, BOUNDED.topic)
+    with pytest.raises(RuntimeError, match="_incomplete"):
+        execute(run, store, Altered(doubled), max_workers=1, retries=2, rerun_rounds=1)
+    stem = run.stem + store.INCOMPLETE
+    record = store.record(stem)
+    assert store.runs() == [stem] and record["incomplete"] and record["stem"] == stem and record["n"] == 4
+    assert len(record["missing"]) == 1 and len(store.frame(stem)) == 4
+    assert not check(store, stem, run.topic, run.framing).same_calls
+    with pytest.raises(ValueError, match="incomplete"):
+        load_run(store, stem)
+    execute(run, store, FakeClient(), max_workers=1)
+    assert store.runs() == [run.stem, stem] and "incomplete" not in store.record(run.stem)
+
+
+class Broke(FakeClient):
+    """A fake that runs out of credit after a number of calls."""
+
+    def __init__(self, paid: int):
+        super().__init__()
+        self.paid = paid
+
+    def call_llm(self, model, prompt, response_format, temperature, instructions=None):
+        with self._lock:
+            self.paid -= 1
+            if self.paid < 0:
+                raise BatchFailed("no credit")
+        return super().call_llm(model, prompt, response_format, temperature, instructions)
+
+
+def test_a_stopped_run_saves_what_came_back_and_raises_what_stopped_it(tmp_path):
+    run = prepared(SOD)
+    store = ResultStore(tmp_path, SOD.topic)
+    with pytest.raises(BatchFailed, match="no credit"):
+        execute(run, store, Broke(paid=7), max_workers=1)
+    record = store.record(run.stem + store.INCOMPLETE)
+    assert record["n"] == 7 and len(record["missing"]) == 13
+    with pytest.raises(BatchFailed):
+        execute(run, ResultStore(tmp_path / "nothing", SOD.topic), Broke(paid=0), max_workers=1)
+    assert not (tmp_path / "nothing").exists()
 
 
 def test_store_collision(tmp_path):
@@ -283,6 +407,10 @@ def test_spec_rejects_nonsense():
         SOD.variant(repeats=0)
     with pytest.raises(TypeError):
         RunSpec.from_dict({"name": "sod", "topic": "election_2021_legacy"})
+    with pytest.raises(ValueError):
+        SOD.variant(sum_low=1.01)
+    with pytest.raises(ValueError):
+        SOD.variant(sum_high=0.99)
 
 
 def test_presets_combine_into_complete_specs():

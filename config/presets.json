@@ -1,6 +1,7 @@
 {
     "base": {
         "dataset": "sod", "description": "default", "topic": "election_2021", "framing": "cs", "question": "default", "shape": "Prob", "repeats": 1,
+        "sum_low": 0.95, "sum_high": 1.05,
         "client": "Fake", "model": "fake-model", "temperature": 0.0, "effort": null
     },
     "data": {

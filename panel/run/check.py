@@ -10,10 +10,10 @@ import pandas as pd
 
 from panel.topic import Framing, Topic, make_response_models
 
+from .accept import ZERO
 from .store import ResultStore
 
 MEAN, TOP = "mean", "top"
-ZERO = 0.001
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,8 @@ class Check:
     both: answers that are both; an undefined answer outside this overlap is a subject who may vote
         but prefers nothing.
     highest: mean of the highest option probability per answer.
+    faulty: reason -> answers kept though flawed in that way (`panel.run.accept`); None for a run saved
+        before answers were judged.
     """
     stem: str
     calls: int
@@ -73,6 +75,7 @@ class Check:
     undefined: Union[int, None]
     both: Union[int, None]
     highest: Union[float, None]
+    faulty: Union[Dict[str, int], None] = None
 
 
 def _sums(totals: pd.Series, tolerance: float) -> Sums:
@@ -137,6 +140,7 @@ def check(store: ResultStore, stem: str, topic: Topic, framing: Framing, toleran
         turnout=turnout, abstained=abstained,
         options=options, listed=listed, duplicates=duplicates, distinct=distinct, undefined=undefined, highest=highest,
         both=both,
+        faulty=dict(Counter(reason for reasons in record["faulty"].values() for reason in reasons)) if "faulty" in record else None,
     )
 
 
@@ -177,6 +181,9 @@ def report(result: Check, total: int) -> str:
             ("no preference", f"{_share(result.undefined, result.answers)} have options summing to 0"),
             ("highest option", f"{result.highest:.3f} on average"),
         )
+    if result.faulty is not None:
+        kinds = ", ".join(f"{reason} {count}" for reason, count in sorted(result.faulty.items()))
+        rows += (("kept though flawed", kinds or "0"),)
     if result.both is not None:
         rows += (("overlap", f"{result.both} are both, {result.abstained - result.both} abstain with a preference, {result.undefined - result.both} may vote with none"),)
     return "\n".join([result.stem] + [f"  {label:<18} {text}" for label, text in rows])

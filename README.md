@@ -103,7 +103,7 @@ A run is the base run with presets laid over it, all data in `config/presets.jso
 ```json
 {
     "base": {"dataset": "sod", "description": "default", "topic": "election_2021", "framing": "cs",
-             "question": "default", "shape": "Prob", "repeats": 1,
+             "question": "default", "shape": "Prob", "repeats": 1, "sum_low": 0.95, "sum_high": 1.05,
              "client": "Fake", "model": "fake-model", "temperature": 0.0, "effort": null},
     "data": {
         "sod-extended": {"dataset": "sod", "description": "extended"},
@@ -147,6 +147,13 @@ first reading, not a comparison with any reference.
 
 `resolve` loads what the names point at and lays out the calls; `execute` runs the batch, reruns
 skipped calls a capped number of times, and saves twice - an archived copy, then the plain files.
+
+An answer is judged before it is accepted: its probabilities must sum to within `sum_low` ..
+`sum_high` (`--sum-low`, `--sum-high`; `none` leaves a side open) and list no option twice, or
+the call is sent again. If no attempt does better, the best flawed answer is kept and the
+record's `faulty` block names it; an answer no table can be made of is never kept. A run with a
+call left unanswered - or stopped half way, by a failure or by you - is saved as
+`<stem>_incomplete`, which the analyses refuse to read.
 The record beside them holds the spec, the template, question and framing text, the response
 schema and the exact subject ids, so a saved run says how it was produced.
 

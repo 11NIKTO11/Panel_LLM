@@ -1,6 +1,7 @@
 import concurrent.futures
 import random
 import time
+from dataclasses import dataclass
 from typing import Callable, Dict, List, Tuple, Type, Union
 
 import pandas as pd
@@ -9,6 +10,30 @@ from tqdm.auto import tqdm
 
 from .base import BaseLLMClient
 from .errors import CallFailed, RateLimited
+
+
+@dataclass(frozen=True)
+class Flaw:
+    """
+    What a caller's review found wrong with a parsed answer. A `usable` one may stand when no attempt
+    does better; of two usable ones the smaller `distance` is the better.
+    """
+    reasons: Tuple[str, ...]
+    usable: bool
+    distance: float
+
+
+Review = Callable[[BaseModel], Union[Flaw, None]]
+Answered = Dict[int, Tuple[str, BaseModel]]
+Flawed = Dict[int, Tuple[str, ...]]
+
+
+class BatchStopped(Exception):
+    """A batch that did not run to its end: what came back before it stopped, and as `__cause__` what stopped it."""
+
+    def __init__(self, results: Answered, flawed: Flawed):
+        super().__init__(f"the batch stopped with {len(results)} answers")
+        self.results, self.flawed = results, flawed
 
 
 def _process_single_item(
@@ -21,19 +46,27 @@ def _process_single_item(
         client: BaseLLMClient,
         retries: int,
         instructions: Union[str, None],
-) -> Tuple[int, Union[Tuple[str, BaseModel], None]]:
+        review: Union[Review, None],
+) -> Tuple[int, Union[Tuple[str, BaseModel], None], Tuple[str, ...]]:
     """
-    (row index, (prompt, parsed)), or (row index, None) when every attempt failed. `BatchFailed` and any
-    error that is not one of this package's are not caught: they stop the batch.
+    (row index, (prompt, parsed), the reasons of its flaw - none for an accepted answer), or
+    (row index, None, ()) when no attempt gave a usable answer. `BatchFailed` and any error that is not
+    one of this package's are not caught: they stop the batch.
     """
     prompt = prompt_creator(row)
+    best: Union[Tuple[Flaw, BaseModel], None] = None
 
     for attempt in range(retries):
         try:
             parsed = client.call_llm(model, prompt, response_format, temperature, instructions)
             if parsed is None:
                 raise TypeError(f"{type(client).__name__}.call_llm returned None; a client raises CallFailed instead")
-            return i, (prompt, parsed)
+            flaw = review(parsed) if review else None
+            if flaw is None:
+                return i, (prompt, parsed), ()
+            print(f"[Flawed] Row {i}: attempt {attempt + 1}/{retries}: {', '.join(flaw.reasons)}")
+            if flaw.usable and (best is None or flaw.distance < best[0].distance):
+                best = (flaw, parsed)
 
         except RateLimited:
             wait = (2 ** attempt) + random.random()
@@ -43,8 +76,10 @@ def _process_single_item(
         except CallFailed as e:
             print(f"[CallFailed] Row {i}: attempt {attempt + 1}/{retries}: {str(e)[:200]}")
 
-    print(f"[GiveUp] Row {i}: exhausted {retries} attempts without valid parsed result.")
-    return i, None
+    if best:
+        return i, (prompt, best[1]), best[0].reasons
+    print(f"[GiveUp] Row {i}: exhausted {retries} attempts without a usable answer.")
+    return i, None, ()
 
 
 def run_llm_batch(
@@ -56,37 +91,50 @@ def run_llm_batch(
         temperature: Union[float, None],
         client: BaseLLMClient,
         instructions: Union[str, None],
+        review: Union[Review, None],
         max_workers: int,
         retries: int,
-) -> Tuple[Dict[int, Tuple[str, BaseModel]], List[int]]:
+) -> Tuple[Answered, Flawed, List[int]]:
     """
-    Row index -> (prompt, parsed result), and the indices of the rows skipped after `retries` attempts.
-    `instructions` is the system prompt, sent with every call. No argument has a default: the caller
-    that owns the run states them all.
+    Row index -> (prompt, parsed result); row index -> the reasons, for the results kept though flawed;
+    and the indices of the rows skipped after `retries` attempts. `instructions` is the system prompt,
+    sent with every call; `review` judges each parsed answer, None accepting all. No argument has a
+    default: the caller that owns the run states them all.
 
-    The first call to raise anything but `RateLimited` or `CallFailed` stops the batch: calls not yet
-    started are dropped, those under way finish, and the error is raised.
+    Anything but `RateLimited` or `CallFailed` raised by a call, and an interrupt, stops the batch:
+    calls not yet started are dropped, those under way finish and are kept, and `BatchStopped` is
+    raised from what stopped it.
     """
-    results: Dict[int, Tuple[str, BaseModel]] = {}
+    results: Answered = {}
+    flawed: Flawed = {}
     now_skipped: List[int] = []
+
+    def collect(future) -> None:
+        i, parsed, reasons = future.result()
+        if parsed:
+            results[i] = parsed
+            if reasons:
+                flawed[i] = reasons
+        else:
+            now_skipped.append(i)
 
     print(f"Starting processing of {len(data)} rows with {max_workers} workers.")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
-            executor.submit(_process_single_item, i, row, prompt_creator, model, response_model, temperature, client, retries, instructions)
+            executor.submit(_process_single_item, i, row, prompt_creator, model, response_model, temperature, client, retries, instructions, review)
             for i, row in data.iterrows()
         ]
+        collected = set()
+        try:
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(data)):
+                collected.add(future)
+                collect(future)
+        except BaseException as cause:
+            executor.shutdown(wait=True, cancel_futures=True)
+            for future in futures:
+                if future not in collected and future.done() and not future.cancelled() and future.exception() is None:
+                    collect(future)
+            raise BatchStopped(results, flawed) from cause
 
-        for future in tqdm(concurrent.futures.as_completed(futures), total=len(data)):
-            try:
-                i, parsed = future.result()
-            except BaseException:
-                executor.shutdown(wait=False, cancel_futures=True)
-                raise
-            if parsed:
-                results[i] = parsed
-            else:
-                now_skipped.append(i)
-
-    return results, now_skipped
+    return results, flawed, now_skipped

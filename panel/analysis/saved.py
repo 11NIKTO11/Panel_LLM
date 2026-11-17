@@ -91,6 +91,8 @@ def load_run(
 ) -> SavedRun:
     """`styled` draws with the topic's `plot.json`; off, figures use their own palette and the native names."""
     record = store.record(stem)
+    if record.get("incomplete"):
+        raise ValueError(f"'{stem}' is an incomplete run, {len(record['missing'])} of its calls missing; it is not analysed")
     spec = RunSpec.from_dict(record["spec"])
     topic, dataset = load_topic(spec.topic, topics_dir), load_dataset(spec.dataset, datasets_dir)
 
@@ -128,7 +130,8 @@ def describe(run: SavedRun) -> str:
         run.stem,
         f"  topic      {run.topic.name}: {len(run.options)} options, {'with' if run.topic.turnout else 'no'} turnout",
         f"  model      {spec.client} {spec.model}, {spec.shape}, saved {run.record['saved_at']}",
-        f"  subjects   {len(run.subjects)} of {len(run.values)} in '{run.dataset.name}', {len(run.results)} answers",
+        f"  subjects   {len(run.subjects)} of {len(run.values)} in '{run.dataset.name}', {len(run.results)} answers"
+        + (f", {len(run.record['faulty'])} kept though flawed" if run.record.get("faulty") else ""),
         f"  claimed    {'column ' + repr(run.claims.column) if run.claims else 'none'}",
         f"  actual     {f'{len(run.reference) - 1} areas and {run.total!r}' if run.reference is not None else 'none'}",
         f"  area       {run.dataset.area or 'none'}",

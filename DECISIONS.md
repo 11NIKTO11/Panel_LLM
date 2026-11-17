@@ -1541,5 +1541,61 @@ no column holding more than 16 different values.
   - a `Retry-After` the provider sends is not read; the wait is the runner's own
   - `GeminiClient` turns a failed connection into nothing - the SDK names no error for it -
     so it stops the batch
-  - a call that fails every attempt still loses the run (`execute` raises, nothing saved)
+  - a call that fails every attempt still loses the run (`execute` raises, nothing saved) - changed in §37
+  - no live call
+
+## 37. An answer is judged before it is accepted; an incomplete run is saved under a name of its own (2026-11-17)
+
+Seen in `regions_citizen_cs_neutral_Anthropic_claude-haiku-5-5_..._x3`: 4 of 45 answers empty
+(`voted: 0, not_voted: 0, options: []`), 11 with options summing to 0.98 .. 1.20, all saved as
+ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
+
+- **`panel/run/accept.py:judge`** looks at each parsed answer; the schema sent and the reading
+  of saved runs do not change
+  - accepted: each group of probabilities (the options, turnout) sums to within the run's
+    bounds, no option listed twice
+  - flawed but usable: a sum outside the bounds (`options_sum`, `turnout_sum`), or a subject
+    certain not to vote who is given no preference (`no_preference`)
+  - unusable: an option twice (`duplicates`), turnout summing to zero (`turnout_zero`), no
+    preference for a subject who may vote (`options_zero`)
+  - a sum of zero is refused whatever the bounds: it cannot be normalised
+- **A flawed answer is tried again** within the call's attempts (`retries`). If none is
+  accepted, the best usable one is kept - the one whose sums are nearest 1, the earliest on
+  a tie - and the record names it: `"faulty": {"<id>[:<repeat>]": [reasons]}`. An unusable
+  answer is never kept; the call goes to the rerun rounds like a failed one
+  - why keep: how badly a model answers is a result (gpt-4.1-nano); dropping the call would
+    hide it, and analysis reads a faulty row as it read every row before
+  - a kept answer is not sent again in the rerun rounds, so a weak model costs at most
+    `retries` calls per subject, not `retries * (rerun_rounds + 1)`
+  - REJECTED: summing a duplicated option - a guess at what the model meant
+  - an answer listing fewer than all options is still filled with zeros; the sum bound
+    catches the cases that matter
+- **The bounds are the run's**: `RunSpec.sum_low`, `sum_high`, of the data kind in
+  `presets.json` (base 0.95 and 1.05), `--sum-low` / `--sum-high` on `run.py`. One pair for
+  options and turnout. None leaves a side open, which is what every earlier run did, so an
+  older record reads truthfully
+  - not in the stem: two runs differing only in the bounds share one, and `ResultStore.refuse`
+    keeps the second from saving over the first without `overwrite`
+  - so a saved run sent again with today's base is "a run of a different spec"
+- **What came back is always saved.** A run with a call missing goes to
+  `runs/<stem>_incomplete/`, its record carrying `incomplete: true` and `missing` (the calls,
+  named as in `results.json`); the run's own folder only ever holds the whole run
+  - when: calls left without a usable answer after the rerun rounds (`RuntimeError`, after
+    the save); a batch stopped by `BatchFailed`, by an error no client foresaw or by an
+    interrupt (that error, after the save). Nothing came back, nothing is saved
+  - a stopped batch keeps the calls that were under way: `run_llm_batch` raises
+    `BatchStopped` carrying the results, from what stopped it
+  - `load_run` refuses an incomplete run, so no analysis reads one; `check` reads it and says
+    "NOT the same subjects"
+  - REJECTED for now: a share of calls that may be missing in a run saved under its own stem
+    (5% was discussed) - zero until it proves a problem
+- `check` prints `kept though flawed` with a count per reason, for a record that has the block;
+  `describe` says how many
+- `run_llm_batch` takes `review` and returns `(results, flawed, skipped)`; `Flaw` is the
+  package's word for what a review found
+- not done:
+  - `run.py ... --missing`: send only the missing calls of an incomplete run and save the
+    whole under the stem. Until then an incomplete run is sent again in full
+  - `run.py --check` does not find the `_incomplete` folder; `check(store, stem + "_incomplete", ...)` does
+  - which of the saved runs hold answers that would now be flawed is not counted
   - no live call

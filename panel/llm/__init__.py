@@ -8,4 +8,4 @@ from .client_anthropic import AnthropicClient, AnthropicLegacyClient
 from .client_gemini import GeminiClient
 from .client_openrouter import OpenRouterClient
 from .factory import create_client
-from .runner import run_llm_batch
+from .runner import BatchStopped, Flaw, run_llm_batch
