@@ -1,0 +1,33 @@
+{
+    "name": "cs",
+    "topic": "senate_2026",
+    "language": "cs",
+    "short": "cs",
+    "title": "Volby do Senátu Parlamentu ČR 2026, první kolo",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu českého politického chování. Tvým úkolem je na základě popisu respondenta odhadnout jeho chování v prvním kole voleb do Senátu Parlamentu ČR v roce 2026.\n\nDodržuj tato pravidla:\n1.  Vycházej ze všech informací, které o respondentovi máš.\n2.  Předpokládej, že respondent bydlí v senátním obvodu, ve kterém se v roce 2026 volilo, a že v něm kandidoval kandidát každé z nabízených stran.\n3.  Odhadni pravděpodobnost, že respondent k volbám šel, a pravděpodobnost, že nešel.\n4.  Odhadni, kandidáta které strany respondent volil, pokud k volbám šel.\n5.  Každé rozdělení pravděpodobností, které uvedeš, musí mít součet přesně 1.0.",
+    "labels": {},
+    "schema": {
+        "turnout": {
+            "title": "TurnoutProbability",
+            "description": "Pravděpodobnost, že se respondent voleb zúčastnil, a že se jich nezúčastnil.",
+            "voted": "Pravděpodobnost, že se respondent voleb zúčastnil.",
+            "not_voted": "Pravděpodobnost, že se respondent voleb nezúčastnil.",
+            "field": "Pravděpodobnost účasti a neúčasti ve volbách. Součet musí být 1.0."
+        },
+        "option": {
+            "title": "PartyProbability",
+            "description": "Pravděpodobnost, že respondent volil kandidáta jedné z nabízených stran, pokud k volbám šel.",
+            "name": "Název jedné z nabízených stran.",
+            "probability": "Pravděpodobnost, že respondent volil kandidáta této strany, pokud k volbám šel."
+        },
+        "probabilities": {
+            "description": "Strukturovaný výstup: rozdělení pravděpodobnosti mezi nabízené strany.",
+            "options": "Seznam nabízených stran s pravděpodobností, že respondent volil jejich kandidáta, pokud k volbám šel. Součet pravděpodobností musí být 1.0."
+        },
+        "pick": {
+            "description": "Zjednodušený výstup: jedna vybraná strana.",
+            "choice": "Strana, jejíhož kandidáta respondent nejpravděpodobněji volil, pokud k volbám šel."
+        }
+    },
+    "note": "`cs` of election_2025 turned to the Senate: the first round is named, a vote is for a party's candidate, and one rule is added, the second - assume the respondent lives in a district that voted in 2026 and that every offered party had a candidate there. Without it a model would have to guess whether the respondent could vote at all (a third of the districts voted) and whom they could vote for (no party stood everywhere), and neither is in a description. Labels default to the topic's native names. Unreviewed wording."
+}

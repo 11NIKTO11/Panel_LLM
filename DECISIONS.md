@@ -1895,3 +1895,74 @@ Looked up on 2026-11-17; nothing had been run on the topic, so every file could 
 - still missing for a 2025 run to be compared with what subjects said: no dataset has claims
   for the topic (`sod` asks about 2021)
 - `cs_area` and a `direct` description for 2025 are not written: `direct` names 2021 in its text
+
+## 47. `senate_2026` is a topic; `media_fees_2026` polished (2026-11-18)
+
+Looked up on 2026-11-18. Neither topic has a run of ours, so every file could still change.
+
+### `senate_2026` - the first round of the 2026 Senate election
+
+- **An option is the party that nominated the candidate**, not a candidate
+  - a senator is elected by name in one of 27 districts (a third of the 81 vote each time), so
+    no list of names holds for more than one district, and our subjects have a region, not a
+    senate district
+  - the nominating party (`navrhující strana`) is how the election office itself adds the
+    districts up; a coalition's candidate counts for the one party that nominated them
+  - the options are the parties above 4% of the first round's valid votes over the 27
+    districts - ANO 22.45, STAN 19.04, ODS 14.14, KDU-ČSL 7.85, SPD 4.96, TOP 09 4.48 - and
+    `Other`, 27.08%: independents, local movements, the smaller parties (Piráti 2.13)
+  - STAN is 19.04, not the 20.26 of Wikipedia's table, which adds Starostové pro Liberecký kraj
+  - REJECTED: a topic per district with candidates as options - 27 topics, and no dataset
+    says which district a subject lives in
+  - REJECTED: the electoral party (`volební strana`) - 74 names, most of them a slogan for
+    one candidate ("Zdenál do Senátu")
+- **The first round**: the second is a choice between two names, and 5 seats had no second
+- **The framing adds one rule to `cs` of `election_2025`**: assume the respondent lives in a
+  district that voted and that every offered party had a candidate there. Without it a model
+  has to guess whether the subject could vote at all and for whom - neither is in a description
+  - this makes the answer a counterfactual for most subjects, and the reference is not one:
+    in a real district two or three of the six parties were missing. The national row is the
+    comparison that holds least badly
+- **`reference.csv`**: the election office's files (`volby.gov.cz/opendata/se2026/`, generated
+  2026-10-17) - the candidate register (`serk.csv`) for the nominating party, the 27 district
+  files of municipality results for the regions
+  - `Česko` is the 27 districts together: turnout 43.31% (envelopes issued of 2,781,935
+    registered), shares of 1,154,407 valid votes; both totals equal the office's
+  - a region's row is the municipalities of that region that voted (all 14 regions have some;
+    Pardubický kraj only a corner of district 48, with two candidates). A party is 0 where it
+    nominated no one. The rows are there because a run of a dataset with an area does not
+    load without them (`analysis/saved.py`); by region the turnout can be read, the party
+    shares say who stood
+- **`positions.json`**: CHES 2024 by the method of §46 - every option but `Other` is a party
+  CHES rates, so nothing is weighted. **`plot.json`**: colours of `election_2025` where the party
+  is in both, ODS in SPOLU's blue, KDU-ČSL and TOP 09 set by hand
+- no `polls.json`: no national poll of a Senate election was looked for or found
+- questions `default` (by gender) and `neutral`; no `cs_individual`, no `cs_area`
+- no data preset: `python run.py -d sod --topic senate_2026`
+- still true, as for 2025: the subjects of `sod` are described as of 2021, and no dataset has
+  claims for the topic
+- the Czech is unreviewed
+
+### `media_fees_2026`
+
+- **`cs` and the question `default` were edited under their names**: no run recorded them - the
+  topic's one run is the colleague's delivered table, which came without a prompt
+  - the system prompt follows §44: "popisu respondenta", no capitals for emphasis, the sum
+    rule as its own sentence. The two stances are no longer spelled out in the rules - the
+    labels name them, and a second wording beside the labels could disagree with them
+  - the question names the proposal the options answer ("K návrhu zrušit poplatky ... a
+    financovat je ze státního rozpočtu zastávám tento postoj:"); it named only the fees
+  - the schema text and the option names are unchanged, so the schema snapshot is too
+- **`polls.json`**: STEM/MARK for Česká televize, 29 October 2026, n = 814, as Echo24 reported
+  it - the agency's release was not found
+  - the poll had three answers: as fast as possible 23, to the state budget only with
+    independence secured 31, keep the fees 34, cannot say 12. `Abolish` is the first two over
+    those who answered, 0.614; `Keep` 0.386. `Abolish` there includes a condition ours lacks
+  - no figure draws it: polls are held against a reference or claims, and the topic has neither
+  - REJECTED: the poll as the topic's `reference` - a reference is what was counted, and
+    figures would call a poll of 814 the actual result
+- **`plot.json`**: two colours and short English labels - the native names are sentences
+- the notes say what is true today: the bill passed its first reading on 2026-10-24 and is
+  meant to take effect on 2027-01-01; the topic is no longer "never run"
+- found, not fixed: `python -m tests.baseline` raises on a framing without a schema
+  (`cs_letters`); the two snapshots were written through `tests/test_schemas.py:generated`

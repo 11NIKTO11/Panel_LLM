@@ -1,0 +1,15 @@
+{
+    "name": "default",
+    "short": "default",
+    "languages": {
+        "cs": {
+            "by": "gender",
+            "text": {
+                "male": "V prvním kole voleb do Senátu v roce 2026 jsem volil kandidáta této strany:",
+                "female": "V prvním kole voleb do Senátu v roce 2026 jsem volila kandidáta této strany:"
+            },
+            "fallback": "male",
+            "note": "Agrees with the subject's gender, as election_2025's; the male form is what a dataset without gender gets. Unreviewed wording."
+        }
+    }
+}
