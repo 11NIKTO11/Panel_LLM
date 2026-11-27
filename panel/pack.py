@@ -28,7 +28,7 @@ from panel import paths
 from panel.analysis import ANALYSES, NotApplicable, Output, load_run
 from panel.dataset import CONFIG_NAME as DATASET_NAME
 from panel.dataset import Dataset, load_dataset
-from panel.digest import recorded, sha256
+from panel.digest import content_sha256, file_sha256, recorded
 from panel.run import ResultStore, RunSpec
 from panel.run.record import git_state
 from panel.topic import Topic, load_topic, plot, polls, positions
@@ -81,9 +81,9 @@ def pack(
 
     digests = recorded(record["dataset"])
     files = {name: path for name, path in dataset.built_from(spec.description).items() if digests.get(name) and path.exists()}
-    changed = sorted(_origin(path) for name, path in files.items() if sha256(path) != digests[name])
+    changed = sorted(_origin(path) for name, path in files.items() if content_sha256(path) != digests[name])
     if changed:
-        raise ValueError(f"'{stem}' was built from other files than today's {changed}: its record gives another sha256")
+        raise ValueError(f"'{stem}' was built from other files than today's {changed}: its record gives another digest")
 
     named = _named(dataset, topic, spec)
     run_dir = store.run_dir(stem)
@@ -118,7 +118,7 @@ def pack(
         "derived": derive,
         "not_applicable": skipped,
         "files": {
-            name: {"sha256": sha256(path), "bytes": path.stat().st_size, **({"from": _origin(copies[name])} if name in copies else {})}
+            name: {"sha256": file_sha256(path), "bytes": path.stat().st_size, **({"from": _origin(copies[name])} if name in copies else {})}
             for name, path in ((path.relative_to(folder).as_posix(), path) for path in sorted(folder.rglob("*")) if path.is_file())
         },
     }
@@ -131,7 +131,7 @@ def verify(folder: Union[str, Path]) -> List[str]:
     folder = Path(folder)
     listed = json.loads((folder / MANIFEST_NAME).read_text(encoding="utf-8"))["files"]
     found = {path.relative_to(folder).as_posix(): path for path in folder.rglob("*") if path.is_file() and path.name != MANIFEST_NAME}
-    wrong = [name for name, entry in listed.items() if name not in found or sha256(found[name]) != entry["sha256"]]
+    wrong = [name for name, entry in listed.items() if name not in found or file_sha256(found[name]) != entry["sha256"]]
     return sorted(wrong + [name for name in found if name not in listed])
 
 

@@ -295,8 +295,9 @@ language; its wording may depend on the subject (`by`), as the Czech one does on
 |---|---|---|
 | `election_2021` | `cs`, `en` | current - 9 parties, turnout, official 2021 result |
 | `election_2021` | `cs_legacy` | frozen - what the runs made before the system prompt existed were shown (nine are kept); with question `legacy`. Until 2026-11-13 a topic of its own, `election_2021_legacy` |
-| `election_2025` | `cs` | prepared - 8 parties; needs an actual-results CSV before it can be evaluated |
-| `media_fees_2026` | `cs` | prepared - the colleague's issue question; two options, no turnout |
+| `election_2025` | `cs` | prepared - 8 parties, turnout, official 2025 result; never run |
+| `senate_2026` | `cs` | prepared - first round of the 2026 Senate election; 6 nominating parties and `Other`, turnout, official result of the 27 districts; never run |
+| `media_fees_2026` | `cs` | prepared - the colleague's issue question; two options, no turnout, no reference (one poll); only the colleague's delivered table |
 
 - `topic.json` is the language-neutral half: option ids (ASCII, the result columns) with their
   native names and foreign aliases, the turnout roles, and the reference results with their key
@@ -383,5 +384,5 @@ the Anthropic clients (Haiku 4.5 with a temperature, Haiku 5.5 with effort `low`
 `results/` on 2026-11-13 with the other trial runs, so the named set `haiku` of
 `config/topics/election_2021/comparisons.json` and the default `STEM` of `analyze.ipynb` find no run until full Haiku
 runs exist; OpenAI, Gemini and OpenRouter have not been
-called since the overhaul. `election_2025` has no reference results yet, and the English
+called since the overhaul. Nothing has been run on `election_2025` or `senate_2026`, and the English
 texts have not been reviewed.

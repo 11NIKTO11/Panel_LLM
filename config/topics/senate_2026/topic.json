@@ -1,0 +1,40 @@
+{
+    "name": "senate_2026",
+    "reference": {
+        "path": "reference.csv",
+        "key": "region",
+        "total": "Česko"
+    },
+    "turnout": {
+        "yes": {
+            "column": "Voted"
+        },
+        "no": {
+            "column": "Not Voted"
+        }
+    },
+    "options": {
+        "ANO": {
+            "name": "ANO 2011"
+        },
+        "STAN": {
+            "name": "STAROSTOVÉ A NEZÁVISLÍ (STAN)"
+        },
+        "ODS": {
+            "name": "Občanská demokratická strana (ODS)"
+        },
+        "KDU": {
+            "name": "KDU-ČSL"
+        },
+        "SPD": {
+            "name": "Svoboda a přímá demokracie (SPD)"
+        },
+        "TOP09": {
+            "name": "TOP 09"
+        },
+        "Other": {
+            "name": "Jiná strana nebo nezávislý kandidát"
+        }
+    },
+    "note": "The first round of the 2026 Senate election (9-10 October 2026; 27 of the 81 districts, a third of the country). Prepared, never run. A senator is elected by name in one district, so there is no list of options that holds everywhere; an option here is the party that nominated the candidate (the election office's `navrhující strana`), which is how the office itself adds the districts up. The options are the six parties whose candidates won more than 4% of the first round's valid votes over the 27 districts, and `Other` - which is large, 27%: independents, local movements, the smaller parties. A coalition's candidate counts for the one party that nominated them. The first round, because the second is a choice between two names. Reference results are the election office's (reference.csv, DECISIONS.md §47): `Česko` is the 27 districts together, although two thirds of the country did not vote; a region's row is the part of that region that voted, and a party is 0 there where it nominated no one - so by region the turnout can be read, the party shares say who stood."
+}

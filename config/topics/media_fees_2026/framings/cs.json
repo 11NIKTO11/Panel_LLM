@@ -4,7 +4,7 @@
     "language": "cs",
     "short": "cs",
     "title": "Zrušení poplatků za ČT a ČRo a financování ze státního rozpočtu",
-    "instructions": "Jsi expertní AI asistent specializovaný na analýzu postojů české veřejnosti. Tvým úkolem je na základě profilu respondenta odhadnout jeho postoj k otázce zrušení poplatků za Českou televizi a Český rozhlas a jejich financování ze státního rozpočtu.\n\nDodržuj tato pravidla:\n1.  Analyzuj VŠECHNY poskytnuté informace o respondentovi.\n2.  Odhadni postoj respondenta: zrušit poplatky a financovat ze státního rozpočtu, nebo zachovat současné poplatky.",
+    "instructions": "Jsi expertní AI asistent specializovaný na analýzu postojů české veřejnosti. Tvým úkolem je na základě popisu respondenta odhadnout jeho postoj k návrhu zrušit televizní a rozhlasové poplatky a financovat Českou televizi a Český rozhlas ze státního rozpočtu.\n\nDodržuj tato pravidla:\n1.  Vycházej ze všech informací, které o respondentovi máš.\n2.  Odhadni, který z nabízených postojů respondent zastává.\n3.  Každé rozdělení pravděpodobností, které uvedeš, musí mít součet přesně 1.0.",
     "labels": {},
     "schema": {
         "option": {
@@ -22,5 +22,5 @@
             "choice": "Postoj, který respondent nejpravděpodobněji zastává."
         }
     },
-    "note": "The Czech text is ours: the colleague's prompt is not in their report, so check it against theirs before comparing runs. Until phase 4 of the overhaul the options were shown as the colleague's English ids inside this Czech prompt; they are Czech phrases now, the one deliberate change to prompt-facing text in that phase, on a topic that has never been run. The system prompt says only what holds for every run of the topic: no attribute of the profile, and nothing about the form of the answer beyond what both shapes share; the schema text says the rest."
+    "note": "The Czech framing, reworded on 2026-11-18 as `cs` of the elections was (DECISIONS.md §44, §47): a description, not a profile; no capitals for emphasis; the sum rule as one sentence for both shapes; the stances are named once, by the labels, not a second time in the rules. No run has recorded this file - the colleague's delivered table came without their prompt - so it was edited under its name. The text is ours: check it against the colleague's before holding a run of ours against theirs. Labels default to the options' native names. Unreviewed wording."
 }

@@ -1,0 +1,22 @@
+{
+    "colors": {
+        "Voted": "#2e9e5b",
+        "Not Voted": "#d0453f",
+        "ANO": "#261060",
+        "STAN": "#cd0f69",
+        "ODS": "#1b69c8",
+        "KDU": "#e0b400",
+        "SPD": "#a05a2c",
+        "TOP09": "#993366",
+        "Other": "#9a9a9a"
+    },
+    "labels": {
+        "Not Voted": "Not voted",
+        "KDU": "KDU-ČSL",
+        "TOP09": "TOP 09"
+    },
+    "last": [
+        "Other"
+    ],
+    "note": "ANO, STAN and SPD as in election_2025, so a party looks the same in both topics; ODS has the blue SPOLU has there; KDU-ČSL a dark yellow and TOP 09 a purple, after the parties' own colours but set by hand, not looked up. Edit freely: nothing a model sees depends on this file."
+}

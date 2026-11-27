@@ -2,28 +2,22 @@
 .idea
 .venv
 __pycache__
+.pytest_cache
 /.env
 
 # Dataset
-SoD-*
+/datasets/sod/SoD-*
 /datasets/sod/prepared/
 /datasets/sod_legacy/prepared/
-/results.zip
 
 # Helper scripts
-/update_script.ipynb
 
 # Computed/Generated data
-results
-graphs
-tmp
-/packs/
+/results
+/tmp
 
 # Coding agent files
 .claude
-/CLAUDE.md
 /AGENTS.md
 
-
-_delete
-.pytest_cache
+/results.7z

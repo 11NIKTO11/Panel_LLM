@@ -51,3 +51,5 @@ recompute each of these and compare; a difference is drift, not a new truth.
 - the five schema snapshots were regenerated on 2026-11-15, deliberately (`DECISIONS.md` §29):
   the turnout field's description left its place beside the `$ref` and follows the turnout
   model's own description.
+- `schemas/senate_2026/cs.json` was added on 2026-11-18 with the topic (`DECISIONS.md` §47); `schemas/media_fees_2026/cs.json`
+  came out unchanged from the topic's rewording, which touched no schema text.

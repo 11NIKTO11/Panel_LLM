@@ -1,0 +1,44 @@
+{
+    "polls": {
+        "STEM": {
+            "shares": {
+                "ANO": 0.309,
+                "SPOLU": 0.195,
+                "Pirati": 0.093,
+                "STAN": 0.122,
+                "SPD": 0.12,
+                "AUTO": 0.057,
+                "Stacilo": 0.077,
+                "Other": 0.027
+            },
+            "url": "https://cnn.iprima.cz/exkluzivni-model-stan-znacne-posilil-a-je-pred-piraty-i-spd-486063"
+        },
+        "Median": {
+            "shares": {
+                "ANO": 0.305,
+                "SPOLU": 0.21,
+                "Pirati": 0.1,
+                "STAN": 0.1,
+                "SPD": 0.13,
+                "AUTO": 0.045,
+                "Stacilo": 0.07,
+                "Other": 0.04
+            },
+            "url": "https://www.median.eu/cs/wp-content/uploads/2025/09/Volby_PS_2025_09_v02VD.pdf"
+        },
+        "Kantar CZ": {
+            "shares": {
+                "ANO": 0.33,
+                "SPOLU": 0.195,
+                "Pirati": 0.095,
+                "STAN": 0.13,
+                "SPD": 0.095,
+                "AUTO": 0.06,
+                "Stacilo": 0.06,
+                "Other": 0.035
+            },
+            "url": "https://ct24.ceskatelevize.cz/clanek/domaci/v-zarijovem-modelu-kantaru-oslabilo-spolu-i-spd-posilili-motoriste-a-stan-365451"
+        }
+    },
+    "note": "The same three agencies as election_2021, each one's last election model before the 2025 vote: STEM (fieldwork 28 Aug - 16 Sep 2025), Median (1 - 25 Sep), Kantar CZ (1 - 19 Sep). Shares of those who would vote. The numbers were read on 2026-11-17 from the table of en.wikipedia.org/wiki/Opinion_polling_for_the_2025_Czech_parliamentary_election, not from the agencies' own releases; `url` is the source that table cites for the row. `Other` is Přísaha plus the table's others."
+}
