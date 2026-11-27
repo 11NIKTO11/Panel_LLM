@@ -1,6 +1,10 @@
 {
     "name": "election_2025",
-    "reference": null,
+    "reference": {
+        "path": "reference.csv",
+        "key": "region",
+        "total": "Česko"
+    },
     "turnout": {
         "yes": {
             "column": "Voted",
@@ -17,7 +21,7 @@
             "name": "ANO 2011"
         },
         "SPOLU": {
-            "name": "Koalice Spolu (ODS, TOP 09, KDU-ČSL)"
+            "name": "Koalice SPOLU (ODS, KDU-ČSL, TOP 09)"
         },
         "Pirati": {
             "name": "Česká pirátská strana"
@@ -26,7 +30,7 @@
             "name": "STAROSTOVÉ A NEZÁVISLÍ (STAN)"
         },
         "SPD": {
-            "name": "Svoboda a přímá demokracie – Tomio Okamura (SPD)"
+            "name": "Svoboda a přímá demokracie (SPD)"
         },
         "AUTO": {
             "name": "Motoristé sobě (AUTO)"
@@ -38,5 +42,5 @@
             "name": "Jiná strana"
         }
     },
-    "note": "Prepared, not yet run. reference is null because the repo has no 2025 actual-results CSV - put one beside this file as reference.csv and declare it here with its key column and total row."
+    "note": "The 2025 Chamber of Deputies election (3-4 October 2025). Prepared, not yet run. The options are the seven lists that won more than 4% and `Other`; the ids are the short names used in tables and figures. Names follow the ballot - `SPOLU (ODS, KDU-ČSL, TOP 09)`, `Svoboda a přímá demokracie (SPD)`, `Motoristé sobě`, `Stačilo!` - with a word of explanation where the ballot name says little: who is in a coalition, the abbreviation a list goes by. Reference results are the election office's final ones (reference.csv, DECISIONS.md §46)."
 }

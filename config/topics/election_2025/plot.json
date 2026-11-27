@@ -1,0 +1,24 @@
+{
+    "colors": {
+        "Voted": "#2e9e5b",
+        "Not Voted": "#d0453f",
+        "ANO": "#261060",
+        "SPOLU": "#1b69c8",
+        "Pirati": "#1a1a1a",
+        "STAN": "#cd0f69",
+        "SPD": "#a05a2c",
+        "AUTO": "#009ee3",
+        "Stacilo": "#c4161c",
+        "Other": "#9a9a9a"
+    },
+    "labels": {
+        "Not Voted": "Not voted",
+        "Pirati": "Piráti",
+        "AUTO": "Motoristé",
+        "Stacilo": "Stačilo!"
+    },
+    "last": [
+        "Other"
+    ],
+    "note": "Colours looked up 2026-11-17 on Wikipedia's page of the election (en.wikipedia.org/wiki/2025_Czech_parliamentary_election): ANO #261060, STAN #CD0F69, Pirates #000000, Motorists #009EE3, Stačilo! #C4161C are the ones it uses. Three are kept as in election_2021 so that a party looks the same in both topics: SPOLU blue (Wikipedia's 2025 colour for it is a bright green, #00EA29), SPD brown (its own is a blue, #004C82, too close to the others), the Pirates near-black. Labels give the names figures show where the id is a bare ASCII word. Edit freely: nothing a model sees depends on this file."
+}

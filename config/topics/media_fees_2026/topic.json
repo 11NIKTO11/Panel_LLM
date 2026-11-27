@@ -18,5 +18,5 @@
             ]
         }
     },
-    "note": "Prepared from the colleague's EXPERIMENT_REPORT.md section 2.2 (issue experiment, 384 grid profiles, gpt-4o-2024-11-20, t=0, 1 repeat). turnout is null: no attendance dimension, which is the case that exercises the toggle. The colleague's column ids are aliases, so their results in tmp/_artifical_matrix/data/ read as our ids. Never run."
+    "note": "Whether to abolish the television and radio licence fees and pay for Česká televize and Český rozhlas from the state budget - the colleague's issue experiment (EXPERIMENT_REPORT.md of 2026-07-22, section 2.2: 384 grid profiles, gpt-4o-2024-11-20, t=0, 1 repeat), and since then a government bill: it passed its first reading on 2026-10-24 and is meant to take effect on 2027-01-01. `turnout` is null: an attitude has no attendance, which is the case that exercises the toggle. There is no reference: nothing has been counted, only asked (polls.json). The colleague's column ids are aliases, so their delivered table reads as our ids; it is the topic's one run. Nothing of ours has been run."
 }

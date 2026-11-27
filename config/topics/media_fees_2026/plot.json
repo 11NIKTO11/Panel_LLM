@@ -1,0 +1,11 @@
+{
+    "colors": {
+        "Abolish": "#d0453f",
+        "Keep": "#2e6fb5"
+    },
+    "labels": {
+        "Abolish": "Abolish the fees",
+        "Keep": "Keep the fees"
+    },
+    "note": "Two colours set by hand, far apart; labels for figures, since the native names are sentences. Edit freely: nothing a model sees depends on this file."
+}

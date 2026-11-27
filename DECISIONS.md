@@ -1660,13 +1660,6 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - not counted: a call that stopped the batch, and calls dropped by the stop
 - no live call
 
----
-
-## 41. A dataset whose subjects are wholes is never pooled (2026-11-17)
-
-- **The problem**: a `regions` run asks about fifteen places, and each answer is already that
-  place's result. The analyses that read the subjects as a sample of one population made a
-  "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
 ## 40. An answer read off the token distribution: a framing with a menu, a client that reads tokens (2026-11-17)
 
 - **Why**: a model asked to write nine probabilities writes round ones (§34: few distinct
@@ -1728,6 +1721,13 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
 - in `API_test` one saved output puts 99.95% on `I` ("Jiná strana"): whether a model's
   distribution over letters says anything about the options is the first thing to look at
 
+---
+
+## 41. A dataset whose subjects are wholes is never pooled (2026-11-17)
+
+- **The problem**: a `regions` run asks about fifteen places, and each answer is already that
+  place's result. The analyses that read the subjects as a sample of one population made a
+  "country" out of them - a plain mean in which Karlovarský kraj counts as much as Středočeský
   and `Česko`, the model's own country answer, is one of the fifteen; the correlations, the map
   and the spread were over fifteen areas under titles that speak of subjects
 - **`"aggregate": true`** in `dataset.json` (optional, `Dataset.aggregate`, False by default): a
@@ -1830,3 +1830,139 @@ ordinary rows and rescaled. The schema cannot say that probabilities sum to 1.
   - it adds a field to the spec and a part to the stem, days before the full runs
   - worth it once a third variant of the system prompt alone appears; `cs_individual` is the first
 - the Czech is unreviewed
+
+## 45. A digest is of the file's text, not of its bytes (2026-11-17)
+
+- **Seen**: after the checkout of `main`, runs refused to pack and four tests of
+  `tests/test_pack.py` failed with "built from other files than today's". Nothing had changed
+  but line endings: `core.autocrlf` is `true` on this machine, so a tracked file is LF in git
+  and CRLF on disk after a checkout, and the record's digest was the sha256 of the bytes
+- **The saved records were mixed**, which is why keeping the files byte for byte could not
+  work: every values and prompt table had been hashed with CRLF (prepare writes them so on
+  Windows), the forms of the grids and `regions` with LF, the forms of `sod` and everything
+  recorded since the checkout with CRLF. No one state of the files on disk matched them all
+- **`panel/digest.py:content_sha256`**: the sha256 of the file with every line ending as a
+  bare line feed.
+  `resolve` records it, `load_run`, `pack` and `--missing` compare with it, and prepare's
+  guard (§20) looks tables up by it and calls a table changed only when its text changed
+  - the record's keys stay `values_sha256`, `prompts_sha256`, `forms_sha256`
+  - `file_sha256` is the plain one, used for a pack's `MANIFEST.json`: a pack's files are
+    copies that must not change at all. `built_from` in the manifest carries the record's
+    digests, so it is checked with `content_sha256`
+- **76 digests in the 31 saved run records were rewritten** (13 were already the text's). A
+  digest was rewritten only where it was exactly the sha256 of today's file with CRLF line
+  endings, which proves the content is the one the run was built from; none was left
+  unexplained. Each record has a `restamped` block: the date, the reason, and the digests as
+  they were. The copies in each run's `archive/` are as they were; so are packs written earlier
+- REJECTED: a `.gitattributes` keeping these files byte for byte, the first thing tried
+  - it needs one byte form per file, and the records disagree on which
+  - it leaves a trap: an editor that saves `forms.json` with other line endings orphans every
+    run built from it, silently
+- REJECTED: writing prepared tables with a fixed line ending - not needed once the digest
+  does not see it; the tables stay as the system writes them
+- `tests/test_kernel.py` named its grid runs by a prefix (`grid-simple_`), which two runs match
+  since the Haiku 4.5 grid run was saved; it names the full stems now
+
+## 46. `election_2025` has its reference results, colours, polls and expert positions (2026-11-17)
+
+Looked up on 2026-11-17; nothing had been run on the topic, so every file could still change.
+
+- **`reference.csv`**: the election office's final results, read from its own results file
+  (`volby.gov.cz/appdata/ps2025/odata/vysledky.xml`, generated 2025-10-05) - the country and the
+  fourteen regions, turnout and each list's share of valid votes, to four decimals. `Other` is
+  what is left of 1. Region names are election_2021's, so `regions` and `sod` find their rows.
+  Turnout 68.95%; ANO 34.51, SPOLU 23.36, STAN 11.23, Piráti 8.97, SPD 7.78, Motoristé 6.77,
+  Stačilo! 4.30, others 3.08
+- **`topic.json`**: the `reference` block; two names follow the 2025 ballot - `Koalice SPOLU (ODS,
+  KDU-ČSL, TOP 09)` (the ballot's order of the three) and `Svoboda a přímá demokracie (SPD)`
+  (without "Tomio Okamura", which was the 2021 name). The names are what a framing shows the
+  model by default. The option ids are unchanged
+  - Přísaha (1.07%) stays in `Other`: seven lists passed 4%
+- **`plot.json`**: colours from Wikipedia's page of the election where they stay
+  distinguishable, three kept as in election_2021 so a party looks the same in both topics
+  (SPOLU blue, SPD brown, the Pirates near-black); labels for the ids that are bare ASCII words
+  (`Piráti`, `Motoristé`, `Stačilo!`)
+- **`polls.json`**: the last election models of the same three agencies as 2021 - STEM
+  (28 Aug - 16 Sep 2025), Median (1 - 25 Sep), Kantar CZ (1 - 19 Sep)
+  - the numbers were read from Wikipedia's table of polls, not from the agencies' releases;
+    each `url` is the source that table cites. Not checked against the originals
+- **`positions.json`**: Chapel Hill Expert Survey 2024, by the method of election_2021's file,
+  which the downloaded 2019 file reproduces exactly
+  - 17 of the 22 items: the 2024 wave lacks five under the 2019 names
+  - SPOLU is weighted by the 2017 vote shares again; AUTO is CHES's `MOTO`
+  - `Stacilo` is given KSČM's rating - an approximation, said so in the file's note: CHES rates
+    parties, not lists
+- still missing for a 2025 run to be compared with what subjects said: no dataset has claims
+  for the topic (`sod` asks about 2021)
+- `cs_area` and a `direct` description for 2025 are not written: `direct` names 2021 in its text
+
+## 47. `senate_2026` is a topic; `media_fees_2026` polished (2026-11-18)
+
+Looked up on 2026-11-18. Neither topic has a run of ours, so every file could still change.
+
+### `senate_2026` - the first round of the 2026 Senate election
+
+- **An option is the party that nominated the candidate**, not a candidate
+  - a senator is elected by name in one of 27 districts (a third of the 81 vote each time), so
+    no list of names holds for more than one district, and our subjects have a region, not a
+    senate district
+  - the nominating party (`navrhující strana`) is how the election office itself adds the
+    districts up; a coalition's candidate counts for the one party that nominated them
+  - the options are the parties above 4% of the first round's valid votes over the 27
+    districts - ANO 22.45, STAN 19.04, ODS 14.14, KDU-ČSL 7.85, SPD 4.96, TOP 09 4.48 - and
+    `Other`, 27.08%: independents, local movements, the smaller parties (Piráti 2.13)
+  - STAN is 19.04, not the 20.26 of Wikipedia's table, which adds Starostové pro Liberecký kraj
+  - REJECTED: a topic per district with candidates as options - 27 topics, and no dataset
+    says which district a subject lives in
+  - REJECTED: the electoral party (`volební strana`) - 74 names, most of them a slogan for
+    one candidate ("Zdenál do Senátu")
+- **The first round**: the second is a choice between two names, and 5 seats had no second
+- **The framing adds one rule to `cs` of `election_2025`**: assume the respondent lives in a
+  district that voted and that every offered party had a candidate there. Without it a model
+  has to guess whether the subject could vote at all and for whom - neither is in a description
+  - this makes the answer a counterfactual for most subjects, and the reference is not one:
+    in a real district two or three of the six parties were missing. The national row is the
+    comparison that holds least badly
+- **`reference.csv`**: the election office's files (`volby.gov.cz/opendata/se2026/`, generated
+  2026-10-17) - the candidate register (`serk.csv`) for the nominating party, the 27 district
+  files of municipality results for the regions
+  - `Česko` is the 27 districts together: turnout 43.31% (envelopes issued of 2,781,935
+    registered), shares of 1,154,407 valid votes; both totals equal the office's
+  - a region's row is the municipalities of that region that voted (all 14 regions have some;
+    Pardubický kraj only a corner of district 48, with two candidates). A party is 0 where it
+    nominated no one. The rows are there because a run of a dataset with an area does not
+    load without them (`analysis/saved.py`); by region the turnout can be read, the party
+    shares say who stood
+- **`positions.json`**: CHES 2024 by the method of §46 - every option but `Other` is a party
+  CHES rates, so nothing is weighted. **`plot.json`**: colours of `election_2025` where the party
+  is in both, ODS in SPOLU's blue, KDU-ČSL and TOP 09 set by hand
+- no `polls.json`: no national poll of a Senate election was looked for or found
+- questions `default` (by gender) and `neutral`; no `cs_individual`, no `cs_area`
+- no data preset: `python run.py -d sod --topic senate_2026`
+- still true, as for 2025: the subjects of `sod` are described as of 2021, and no dataset has
+  claims for the topic
+- the Czech is unreviewed
+
+### `media_fees_2026`
+
+- **`cs` and the question `default` were edited under their names**: no run recorded them - the
+  topic's one run is the colleague's delivered table, which came without a prompt
+  - the system prompt follows §44: "popisu respondenta", no capitals for emphasis, the sum
+    rule as its own sentence. The two stances are no longer spelled out in the rules - the
+    labels name them, and a second wording beside the labels could disagree with them
+  - the question names the proposal the options answer ("K návrhu zrušit poplatky ... a
+    financovat je ze státního rozpočtu zastávám tento postoj:"); it named only the fees
+  - the schema text and the option names are unchanged, so the schema snapshot is too
+- **`polls.json`**: STEM/MARK for Česká televize, 29 October 2026, n = 814, as Echo24 reported
+  it - the agency's release was not found
+  - the poll had three answers: as fast as possible 23, to the state budget only with
+    independence secured 31, keep the fees 34, cannot say 12. `Abolish` is the first two over
+    those who answered, 0.614; `Keep` 0.386. `Abolish` there includes a condition ours lacks
+  - no figure draws it: polls are held against a reference or claims, and the topic has neither
+  - REJECTED: the poll as the topic's `reference` - a reference is what was counted, and
+    figures would call a poll of 814 the actual result
+- **`plot.json`**: two colours and short English labels - the native names are sentences
+- the notes say what is true today: the bill passed its first reading on 2026-10-24 and is
+  meant to take effect on 2027-01-01; the topic is no longer "never run"
+- found, not fixed: `python -m tests.baseline` raises on a framing without a schema
+  (`cs_letters`); the two snapshots were written through `tests/test_schemas.py:generated`

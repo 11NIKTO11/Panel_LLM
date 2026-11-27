@@ -1,0 +1,203 @@
+{
+    "scale": [
+        0,
+        10
+    ],
+    "axes": {
+        "x": {
+            "item": "lrecon",
+            "label": "economic left (0) - right (10)"
+        },
+        "y": {
+            "item": "galtan",
+            "label": "GAL (0) - TAN (10)"
+        }
+    },
+    "positions": {
+        "ANO": {
+            "eu_position": 3.0682,
+            "lrgen": 4.2162,
+            "lrecon": 3.8,
+            "galtan": 6.95,
+            "immigrate_policy": 8.8462,
+            "multiculturalism": 8.5833,
+            "redistribution": 3.8,
+            "environment": 7.6667,
+            "spendvtax": 5.4375,
+            "deregulation": 4.7333,
+            "civlib_laworder": 6.9474,
+            "religious_principles": 2.6923,
+            "ethnic_minorities": 7.5333,
+            "nationalism": 7.85,
+            "urban_rural": 6.6923,
+            "protectionism": 6.7368,
+            "regions": 7.2727
+        },
+        "STAN": {
+            "eu_position": 6.6429,
+            "lrgen": 5.8,
+            "lrecon": 5.85,
+            "galtan": 4.05,
+            "immigrate_policy": 5.0811,
+            "multiculturalism": 5.1111,
+            "redistribution": 5.8,
+            "environment": 3.5882,
+            "spendvtax": 5.0,
+            "deregulation": 6.0,
+            "civlib_laworder": 3.7895,
+            "religious_principles": 3.1333,
+            "ethnic_minorities": 4.5714,
+            "nationalism": 3.2,
+            "urban_rural": 6.2857,
+            "protectionism": 3.7222,
+            "regions": 2.5333
+        },
+        "ODS": {
+            "eu_position": 4.0,
+            "lrgen": 7.125,
+            "lrecon": 7.2439,
+            "galtan": 6.5122,
+            "immigrate_policy": 7.1282,
+            "multiculturalism": 7.6471,
+            "redistribution": 7.1714,
+            "environment": 6.0,
+            "spendvtax": 6.3529,
+            "deregulation": 6.875,
+            "civlib_laworder": 5.5263,
+            "religious_principles": 4.5333,
+            "ethnic_minorities": 6.3125,
+            "nationalism": 6.5,
+            "urban_rural": 3.3077,
+            "protectionism": 3.85,
+            "regions": 6.5385
+        },
+        "KDU": {
+            "eu_position": 5.9091,
+            "lrgen": 6.0,
+            "lrecon": 5.3659,
+            "galtan": 7.85,
+            "immigrate_policy": 6.5135,
+            "multiculturalism": 7.1944,
+            "redistribution": 4.7429,
+            "environment": 4.6471,
+            "spendvtax": 4.4706,
+            "deregulation": 5.0,
+            "civlib_laworder": 5.8947,
+            "religious_principles": 8.1667,
+            "ethnic_minorities": 6.0,
+            "nationalism": 5.95,
+            "urban_rural": 7.4667,
+            "protectionism": 5.55,
+            "regions": 4.2667
+        },
+        "SPD": {
+            "eu_position": 1.1136,
+            "lrgen": 8.75,
+            "lrecon": 4.1026,
+            "galtan": 9.439,
+            "immigrate_policy": 9.9231,
+            "multiculturalism": 9.7568,
+            "redistribution": 4.3235,
+            "environment": 8.8333,
+            "spendvtax": 5.3571,
+            "deregulation": 4.8462,
+            "civlib_laworder": 9.1579,
+            "religious_principles": 4.1538,
+            "ethnic_minorities": 9.7647,
+            "nationalism": 9.85,
+            "urban_rural": 6.1667,
+            "protectionism": 8.95,
+            "regions": 8.25
+        },
+        "TOP09": {
+            "eu_position": 6.4878,
+            "lrgen": 6.875,
+            "lrecon": 7.2927,
+            "galtan": 4.2439,
+            "immigrate_policy": 5.1026,
+            "multiculturalism": 5.3611,
+            "redistribution": 6.9706,
+            "environment": 3.5882,
+            "spendvtax": 6.4706,
+            "deregulation": 6.75,
+            "civlib_laworder": 3.6842,
+            "religious_principles": 4.4375,
+            "ethnic_minorities": 4.3125,
+            "nationalism": 3.4,
+            "urban_rural": 2.8571,
+            "protectionism": 3.05,
+            "regions": 5.0769
+        }
+    },
+    "spread": {
+        "eu_position": {
+            "mean": 4.0006,
+            "std": 2.1971
+        },
+        "lrgen": {
+            "mean": 5.7175,
+            "std": 2.4172
+        },
+        "lrecon": {
+            "mean": 4.9546,
+            "std": 2.1234
+        },
+        "galtan": {
+            "mean": 6.2921,
+            "std": 2.3407
+        },
+        "immigrate_policy": {
+            "mean": 7.256,
+            "std": 2.2286
+        },
+        "multiculturalism": {
+            "mean": 7.289,
+            "std": 2.146
+        },
+        "redistribution": {
+            "mean": 4.8898,
+            "std": 1.9478
+        },
+        "environment": {
+            "mean": 6.0919,
+            "std": 2.3857
+        },
+        "spendvtax": {
+            "mean": 5.0578,
+            "std": 1.4135
+        },
+        "deregulation": {
+            "mean": 5.0075,
+            "std": 1.7382
+        },
+        "civlib_laworder": {
+            "mean": 6.1509,
+            "std": 2.4212
+        },
+        "religious_principles": {
+            "mean": 3.4783,
+            "std": 1.9475
+        },
+        "ethnic_minorities": {
+            "mean": 6.3921,
+            "std": 2.3434
+        },
+        "nationalism": {
+            "mean": 6.3407,
+            "std": 2.7259
+        },
+        "urban_rural": {
+            "mean": 5.008,
+            "std": 1.7008
+        },
+        "protectionism": {
+            "mean": 5.8222,
+            "std": 2.1245
+        },
+        "regions": {
+            "mean": 5.901,
+            "std": 1.8858
+        }
+    },
+    "note": "Chapel Hill Expert Survey 2024 (CHES_2024_final_v2.csv, chesdata.eu, downloaded 2026-11-18), by the method of election_2025's file, whose ANO, STAN and SPD it reproduces exactly: the same 17 items on 0-10 scales, the same `spread` over the eleven Czech parties CHES 2024 rates. Every option but `Other` is a party CHES rates, so nothing is weighted or approximated here."
+}

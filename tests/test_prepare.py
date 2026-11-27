@@ -1,5 +1,4 @@
 """Prepare: a dataset's declaration, its values table, its forms, and the descriptions rendered from them."""
-import hashlib
 import importlib
 import json
 import math
@@ -12,6 +11,7 @@ from panel.dataset import INDEX, Dataset, dataset_names, load_claims, load_datas
 from panel.describe.forms import ColumnForms, Forms, load_forms
 from panel.describe.render import read_prompts, render, render_all
 from panel.describe.template import PromptTemplate, load_template
+from panel.digest import text_sha256
 from panel.grid import full_factorial
 from panel.prepare import count_prompts, prepare
 from panel.run import ResultStore
@@ -238,7 +238,7 @@ def test_prepare_keeps_a_table_a_saved_run_was_built_from(tmp_path, monkeypatch)
     table.write_bytes(older)
     record = ResultStore(results, "some_topic").paths("stem").record
     record.parent.mkdir(parents=True)
-    record.write_text(json.dumps({"dataset": {"prompts_sha256": hashlib.sha256(older).hexdigest()}}), encoding="utf-8")
+    record.write_text(json.dumps({"dataset": {"prompts_sha256": text_sha256(older)}}), encoding="utf-8")
     grid.values_path.write_bytes(b"unused by any run")
     with pytest.raises(FileExistsError, match="stem"):
         prepare("grid_simple", results_dir=results)

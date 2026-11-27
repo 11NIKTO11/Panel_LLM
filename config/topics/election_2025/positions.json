@@ -1,0 +1,222 @@
+{
+    "scale": [
+        0,
+        10
+    ],
+    "axes": {
+        "x": {
+            "item": "lrecon",
+            "label": "economic left (0) - right (10)"
+        },
+        "y": {
+            "item": "galtan",
+            "label": "GAL (0) - TAN (10)"
+        }
+    },
+    "positions": {
+        "ANO": {
+            "eu_position": 3.0682,
+            "lrgen": 4.2162,
+            "lrecon": 3.8,
+            "galtan": 6.95,
+            "immigrate_policy": 8.8462,
+            "multiculturalism": 8.5833,
+            "redistribution": 3.8,
+            "environment": 7.6667,
+            "spendvtax": 5.4375,
+            "deregulation": 4.7333,
+            "civlib_laworder": 6.9474,
+            "religious_principles": 2.6923,
+            "ethnic_minorities": 7.5333,
+            "nationalism": 7.85,
+            "urban_rural": 6.6923,
+            "protectionism": 6.7368,
+            "regions": 7.2727
+        },
+        "SPOLU": {
+            "eu_position": 5.0826,
+            "lrgen": 6.7749,
+            "lrecon": 6.7698,
+            "galtan": 6.3211,
+            "immigrate_policy": 6.4897,
+            "multiculturalism": 6.9889,
+            "redistribution": 6.4959,
+            "environment": 5.0792,
+            "spendvtax": 5.894,
+            "deregulation": 6.3606,
+            "civlib_laworder": 5.1855,
+            "religious_principles": 5.4502,
+            "ethnic_minorities": 5.7582,
+            "nationalism": 5.6239,
+            "urban_rural": 4.2765,
+            "protectionism": 4.1002,
+            "regions": 5.605
+        },
+        "Pirati": {
+            "eu_position": 6.4091,
+            "lrgen": 4.2,
+            "lrecon": 4.4359,
+            "galtan": 1.5854,
+            "immigrate_policy": 3.3158,
+            "multiculturalism": 3.1143,
+            "redistribution": 4.4062,
+            "environment": 2.4706,
+            "spendvtax": 3.5882,
+            "deregulation": 5.0667,
+            "civlib_laworder": 1.8889,
+            "religious_principles": 1.5294,
+            "ethnic_minorities": 2.4118,
+            "nationalism": 1.6,
+            "urban_rural": 2.6154,
+            "protectionism": 3.3158,
+            "regions": 3.5714
+        },
+        "STAN": {
+            "eu_position": 6.6429,
+            "lrgen": 5.8,
+            "lrecon": 5.85,
+            "galtan": 4.05,
+            "immigrate_policy": 5.0811,
+            "multiculturalism": 5.1111,
+            "redistribution": 5.8,
+            "environment": 3.5882,
+            "spendvtax": 5.0,
+            "deregulation": 6.0,
+            "civlib_laworder": 3.7895,
+            "religious_principles": 3.1333,
+            "ethnic_minorities": 4.5714,
+            "nationalism": 3.2,
+            "urban_rural": 6.2857,
+            "protectionism": 3.7222,
+            "regions": 2.5333
+        },
+        "SPD": {
+            "eu_position": 1.1136,
+            "lrgen": 8.75,
+            "lrecon": 4.1026,
+            "galtan": 9.439,
+            "immigrate_policy": 9.9231,
+            "multiculturalism": 9.7568,
+            "redistribution": 4.3235,
+            "environment": 8.8333,
+            "spendvtax": 5.3571,
+            "deregulation": 4.8462,
+            "civlib_laworder": 9.1579,
+            "religious_principles": 4.1538,
+            "ethnic_minorities": 9.7647,
+            "nationalism": 9.85,
+            "urban_rural": 6.1667,
+            "protectionism": 8.95,
+            "regions": 8.25
+        },
+        "AUTO": {
+            "eu_position": 1.5814,
+            "lrgen": 8.4118,
+            "lrecon": 7.4231,
+            "galtan": 8.25,
+            "immigrate_policy": 9.4545,
+            "multiculturalism": 9.4615,
+            "redistribution": 7.3158,
+            "environment": 9.0,
+            "spendvtax": 7.3,
+            "deregulation": 6.5,
+            "civlib_laworder": 8.1429,
+            "religious_principles": 3.3333,
+            "ethnic_minorities": 9.1667,
+            "nationalism": 9.0,
+            "urban_rural": 3.5556,
+            "protectionism": 6.2222,
+            "regions": 7.1667
+        },
+        "Stacilo": {
+            "eu_position": 1.4773,
+            "lrgen": 1.0789,
+            "lrecon": 0.7561,
+            "galtan": 8.0,
+            "immigrate_policy": 9.3333,
+            "multiculturalism": 8.9444,
+            "redistribution": 1.5,
+            "environment": 8.0,
+            "spendvtax": 2.9412,
+            "deregulation": 1.1333,
+            "civlib_laworder": 8.6842,
+            "religious_principles": 0.8235,
+            "ethnic_minorities": 7.4375,
+            "nationalism": 8.75,
+            "urban_rural": 6.3077,
+            "protectionism": 8.9474,
+            "regions": 7.8182
+        }
+    },
+    "spread": {
+        "eu_position": {
+            "mean": 4.0006,
+            "std": 2.1971
+        },
+        "lrgen": {
+            "mean": 5.7175,
+            "std": 2.4172
+        },
+        "lrecon": {
+            "mean": 4.9546,
+            "std": 2.1234
+        },
+        "galtan": {
+            "mean": 6.2921,
+            "std": 2.3407
+        },
+        "immigrate_policy": {
+            "mean": 7.256,
+            "std": 2.2286
+        },
+        "multiculturalism": {
+            "mean": 7.289,
+            "std": 2.146
+        },
+        "redistribution": {
+            "mean": 4.8898,
+            "std": 1.9478
+        },
+        "environment": {
+            "mean": 6.0919,
+            "std": 2.3857
+        },
+        "spendvtax": {
+            "mean": 5.0578,
+            "std": 1.4135
+        },
+        "deregulation": {
+            "mean": 5.0075,
+            "std": 1.7382
+        },
+        "civlib_laworder": {
+            "mean": 6.1509,
+            "std": 2.4212
+        },
+        "religious_principles": {
+            "mean": 3.4783,
+            "std": 1.9475
+        },
+        "ethnic_minorities": {
+            "mean": 6.3921,
+            "std": 2.3434
+        },
+        "nationalism": {
+            "mean": 6.3407,
+            "std": 2.7259
+        },
+        "urban_rural": {
+            "mean": 5.008,
+            "std": 1.7008
+        },
+        "protectionism": {
+            "mean": 5.8222,
+            "std": 2.1245
+        },
+        "regions": {
+            "mean": 5.901,
+            "std": 1.8858
+        }
+    },
+    "note": "Chapel Hill Expert Survey 2024 (CHES_2024_final_v2.csv, chesdata.eu, downloaded 2026-11-17), Czech parties, 17 position items on 0-10 scales - the items of election_2021's file that the 2024 wave has under the same name; econ_interven, sociallifestyle, russian_interference, anti_islam_rhetoric and people_vs_elite are not in it under those names. SPOLU is the mean of ODS, TOP 09 and KDU-CSL weighted by their 2017 vote shares (11.32, 5.31, 5.80), as in election_2021. AUTO is CHES's MOTO. Stacilo is given the rating of KSCM, the party the list is built around: CHES rates parties, not lists, and SOCDEM, whose candidates also stood on it, is rated separately and far from it - an approximation to drop if it misleads. `spread` is each item's mean and sample standard deviation over the eleven Czech parties CHES 2024 rates, for standardising. Other has no rating. The method reproduces election_2021's file exactly from CHES2019V3.csv."
+}
